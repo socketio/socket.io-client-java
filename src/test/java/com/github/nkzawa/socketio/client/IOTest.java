@@ -1,6 +1,8 @@
 package com.github.nkzawa.socketio.client;
 
 import com.github.nkzawa.emitter.Emitter;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,6 +13,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.*;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -110,7 +114,7 @@ public class IOTest {
 
     @Test(timeout = TIMEOUT)
     public void message() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<String> events = new LinkedBlockingQueue<String>();
+        final BlockingQueue<Object[]> events = new LinkedBlockingQueue<Object[]>();
 
         IO.Options opts = new IO.Options();
         opts.forceNew = true;
@@ -119,19 +123,82 @@ public class IOTest {
             @Override
             public void call(Object... objects) {
                 System.out.println("connect:");
-                socket.send("hi");
+                socket.send("foo", "bar");
             }
         }).on(Socket.EVENT_MESSAGE, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                System.out.println("message: " + objects);
-                events.offer((String) objects[0]);
+                System.out.println(String.format(
+                        objects.length > 1 ? "message: %s, %s" : "message: %s", objects));
+                events.offer(objects);
             }
         });
         socket.connect();
 
-        assertThat(events.take(), is("hello client"));
-        assertThat(events.take(), is("hi"));
+        assertThat(events.take(), is(new Object[] {"hello client"}));
+        assertThat(events.take(), is(new Object[] {"foo", "bar"}));
+        socket.disconnect();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void event() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object[]> events = new LinkedBlockingQueue<Object[]>();
+
+        Map<String, String> data = new HashMap<String, String>() {{
+            put("foo", "1");
+        }};
+        final JsonElement jsonData = new Gson().toJsonTree(data, Map.class);
+
+        IO.Options opts = new IO.Options();
+        opts.forceNew = true;
+        socket = IO.socket("http://localhost:" + PORT, opts);
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                System.out.println("connect:");
+                socket.emit("echo", jsonData, "bar");
+            }
+        }).on("echoBack", new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                System.out.println(String.format("echoBack: %s, %s", objects));
+                events.offer(objects);
+            }
+        });
+        socket.connect();
+
+        assertThat(events.take(), is(new Object[] {jsonData, "bar"}));
+        socket.disconnect();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void ack() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object[]> events = new LinkedBlockingQueue<Object[]>();
+
+        Map<String, String> data = new HashMap<String, String>() {{
+            put("foo", "1");
+        }};
+        final JsonElement jsonData = new Gson().toJsonTree(data, Map.class);
+
+        IO.Options opts = new IO.Options();
+        opts.forceNew = true;
+        socket = IO.socket("http://localhost:" + PORT, opts);
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                System.out.println("connect:");
+                socket.emit("ack", new Object[] {jsonData, "bar"}, new Socket.Ack() {
+                    @Override
+                    public void call(Object... args) {
+                        System.out.println(String.format("ack: %s, %s", args));
+                        events.offer(args);
+                    }
+                });
+            }
+        });
+        socket.connect();
+
+        assertThat(events.take(), is(new Object[] {jsonData, "bar"}));
         socket.disconnect();
     }
 }

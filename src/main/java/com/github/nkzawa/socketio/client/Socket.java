@@ -5,9 +5,8 @@ import com.github.nkzawa.socketio.parser.Packet;
 import com.github.nkzawa.socketio.parser.Parser;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.JsonElement;
 
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -82,11 +81,11 @@ public class Socket extends Emitter {
             LinkedList<Object> _args = new LinkedList<Object>(Arrays.asList(args));
             if (_args.peekLast() instanceof Ack) {
                 Ack ack = (Ack)_args.pollLast();
-                return this.emit(event, ack, _args.toArray());
+                return this.emit(event, _args.toArray(), ack);
             }
 
             _args.offerFirst(event);
-            Packet packet = new Packet(Parser.EVENT, gson.toJsonTree(_args.toArray()));
+            Packet packet = new Packet(Parser.EVENT, toJsonArray(_args));
             this.packet(packet);
         }
 
@@ -94,19 +93,19 @@ public class Socket extends Emitter {
     }
 
     /**
-     * An alias method for `emit` with `ack`
+     * emit with an ack callback
      *
      * @param event
-     * @param ack
      * @param args
+     * @param ack
      * @return
      */
-    public Emitter emit(final String event, Ack ack, final Object... args) {
+    public Emitter emit(final String event, final Object[] args, Ack ack) {
         List<Object> _args = new ArrayList<Object>() {{
             add(event);
             addAll(Arrays.asList(args));
         }};
-        Packet packet = new Packet(Parser.EVENT, gson.toJsonTree(_args.toArray()));
+        Packet packet = new Packet(Parser.EVENT, toJsonArray(_args));
 
         int ids = this.ids.getAndIncrement();
         logger.info(String.format("emitting packet with ack id %d", ids));
@@ -138,14 +137,13 @@ public class Socket extends Emitter {
         this.subs.add(On.on(io, Manager.EVENT_PACKET, new Listener() {
             @Override
             public void call(Object... objects) {
-                Packet packet = objects.length > 0 ? (Packet)objects[0] : null;
-                Socket.this.onpacket(packet);
+                Socket.this.onpacket((Packet)objects[0]);
             }
         }));
         this.subs.add(On.on(io, Manager.EVENT_CLOSE, new Listener() {
             @Override
             public void call(Object... objects) {
-                String reason = objects.length > 0 ? (String)objects[0] : null;
+                String reason = objects.length > 0 ? (String) objects[0] : null;
                 Socket.this.onclose(reason);
             }
         }));
@@ -185,8 +183,7 @@ public class Socket extends Emitter {
     }
 
     private void onevent(Packet packet) {
-        Type type = new TypeToken<LinkedList<Object>>(){}.getType();
-        LinkedList<Object> args = gson.fromJson(packet.data != null ? packet.data : new JsonArray(), type);
+        LinkedList<Object> args = new LinkedList<Object>(fromJsonArray(packet.data.getAsJsonArray()));
         logger.info(String.format("emitting event %s", args));
 
         if (packet.id >= 0) {
@@ -221,7 +218,7 @@ public class Socket extends Emitter {
     private void onack(Packet packet) {
         logger.info(String.format("calling ack %s with %s", packet.id, packet.data));
         Ack fn = this.acks.remove(packet.id);
-        fn.call(gson.fromJson(packet.data, Object[].class));
+        fn.call(fromJsonArray(packet.data.getAsJsonArray()).toArray());
     }
 
     private void onconnect() {
@@ -271,6 +268,22 @@ public class Socket extends Emitter {
 
     public Socket disconnect() {
         return this.close();
+    }
+
+    private static JsonArray toJsonArray(List<Object> list) {
+        JsonArray data = new JsonArray();
+        for (Object v : list) {
+            data.add(v instanceof JsonElement ? (JsonElement)v : gson.toJsonTree(v));
+        }
+        return data;
+    }
+
+    private static List<Object> fromJsonArray(JsonArray array) {
+        List<Object> data = new ArrayList<Object>();
+        for (JsonElement v : array) {
+            data.add(v.isJsonPrimitive() ? gson.fromJson(v, Object.class) : v);
+        }
+        return data;
     }
 
 
