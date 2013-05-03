@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 public class Parser {
 
-    private static final Logger logger = Logger.getLogger("socket.io-parser");
+    private static final Logger logger = Logger.getLogger(Parser.class.getName());
 
     private static final Gson gson = new Gson();
     private static final JsonParser parser = new JsonParser();
@@ -56,7 +56,7 @@ public class Parser {
             str.append(gson.toJson(obj.data));
         }
 
-        logger.info(String.format("encoded %s as %s", obj, str));
+        logger.fine(String.format("encoded %s as %s", obj, str));
         return str.toString();
     }
 
@@ -121,7 +121,7 @@ public class Parser {
             return error();
         }
 
-        logger.info(String.format("decoded %s as %s", str, p));
+        logger.fine(String.format("decoded %s as %s", str, p));
         return p;
     }
 

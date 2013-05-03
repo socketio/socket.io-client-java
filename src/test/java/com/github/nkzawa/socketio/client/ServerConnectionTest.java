@@ -21,7 +21,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JUnit4.class)
-public class IOTest {
+public class ServerConnectionTest {
 
     final static int TIMEOUT = 3000;
     final static int PORT = 3000;
