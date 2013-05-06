@@ -1,6 +1,7 @@
 package com.github.nkzawa.socketio.client;
 
 import com.github.nkzawa.emitter.Emitter;
+import com.github.nkzawa.engineio.client.EventThread;
 import com.github.nkzawa.socketio.parser.Packet;
 import com.github.nkzawa.socketio.parser.Parser;
 import com.google.gson.Gson;
@@ -8,9 +9,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 public class Socket extends Emitter {
@@ -32,12 +30,13 @@ public class Socket extends Emitter {
 
     private boolean connected;
     private boolean disconnected = true;
-    private AtomicInteger ids = new AtomicInteger();
+    private int ids;
     private String nsp;
     private Manager io;
-    private Map<Integer, Ack> acks = new ConcurrentHashMap<Integer, Ack>();
+    private Map<Integer, Ack> acks = new HashMap<Integer, Ack>();
     private Queue<On.Handle> subs;
-    private final Queue<LinkedList<Object>> buffer = new ConcurrentLinkedQueue<LinkedList<Object>>();
+    private final Queue<LinkedList<Object>> buffer = new LinkedList<LinkedList<Object>>();
+
 
     public Socket(Manager io, String nsp) {
         this.io = io;
@@ -45,50 +44,65 @@ public class Socket extends Emitter {
     }
 
     public void open() {
-        final Manager io = this.io;
-        this.subs = new ConcurrentLinkedQueue<On.Handle>() {{
-            add(On.on(io, Manager.EVENT_OPEN, new Listener() {
-                @Override
-                public void call(Object... objects) {
-                    Socket.this.onopen();
-                }
-            }));
-            add(On.on(io, Manager.EVENT_ERROR, new Listener() {
-                @Override
-                public void call(Object... objects) {
-                    Socket.this.onerror(objects.length > 0 ? (Exception) objects[0] : null);
-                }
-            }));
-        }};
-        if (this.io.readyState == Manager.OPEN) this.onopen();
-        io.open();
+        EventThread.exec(new Runnable() {
+            @Override
+            public void run() {
+                final Manager io = Socket.this.io;
+                Socket.this.subs = new LinkedList<On.Handle>() {{
+                    add(On.on(io, Manager.EVENT_OPEN, new Listener() {
+                        @Override
+                        public void call(Object... objects) {
+                            Socket.this.onopen();
+                        }
+                    }));
+                    add(On.on(io, Manager.EVENT_ERROR, new Listener() {
+                        @Override
+                        public void call(Object... objects) {
+                            Socket.this.onerror(objects.length > 0 ? (Exception) objects[0] : null);
+                        }
+                    }));
+                }};
+                if (Socket.this.io.readyState == Manager.OPEN) Socket.this.onopen();
+                io.open();
+            }
+        });
     }
 
     public void connect() {
         this.open();
     }
 
-    public Socket send(Object... args) {
-        this.emit(EVENT_MESSAGE, args);
+    public Socket send(final Object... args) {
+        EventThread.exec(new Runnable() {
+            @Override
+            public void run() {
+                Socket.this.emit(EVENT_MESSAGE, args);
+            }
+        });
         return this;
     }
 
     @Override
-    public Emitter emit(String event, Object... args) {
-        if (events.contains(event)) {
-            super.emit(event, args);
-        } else {
-            LinkedList<Object> _args = new LinkedList<Object>(Arrays.asList(args));
-            if (_args.peekLast() instanceof Ack) {
-                Ack ack = (Ack)_args.pollLast();
-                return this.emit(event, _args.toArray(), ack);
+    public Emitter emit(final String event, final Object... args) {
+        EventThread.exec(new Runnable() {
+            @Override
+            public void run() {
+                if (events.contains(event)) {
+                    Socket.super.emit(event, args);
+                } else {
+                    LinkedList<Object> _args = new LinkedList<Object>(Arrays.asList(args));
+                    if (_args.peekLast() instanceof Ack) {
+                        Ack ack = (Ack)_args.pollLast();
+                        Socket.this.emit(event, _args.toArray(), ack);
+                        return;
+                    }
+
+                    _args.offerFirst(event);
+                    Packet packet = new Packet(Parser.EVENT, toJsonArray(_args));
+                    Socket.this.packet(packet);
+                }
             }
-
-            _args.offerFirst(event);
-            Packet packet = new Packet(Parser.EVENT, toJsonArray(_args));
-            this.packet(packet);
-        }
-
+        });
         return this;
     }
 
@@ -100,20 +114,23 @@ public class Socket extends Emitter {
      * @param ack
      * @return
      */
-    public Emitter emit(final String event, final Object[] args, Ack ack) {
-        List<Object> _args = new ArrayList<Object>() {{
-            add(event);
-            addAll(Arrays.asList(args));
-        }};
-        Packet packet = new Packet(Parser.EVENT, toJsonArray(_args));
+    public Emitter emit(final String event, final Object[] args, final Ack ack) {
+        EventThread.exec(new Runnable() {
+            @Override
+            public void run() {
+                List<Object> _args = new ArrayList<Object>() {{
+                    add(event);
+                    addAll(Arrays.asList(args));
+                }};
+                Packet packet = new Packet(Parser.EVENT, toJsonArray(_args));
 
-        int ids = this.ids.getAndIncrement();
-        logger.fine(String.format("emitting packet with ack id %d", ids));
-        this.acks.put(ids, ack);
-        packet.id = ids;
+                logger.fine(String.format("emitting packet with ack id %d", ids));
+                Socket.this.acks.put(ids, ack);
+                packet.id = ids++;
 
-        this.packet(packet);
-
+                Socket.this.packet(packet);
+            }
+        });
         return this;
     }
 
@@ -255,14 +272,19 @@ public class Socket extends Emitter {
     }
 
     public Socket close() {
-        if (!this.connected) return this;
+        EventThread.exec(new Runnable() {
+            @Override
+            public void run() {
+                if (!Socket.this.connected) return;
 
-        logger.fine(String.format("performing disconnect (%s)", this.nsp));
-        this.packet(new Packet(Parser.DISCONNECT));
+                logger.fine(String.format("performing disconnect (%s)", Socket.this.nsp));
+                Socket.this.packet(new Packet(Parser.DISCONNECT));
 
-        this.destroy();
+                Socket.this.destroy();
 
-        this.onclose("io client disconnect");
+                Socket.this.onclose("io client disconnect");
+            }
+        });
         return this;
     }
 

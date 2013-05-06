@@ -7,14 +7,14 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class IO {
 
-    private static final Map<String, Manager> managers = new HashMap<String, Manager>();
+    private static final ConcurrentHashMap<String, Manager> managers = new ConcurrentHashMap<String, Manager>();
 
     public static int protocol = Parser.protocol;
+
 
     private IO() {}
 
@@ -49,7 +49,7 @@ public class IO {
         } else {
             String id = Url.extractId(parsed);
             if (!managers.containsKey(id)) {
-                managers.put(id, new Manager(href, opts));
+                managers.putIfAbsent(id, new Manager(href, opts));
             }
             io = managers.get(id);
         }

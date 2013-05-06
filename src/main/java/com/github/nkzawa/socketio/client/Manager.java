@@ -1,14 +1,14 @@
 package com.github.nkzawa.socketio.client;
 
 import com.github.nkzawa.emitter.Emitter;
+import com.github.nkzawa.engineio.client.EventThread;
 import com.github.nkzawa.socketio.parser.Packet;
 import com.github.nkzawa.socketio.parser.Parser;
 
 import java.net.URI;
-import java.util.Map;
+import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 public class Manager extends Emitter {
@@ -38,14 +38,19 @@ public class Manager extends Emitter {
     private long _reconnectionDelay;
     private long _reconnectionDelayMax;
     private long _timeout;
-    private AtomicInteger connected = new AtomicInteger();
-    private AtomicInteger attempts = new AtomicInteger();
-    private Map<String, Socket> nsps = new ConcurrentHashMap<String, Socket>();
-    private Queue<On.Handle> subs = new ConcurrentLinkedQueue<On.Handle>();
+    private int connected;
+    private int attempts;
+    private Queue<On.Handle> subs = new LinkedList<On.Handle>();
     private com.github.nkzawa.engineio.client.Socket engine;
+
+    /**
+     * This HashMap can be accessed from outside of EventThread.
+     */
+    private ConcurrentHashMap<String, Socket> nsps = new ConcurrentHashMap<String, Socket>();
 
     private ScheduledExecutorService timeoutScheduler = Executors.newSingleThreadScheduledExecutor();
     private ScheduledExecutorService reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
+
 
     public Manager(URI uri, IO.Options opts) {
         opts = initOptions(opts);
@@ -122,65 +127,74 @@ public class Manager extends Emitter {
     }
 
     public Manager open(final OpenCallback fn) {
-        if (this.readyState == OPEN && !this.reconnecting) return this;
-
-        final com.github.nkzawa.engineio.client.Socket socket = this.engine;
-        final Manager self = this;
-
-        this.readyState = OPENING;
-
-        final On.Handle openSub = On.on(socket, Engine.EVENT_OPEN, new Listener() {
+        EventThread.exec(new Runnable() {
             @Override
-            public void call(Object... objects) {
-                self.onopen();
-                if (fn != null) fn.call(null);
+            public void run() {
+                if (Manager.this.readyState == OPEN && !Manager.this.reconnecting) return;
+
+                final com.github.nkzawa.engineio.client.Socket socket = Manager.this.engine;
+                final Manager self = Manager.this;
+
+                Manager.this.readyState = OPENING;
+
+                final On.Handle openSub = On.on(socket, Engine.EVENT_OPEN, new Listener() {
+                    @Override
+                    public void call(Object... objects) {
+                        self.onopen();
+                        if (fn != null) fn.call(null);
+                    }
+                });
+
+                On.Handle errorSub = On.on(socket, Engine.EVENT_ERROR, new Listener() {
+                    @Override
+                    public void call(Object... objects) {
+                        Object data = objects.length > 0 ? objects[0] : null;
+                        self.cleanup();
+                        self.emit(EVENT_CONNECT_ERROR, data);
+                        if (fn != null) {
+                            Exception err = new SocketIOException("Connection error",
+                                    data instanceof Exception ? (Exception)data : null);
+                            fn.call(err);
+                        }
+                    }
+                });
+
+                if (Manager.this._timeout >= 0) {
+                    final long timeout = Manager.this._timeout;
+                    logger.fine(String.format("connection attempt will timeout after %d", timeout));
+
+                    final Future timer = timeoutScheduler.schedule(new Runnable() {
+                        @Override
+                        public void run() {
+                            EventThread.exec(new Runnable() {
+                                @Override
+                                public void run() {
+                                    logger.fine(String.format("connect attempt timed out after %d", timeout));
+                                    openSub.destroy();
+                                    socket.close();
+                                    socket.emit(Engine.EVENT_ERROR, new SocketIOException("timeout"));
+                                    self.emit(EVENT_CONNECT_TIMEOUT, timeout);
+                                }
+                            });
+                        }
+                    }, timeout, TimeUnit.MILLISECONDS);
+
+                    On.Handle timeSub = new On.Handle() {
+                        @Override
+                        public void destroy() {
+                            timer.cancel(false);
+                        }
+                    };
+
+                    Manager.this.subs.add(timeSub);
+                }
+
+                Manager.this.subs.add(openSub);
+                Manager.this.subs.add(errorSub);
+
+                Manager.this.engine.open();
             }
         });
-
-        On.Handle errorSub = On.on(socket, Engine.EVENT_ERROR, new Listener() {
-            @Override
-            public void call(Object... objects) {
-                Object data = objects.length > 0 ? objects[0] : null;
-                self.cleanup();
-                self.emit(EVENT_CONNECT_ERROR, data);
-                if (fn != null) {
-                    Exception err = new SocketIOException("Connection error",
-                            data instanceof Exception ? (Exception)data : null);
-                    fn.call(err);
-                }
-            }
-        });
-
-        if (this._timeout >= 0) {
-            final long timeout = this._timeout;
-            logger.fine(String.format("connection attempt will timeout after %d", timeout));
-
-            final Future timer = timeoutScheduler.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    logger.fine(String.format("connect attempt timed out after %d", timeout));
-                    openSub.destroy();
-                    socket.close();
-                    socket.emit(Engine.EVENT_ERROR, new SocketIOException("timeout"));
-                    self.emit(EVENT_CONNECT_TIMEOUT, timeout);
-                }
-            }, timeout, TimeUnit.MILLISECONDS);
-
-            On.Handle timeSub = new On.Handle() {
-                @Override
-                public void destroy() {
-                    timer.cancel(false);
-                }
-            };
-
-            this.subs.add(timeSub);
-        }
-
-        this.subs.add(openSub);
-        this.subs.add(errorSub);
-
-        this.engine.open();
-
         return this;
     }
 
@@ -223,21 +237,24 @@ public class Manager extends Emitter {
         Socket socket = this.nsps.get(nsp);
         if (socket == null) {
             socket = new Socket(this, nsp);
-            this.nsps.put(nsp, socket);
-            final Manager self = this;
-            socket.on(Socket.EVENT_CONNECT, new Listener() {
-                @Override
-                public void call(Object... objects) {
-                    self.connected.incrementAndGet();
-                }
-            });
-
+            Socket _socket = this.nsps.putIfAbsent(nsp, socket);
+            if (_socket != null) {
+                socket = _socket;
+            } else {
+                final Manager self = this;
+                socket.on(Socket.EVENT_CONNECT, new Listener() {
+                    @Override
+                    public void call(Object... objects) {
+                        self.connected++;
+                    }
+                });
+            }
         }
         return socket;
     }
 
     /*package*/ void destroy(Socket socket) {
-        int connected = this.connected.decrementAndGet();
+        this.connected--;
         if (connected == 0) {
             this.close();
         }
@@ -269,13 +286,13 @@ public class Manager extends Emitter {
 
     private void reconnect() {
         final Manager self = this;
-        int attempts = this.attempts.incrementAndGet();
+        this.attempts++;
 
         if (attempts > this._reconnectionAttempts) {
             this.emit(EVENT_RECONNECT_FAILED);
             this.reconnecting = false;
         } else {
-            long delay = this.attempts.get() * this.reconnectionDelay();
+            long delay = this.attempts * this.reconnectionDelay();
             delay = Math.min(delay, this.reconnectionDelayMax());
             logger.fine(String.format("will wait %dms before reconnect attempt", delay));
 
@@ -283,18 +300,23 @@ public class Manager extends Emitter {
             final Future timer = this.reconnectScheduler.schedule(new Runnable() {
                 @Override
                 public void run() {
-                    logger.fine("attempting reconnect");
-                    self.open(new OpenCallback() {
+                    EventThread.exec(new Runnable() {
                         @Override
-                        public void call(Exception err) {
-                            if (err != null) {
-                                logger.fine("reconnect attempt error");
-                                self.reconnect();
-                                self.emit(EVENT_RECONNECT_ERROR, err);
-                            } else {
-                                logger.fine("reconnect success");
-                                self.onreconnect();
-                            }
+                        public void run() {
+                            logger.fine("attempting reconnect");
+                            self.open(new OpenCallback() {
+                                @Override
+                                public void call(Exception err) {
+                                    if (err != null) {
+                                        logger.fine("reconnect attempt error");
+                                        self.reconnect();
+                                        self.emit(EVENT_RECONNECT_ERROR, err);
+                                    } else {
+                                        logger.fine("reconnect success");
+                                        self.onreconnect();
+                                    }
+                                }
+                            });
                         }
                     });
                 }
@@ -310,11 +332,12 @@ public class Manager extends Emitter {
     }
 
     private void onreconnect() {
-        int attempts = this.attempts.get();
-        this.attempts.set(0);
+        int attempts = this.attempts;
+        this.attempts = 0;
         this.reconnecting = false;
         this.emit(EVENT_RECONNECT, attempts);
     }
+
 
     public static interface OpenCallback {
 
