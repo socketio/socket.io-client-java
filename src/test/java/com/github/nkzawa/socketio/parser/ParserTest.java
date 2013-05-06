@@ -20,12 +20,14 @@ public class ParserTest {
         test(packet);
     }
 
+    @Test
     public void disconnect() {
         Packet packet = new Packet(Parser.DISCONNECT);
         packet.nsp = "/woot";
         test(packet);
     }
 
+    @Test
     public void event() {
         Packet packet1 = new Packet(Parser.EVENT);
         packet1.data = new JsonParser().parse("[\"a\", 1, {}]");
@@ -38,6 +40,7 @@ public class ParserTest {
         test(packet2);
     }
 
+    @Test
     public void ack() {
         Packet packet = new Packet(Parser.ACK);
         packet.data = new JsonParser().parse("[\"a\", 1, {}]");

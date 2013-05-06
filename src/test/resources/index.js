@@ -1,8 +1,9 @@
 var server = require('http').Server()
   , io = require('socket.io')(server)
-  , port = parseInt(process.argv[2], 10) || 3000;
+  , port = parseInt(process.argv[2], 10) || 3000
+  , nsp = process.argv[3] || '/';
 
-io.on('connection', function(socket) {
+io.of(nsp).on('connection', function(socket) {
   socket.send('hello client');
 
   socket.on('message', function() {

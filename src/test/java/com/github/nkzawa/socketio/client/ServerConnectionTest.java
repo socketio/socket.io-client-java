@@ -38,7 +38,8 @@ public class ServerConnectionTest {
 
         final CountDownLatch latch = new CountDownLatch(1);
         serverProcess = Runtime.getRuntime().exec(
-                "node src/test/resources/index.js " + PORT, new String[] {"DEBUG=socket.io:*,engine*"});
+                String.format("node src/test/resources/index.js %s %s", PORT, nsp()),
+                new String[] {"DEBUG=socket.io:*"});
         serverService = Executors.newCachedThreadPool();
         serverOutout = serverService.submit(new Runnable() {
             @Override
@@ -91,7 +92,7 @@ public class ServerConnectionTest {
 
         IO.Options opts = new IO.Options();
         opts.forceNew = true;
-        socket = IO.socket("http://localhost:" + PORT, opts);
+        socket = IO.socket(uri(), opts);
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
@@ -118,7 +119,7 @@ public class ServerConnectionTest {
 
         IO.Options opts = new IO.Options();
         opts.forceNew = true;
-        socket = IO.socket("http://localhost:" + PORT, opts);
+        socket = IO.socket(uri(), opts);
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
@@ -151,7 +152,7 @@ public class ServerConnectionTest {
 
         IO.Options opts = new IO.Options();
         opts.forceNew = true;
-        socket = IO.socket("http://localhost:" + PORT, opts);
+        socket = IO.socket(uri(), opts);
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
@@ -182,7 +183,7 @@ public class ServerConnectionTest {
 
         IO.Options opts = new IO.Options();
         opts.forceNew = true;
-        socket = IO.socket("http://localhost:" + PORT, opts);
+        socket = IO.socket(uri(), opts);
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
@@ -200,5 +201,14 @@ public class ServerConnectionTest {
 
         assertThat(events.take(), is(new Object[] {jsonData, "bar"}));
         socket.disconnect();
+    }
+
+
+    private String uri() {
+        return "http://localhost:" + PORT + nsp();
+    }
+
+    protected String nsp() {
+        return "/";
     }
 }
