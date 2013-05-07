@@ -9,10 +9,14 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 public class IO {
 
     private static final ConcurrentHashMap<String, Manager> managers = new ConcurrentHashMap<String, Manager>();
 
+    /**
+     * Protocol version.
+     */
     public static int protocol = Parser.protocol;
 
 
@@ -30,6 +34,14 @@ public class IO {
         return socket(uri, null);
     }
 
+    /**
+     * Initializes a {@link Socket} from an existing {@link Manager} for multiplexing.
+     *
+     * @param uri uri to connect.
+     * @param opts options for socket.
+     * @return {@link Socket} instance.
+     * @throws URISyntaxException
+     */
     public static Socket socket(URI uri, Options opts) throws URISyntaxException {
         if (opts == null) {
             opts = new Options();
@@ -62,7 +74,12 @@ public class IO {
     public static class Options extends com.github.nkzawa.engineio.client.Socket.Options {
 
         public boolean forceNew;
+
+        /**
+         * Whether to enable multiplexing. Default is true.
+         */
         public boolean multiplex = true;
+
         public boolean reconnection;
         public int reconnectionAttempts;
         public long reconnectionDelay;

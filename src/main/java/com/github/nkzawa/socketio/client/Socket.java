@@ -11,16 +11,36 @@ import com.google.gson.JsonElement;
 import java.util.*;
 import java.util.logging.Logger;
 
+/**
+ * The socket class for Socket.IO Client.
+ */
 public class Socket extends Emitter {
 
     private static final Logger logger = Logger.getLogger(Socket.class.getName());
 
     private static final Gson gson = new Gson();
 
+    /**
+     * Called on a connection.
+     */
     public static final String EVENT_CONNECT = "connect";
+
+    /**
+     * Called on a disconnection.
+     */
     public static final String EVENT_DISCONNECT = "disconnect";
-    public static final String EVENT_MESSAGE = "message";
+
+    /**
+     * Called on a connection error.
+     *
+     * <p>Parameters:</p>
+     * <ul>
+     *   <li>(Exception) error data.</li>
+     * </ul>
+     */
     public static final String EVENT_ERROR = "error";
+
+    public static final String EVENT_MESSAGE = "message";
 
     private static List<String> events = new ArrayList<String>() {{
         add(EVENT_CONNECT);
@@ -43,6 +63,9 @@ public class Socket extends Emitter {
         this.nsp = nsp;
     }
 
+    /**
+     * Connects the socket.
+     */
     public void open() {
         EventThread.exec(new Runnable() {
             @Override
@@ -62,16 +85,25 @@ public class Socket extends Emitter {
                         }
                     }));
                 }};
-                if (Socket.this.io.readyState == Manager.OPEN) Socket.this.onopen();
+                if (Socket.this.io.readyState == Manager.ReadyState.OPEN) Socket.this.onopen();
                 io.open();
             }
         });
     }
 
+    /**
+     * Connects the socket.
+     */
     public void connect() {
         this.open();
     }
 
+    /**
+     * Send messages.
+     *
+     * @param args data to send.
+     * @return a reference to this object.
+     */
     public Socket send(final Object... args) {
         EventThread.exec(new Runnable() {
             @Override
@@ -82,6 +114,13 @@ public class Socket extends Emitter {
         return this;
     }
 
+    /**
+     * Emits an event. When you pass {@link Ack} at the last argument, then the acknowledge is done.
+     *
+     * @param event an event name.
+     * @param args data to send.
+     * @return a reference to this object.
+     */
     @Override
     public Emitter emit(final String event, final Object... args) {
         EventThread.exec(new Runnable() {
@@ -107,12 +146,12 @@ public class Socket extends Emitter {
     }
 
     /**
-     * emit with an ack callback
+     * Emits an event with an acknowledge.
      *
-     * @param event
-     * @param args
-     * @param ack
-     * @return
+     * @param event an event name
+     * @param args data to send.
+     * @param ack the acknowledgement to be called
+     * @return a reference to this object.
      */
     public Emitter emit(final String event, final Object[] args, final Ack ack) {
         EventThread.exec(new Runnable() {
@@ -271,6 +310,11 @@ public class Socket extends Emitter {
         this.io.destroy(this);
     }
 
+    /**
+     * Disconnects the socket.
+     *
+     * @return a reference to this object.
+     */
     public Socket close() {
         EventThread.exec(new Runnable() {
             @Override
@@ -288,6 +332,11 @@ public class Socket extends Emitter {
         return this;
     }
 
+    /**
+     * Disconnects the socket.
+     *
+     * @return a reference to this object.
+     */
     public Socket disconnect() {
         return this.close();
     }
@@ -309,6 +358,9 @@ public class Socket extends Emitter {
     }
 
 
+    /**
+     * Acknowledgement.
+     */
     public static interface Ack {
 
         public void call(Object... args);

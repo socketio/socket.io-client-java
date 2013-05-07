@@ -16,13 +16,36 @@ public class Parser {
     private static final Gson gson = new Gson();
     private static final JsonParser parser = new JsonParser();
 
+    /**
+     * Packet type `connect`.
+     */
     public static final int CONNECT = 0;
+
+    /**
+     * Packet type `disconnect`.
+     */
     public static final int DISCONNECT = 1;
+
+    /**
+     * Packet type `event`.
+     */
     public static final int EVENT = 2;
+
+    /**
+     * Packet type `ack`.
+     */
     public static final int ACK = 3;
+
+    /**
+     * Packet type `error`.
+     */
     public static final int ERROR = 4;
 
     public static int protocol = 1;
+
+    /**
+     * Packet types.
+     */
     public static List<String > types = new ArrayList<String>() {{
         add("CONNECT");
         add("DISCONNECT");

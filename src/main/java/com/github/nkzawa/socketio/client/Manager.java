@@ -11,25 +11,54 @@ import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
 
+
+/**
+ * Manager class represents a connection to a given Socket.IO server.
+ */
 public class Manager extends Emitter {
 
     private static final Logger logger = Logger.getLogger(Manager.class.getName());
 
-    /*package*/ static final int CLOSED = 0;
-    /*package*/ static final int OPENING = 1;
-    /*package*/ static final int OPEN = 2;
+    /*package*/ enum ReadyState {
+        CLOSED, OPENING, OPEN
+    }
 
+    /**
+     * Called on a successful connection.
+     */
     public static final String EVENT_OPEN = "open";
+
+    /**
+     * Called on a disconnection.
+     */
     public static final String EVENT_CLOSE = "close";
+
     public static final String EVENT_PACKET = "packet";
     public static final String EVENT_ERROR = "error";
+
+    /**
+     * Called on a connection error.
+     */
     public static final String EVENT_CONNECT_ERROR = "connect_error";
+
+    /**
+     * Called on a connection timeout.
+     */
     public static final String EVENT_CONNECT_TIMEOUT = "connect_timeout";
+
+    /**
+     * Called on a successful reconnection.
+     */
     public static final String EVENT_RECONNECT = "reconnect";
-    public static final String EVENT_RECONNECT_FAILED = "reconnect_failed";
+
+    /**
+     * Called on a reconnection attempt error.
+     */
     public static final String EVENT_RECONNECT_ERROR = "reconnect_error";
 
-    /*package*/ int readyState = CLOSED;
+    public static final String EVENT_RECONNECT_FAILED = "reconnect_failed";
+
+    /*package*/ ReadyState readyState = ReadyState.CLOSED;
 
     private boolean _reconnection;
     private boolean skipReconnect;
@@ -126,16 +155,22 @@ public class Manager extends Emitter {
         return open(null);
     }
 
+    /**
+     * Connects the client.
+     *
+     * @param fn callback.
+     * @return a reference to this object.
+     */
     public Manager open(final OpenCallback fn) {
         EventThread.exec(new Runnable() {
             @Override
             public void run() {
-                if (Manager.this.readyState == OPEN && !Manager.this.reconnecting) return;
+                if (Manager.this.readyState == ReadyState.OPEN && !Manager.this.reconnecting) return;
 
                 final com.github.nkzawa.engineio.client.Socket socket = Manager.this.engine;
                 final Manager self = Manager.this;
 
-                Manager.this.readyState = OPENING;
+                Manager.this.readyState = ReadyState.OPENING;
 
                 final On.Handle openSub = On.on(socket, Engine.EVENT_OPEN, new Listener() {
                     @Override
@@ -201,7 +236,7 @@ public class Manager extends Emitter {
     private void onopen() {
         this.cleanup();
 
-        this.readyState = OPEN;
+        this.readyState = ReadyState.OPEN;
         this.emit(EVENT_OPEN);
 
         final com.github.nkzawa.engineio.client.Socket socket = this.engine;
@@ -233,6 +268,12 @@ public class Manager extends Emitter {
         this.emit(EVENT_ERROR, err);
     }
 
+    /**
+     * Initializes {@link Socket} instances for each namespaces.
+     *
+     * @param nsp namespace.
+     * @return a socket instance for the namespace.
+     */
     public Socket socket(String nsp) {
         Socket socket = this.nsps.get(nsp);
         if (socket == null) {
