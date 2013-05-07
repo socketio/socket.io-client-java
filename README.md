@@ -1,7 +1,58 @@
 # Socket.IO-client.java
 [![Build Status](https://travis-ci.org/nkzawa/socket.io-client.java.png?branch=master)](https://travis-ci.org/nkzawa/socket.io-client.java)
 
-This is the Socket.IO 1.0 Client Library for Java.
+This is the Socket.IO v1.0 Client Library for Java, which is simply ported from the [JS client](https://github.com/LearnBoost/socket.io-client).
+
+See also: https://github.com/nkzawa/engine.io-client.java
+
+## Usage
+Socket.IO-client.java has almost the same api and features with the original JS client. You use `IO#socket` to initialize `Socket`:
+
+```java
+socket = IO.socket("http://localhost");
+socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+
+  @Override
+  public void call(Object... objects) {
+    socket.emit("foo", "hi");
+    socket.disconnect();
+  }
+
+}).on("event", new Emitter.Listener() {
+
+  @Override
+  public void call(Object... objects) {}
+
+}).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+
+  @Override
+  public void call(Object... objects) {}
+
+});
+socket.connect();
+```
+
+`Options` are supplied as follow:
+
+```java
+IO.Options opts = new IO.Options();
+opts.forceNew = true;
+
+socket = IO.socket("http://localhost", opts);
+```
+
+You can get a callback with the `Ack`:
+
+```java
+socket.emit("foo", "woot", new Socket.Ack() {
+  @Override
+  public void call(Object... args) {}
+});
+```
+
+See the Javadoc for more details.
+
+http://nkzawa.github.io/socket.io-client.java/apidocs/
 
 ## License
 
