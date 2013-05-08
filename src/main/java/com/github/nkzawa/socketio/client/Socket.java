@@ -356,14 +356,5 @@ public class Socket extends Emitter {
         }
         return data;
     }
-
-
-    /**
-     * Acknowledgement.
-     */
-    public static interface Ack {
-
-        public void call(Object... args);
-    }
 }
 

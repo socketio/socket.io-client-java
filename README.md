@@ -44,7 +44,7 @@ socket = IO.socket("http://localhost", opts);
 You can get a callback with the `Ack`:
 
 ```java
-socket.emit("foo", "woot", new Socket.Ack() {
+socket.emit("foo", "woot", new Ack() {
   @Override
   public void call(Object... args) {}
 });

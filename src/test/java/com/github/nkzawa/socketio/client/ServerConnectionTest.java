@@ -188,7 +188,7 @@ public class ServerConnectionTest {
             @Override
             public void call(Object... objects) {
                 System.out.println("connect:");
-                socket.emit("ack", new Object[] {jsonData, "bar"}, new Socket.Ack() {
+                socket.emit("ack", new Object[] {jsonData, "bar"}, new Ack() {
                     @Override
                     public void call(Object... args) {
                         System.out.println(String.format("ack: %s, %s", args));
