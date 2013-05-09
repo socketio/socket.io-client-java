@@ -352,7 +352,7 @@ public class Socket extends Emitter {
     private static List<Object> fromJsonArray(JsonArray array) {
         List<Object> data = new ArrayList<Object>();
         for (JsonElement v : array) {
-            data.add(v.isJsonPrimitive() ? gson.fromJson(v, Object.class) : v);
+            data.add(v.isJsonPrimitive() || v.isJsonNull() ? gson.fromJson(v, Object.class) : v);
         }
         return data;
     }

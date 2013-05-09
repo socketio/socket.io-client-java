@@ -157,18 +157,18 @@ public class ServerConnectionTest {
             @Override
             public void call(Object... objects) {
                 System.out.println("connect:");
-                socket.emit("echo", jsonData, "bar");
+                socket.emit("echo", jsonData, null, "bar");
             }
         }).on("echoBack", new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                System.out.println(String.format("echoBack: %s, %s", objects));
+                System.out.println(String.format("echoBack: %s, %s, %s", objects));
                 events.offer(objects);
             }
         });
         socket.connect();
 
-        assertThat(events.take(), is(new Object[] {jsonData, "bar"}));
+        assertThat(events.take(), is(new Object[] {jsonData, null, "bar"}));
         socket.disconnect();
     }
 
