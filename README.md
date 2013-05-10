@@ -13,7 +13,7 @@ socket = IO.socket("http://localhost");
 socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
 
   @Override
-  public void call(Object... objects) {
+  public void call(Object... args) {
     socket.emit("foo", "hi");
     socket.disconnect();
   }
@@ -21,15 +21,32 @@ socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
 }).on("event", new Emitter.Listener() {
 
   @Override
-  public void call(Object... objects) {}
+  public void call(Object... args) {}
 
 }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
 
   @Override
-  public void call(Object... objects) {}
+  public void call(Object... args) {}
 
 });
 socket.connect();
+```
+
+This Library uses [Gson](https://code.google.com/p/google-gson/) to parse and compose JSON strings:
+
+```java
+// Sending an object
+JsonObject obj = new JsonObject();
+obj.addProperty("hello", "server");
+socket.emit("foo", obj);
+
+// Receiving an object
+socket.on("foo", new Emitter.Listener() {
+  @Override
+  public void call(Object... args) {
+    JsonObject obj = (JsonObject)args[0];
+  }
+});
 ```
 
 Options are supplied as follow:
