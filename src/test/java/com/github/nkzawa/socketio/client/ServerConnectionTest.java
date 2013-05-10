@@ -1,8 +1,7 @@
 package com.github.nkzawa.socketio.client;
 
 import com.github.nkzawa.emitter.Emitter;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,8 +12,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.*;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -145,10 +142,8 @@ public class ServerConnectionTest {
     public void event() throws URISyntaxException, InterruptedException {
         final BlockingQueue<Object[]> events = new LinkedBlockingQueue<Object[]>();
 
-        Map<String, String> data = new HashMap<String, String>() {{
-            put("foo", "1");
-        }};
-        final JsonElement jsonData = new Gson().toJsonTree(data, Map.class);
+        final JsonObject obj = new JsonObject();
+        obj.addProperty("foo", 1);
 
         IO.Options opts = new IO.Options();
         opts.forceNew = true;
@@ -157,7 +152,7 @@ public class ServerConnectionTest {
             @Override
             public void call(Object... objects) {
                 System.out.println("connect:");
-                socket.emit("echo", jsonData, null, "bar");
+                socket.emit("echo", obj, null, "bar");
             }
         }).on("echoBack", new Emitter.Listener() {
             @Override
@@ -168,7 +163,7 @@ public class ServerConnectionTest {
         });
         socket.connect();
 
-        assertThat(events.take(), is(new Object[] {jsonData, null, "bar"}));
+        assertThat(events.take(), is(new Object[] {obj, null, "bar"}));
         socket.disconnect();
     }
 
@@ -176,10 +171,8 @@ public class ServerConnectionTest {
     public void ack() throws URISyntaxException, InterruptedException {
         final BlockingQueue<Object[]> events = new LinkedBlockingQueue<Object[]>();
 
-        Map<String, String> data = new HashMap<String, String>() {{
-            put("foo", "1");
-        }};
-        final JsonElement jsonData = new Gson().toJsonTree(data, Map.class);
+        final JsonObject obj = new JsonObject();
+        obj.addProperty("foo", 1);
 
         IO.Options opts = new IO.Options();
         opts.forceNew = true;
@@ -188,7 +181,7 @@ public class ServerConnectionTest {
             @Override
             public void call(Object... objects) {
                 System.out.println("connect:");
-                socket.emit("ack", new Object[] {jsonData, "bar"}, new Ack() {
+                socket.emit("ack", new Object[] {obj, "bar"}, new Ack() {
                     @Override
                     public void call(Object... args) {
                         System.out.println(String.format("ack: %s, %s", args));
@@ -199,7 +192,7 @@ public class ServerConnectionTest {
         });
         socket.connect();
 
-        assertThat(events.take(), is(new Object[] {jsonData, "bar"}));
+        assertThat(events.take(), is(new Object[] {obj, "bar"}));
         socket.disconnect();
     }
 
