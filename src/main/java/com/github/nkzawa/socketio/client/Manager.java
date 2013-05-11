@@ -165,7 +165,7 @@ public class Manager extends Emitter {
         EventThread.exec(new Runnable() {
             @Override
             public void run() {
-                if (Manager.this.readyState == ReadyState.OPEN && !Manager.this.reconnecting) return;
+                if (Manager.this.readyState == ReadyState.OPEN) return;
 
                 final com.github.nkzawa.engineio.client.Socket socket = Manager.this.engine;
                 final Manager self = Manager.this;
@@ -314,14 +314,15 @@ public class Manager extends Emitter {
     private void close() {
         this.skipReconnect = true;
         this.cleanup();
+        this.readyState = ReadyState.CLOSED;
         this.engine.close();
     }
 
     private void onclose() {
         this.cleanup();
+        this.readyState = ReadyState.CLOSED;
         if (!this.skipReconnect) {
             this.reconnect();
-
         }
     }
 
