@@ -159,7 +159,9 @@ public class Socket extends Emitter {
             public void run() {
                 List<Object> _args = new ArrayList<Object>() {{
                     add(event);
-                    addAll(Arrays.asList(args));
+                    if (args != null) {
+                        addAll(Arrays.asList(args));
+                    }
                 }};
                 Packet packet = new Packet(Parser.EVENT, toJsonArray(_args));
 

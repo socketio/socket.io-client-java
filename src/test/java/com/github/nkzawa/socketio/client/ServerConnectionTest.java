@@ -196,6 +196,30 @@ public class ServerConnectionTest {
         socket.disconnect();
     }
 
+    @Test(timeout = TIMEOUT)
+    public void ackWithoutArgs() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object[]> events = new LinkedBlockingQueue<Object[]>();
+
+        IO.Options opts = new IO.Options();
+        opts.forceNew = true;
+        socket = IO.socket(uri(), opts);
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                socket.emit("ack", null, new Ack() {
+                    @Override
+                    public void call(Object... args) {
+                        System.out.println("ack: " + args);
+                        events.offer(args);
+                    }
+                });
+            }
+        });
+        socket.connect();
+
+        assertThat(events.take(), is(new Object[] {}));
+        socket.disconnect();
+    }
 
     private String uri() {
         return "http://localhost:" + PORT + nsp();
