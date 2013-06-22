@@ -16,4 +16,7 @@ class Engine extends com.github.nkzawa.engineio.client.Socket {
 
     @Override
     public void onclose() {}
+
+    @Override
+    public void onerror(Exception err) {}
 }
