@@ -87,9 +87,7 @@ public class ServerConnectionTest {
     public void openAndClose() throws URISyntaxException, InterruptedException {
         final BlockingQueue<String> events = new LinkedBlockingQueue<String>();
 
-        IO.Options opts = new IO.Options();
-        opts.forceNew = true;
-        socket = IO.socket(uri(), opts);
+        socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
@@ -114,9 +112,7 @@ public class ServerConnectionTest {
     public void message() throws URISyntaxException, InterruptedException {
         final BlockingQueue<Object[]> events = new LinkedBlockingQueue<Object[]>();
 
-        IO.Options opts = new IO.Options();
-        opts.forceNew = true;
-        socket = IO.socket(uri(), opts);
+        socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
@@ -145,9 +141,7 @@ public class ServerConnectionTest {
         final JsonObject obj = new JsonObject();
         obj.addProperty("foo", 1);
 
-        IO.Options opts = new IO.Options();
-        opts.forceNew = true;
-        socket = IO.socket(uri(), opts);
+        socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
@@ -174,9 +168,7 @@ public class ServerConnectionTest {
         final JsonObject obj = new JsonObject();
         obj.addProperty("foo", 1);
 
-        IO.Options opts = new IO.Options();
-        opts.forceNew = true;
-        socket = IO.socket(uri(), opts);
+        socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
@@ -200,9 +192,7 @@ public class ServerConnectionTest {
     public void ackWithoutArgs() throws URISyntaxException, InterruptedException {
         final BlockingQueue<Object[]> events = new LinkedBlockingQueue<Object[]>();
 
-        IO.Options opts = new IO.Options();
-        opts.forceNew = true;
-        socket = IO.socket(uri(), opts);
+        socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
@@ -219,6 +209,13 @@ public class ServerConnectionTest {
 
         assertThat(events.take(), is(new Object[] {}));
         socket.disconnect();
+    }
+
+    private Socket client() throws URISyntaxException {
+        IO.Options opts = new IO.Options();
+        opts.forceNew = true;
+        opts.reconnection = false;
+        return IO.socket(uri(), opts);
     }
 
     private String uri() {

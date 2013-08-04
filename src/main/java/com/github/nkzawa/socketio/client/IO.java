@@ -80,7 +80,7 @@ public class IO {
          */
         public boolean multiplex = true;
 
-        public boolean reconnection;
+        public boolean reconnection = true;
         public int reconnectionAttempts;
         public long reconnectionDelay;
         public long reconnectionDelayMax;

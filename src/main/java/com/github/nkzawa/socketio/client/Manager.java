@@ -321,7 +321,7 @@ public class Manager extends Emitter {
     private void onclose() {
         this.cleanup();
         this.readyState = ReadyState.CLOSED;
-        if (!this.skipReconnect) {
+        if (this._reconnection && !this.skipReconnect) {
             this.reconnect();
         }
     }
