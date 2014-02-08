@@ -89,6 +89,10 @@ div.clear hr{
 #navcolumn li.collapsed {
   background-image: url(../images/collapsed.gif);
 }
+#navcolumn li.none {
+  text-indent: -1em;
+  margin-left: 1em;
+}
 #poweredBy {
   text-align: center;
 }
@@ -140,4 +144,12 @@ div.clear hr{
 .source pre {
   margin: 0px;
   padding: 0px;
+}
+#navcolumn img.imageLink, .imageLink {
+  padding-left: 0px;
+  padding-bottom: 0px;
+  padding-top: 0px;
+  padding-right: 2px;
+  border: 0px;
+  margin: 0px;
 }
