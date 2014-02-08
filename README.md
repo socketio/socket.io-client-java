@@ -49,12 +49,12 @@ socket.on("foo", new Emitter.Listener() {
 });
 ```
 
-Options are supplied as follow:
+Options are supplied as follows:
 
 ```java
 IO.Options opts = new IO.Options();
 opts.forceNew = true;
-opts.cookie = "foo=1;";
+opts.reconnection = false;
 
 socket = IO.socket("http://localhost", opts);
 ```
