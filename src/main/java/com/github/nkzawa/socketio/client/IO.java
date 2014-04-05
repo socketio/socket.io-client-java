@@ -66,8 +66,7 @@ public class IO {
             io = managers.get(id);
         }
 
-        String path = uri.getPath();
-        return io.socket(path != null && !path.isEmpty() ? path : "/");
+        return io.socket(parsed.getPath());
     }
 
 

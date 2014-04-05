@@ -1,17 +1,19 @@
 package com.github.nkzawa.socketio.parser;
 
+import com.github.nkzawa.emitter.Emitter;
 import com.google.gson.JsonParser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import static com.github.nkzawa.socketio.parser.Parser.decode;
-import static com.github.nkzawa.socketio.parser.Parser.encode;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JUnit4.class)
 public class ParserTest {
+
+    private static Parser.Encoder encoder = new Parser.Encoder();
+
 
     @Test
     public void connect() {
@@ -49,10 +51,24 @@ public class ParserTest {
         test(packet);
     }
 
-    private void test(Packet packet) {
-        Packet _packet = decode(encode(packet));
-        assertThat(_packet.type, is(packet.type));
-        assertThat(_packet.data, is(packet.data));
-        assertThat(_packet.nsp, is(packet.nsp));
+    private void test(final Packet obj) {
+        encoder.encode(obj, new Parser.Encoder.Callback() {
+            @Override
+            public void call(String[] encodedPackets) {
+                Parser.Decoder decoder = new Parser.Decoder();
+                decoder.on(Parser.Decoder.EVENT_DECODED, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        Packet packet = (Packet)args[0];
+                        assertThat(packet.type, is(obj.type));
+                        assertThat(packet.id, is(obj.id));
+                        assertThat(packet.data, is(obj.data));
+                        assertThat(packet.nsp, is(obj.nsp));
+                        assertThat(packet.attachments, is(obj.attachments));
+                    }
+                });
+                decoder.add(encodedPackets[0]);
+            }
+        });
     }
 }

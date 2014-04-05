@@ -3,6 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "socket.io": "nkzawa/socket.io"
+    "socket.io": "LearnBoost/socket.io"
   }
 }

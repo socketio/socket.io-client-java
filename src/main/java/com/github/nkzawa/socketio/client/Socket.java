@@ -1,9 +1,9 @@
 package com.github.nkzawa.socketio.client;
 
 import com.github.nkzawa.emitter.Emitter;
-import com.github.nkzawa.engineio.client.EventThread;
 import com.github.nkzawa.socketio.parser.Packet;
 import com.github.nkzawa.socketio.parser.Parser;
+import com.github.nkzawa.thread.EventThread;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -42,10 +42,10 @@ public class Socket extends Emitter {
 
     public static final String EVENT_MESSAGE = "message";
 
-    private static List<String> events = new ArrayList<String>() {{
-        add(EVENT_CONNECT);
-        add(EVENT_DISCONNECT);
-        add(EVENT_ERROR);
+    private static Map<String, Integer> events = new HashMap<String, Integer>() {{
+        put(EVENT_CONNECT, 1);
+        put(EVENT_DISCONNECT, 1);
+        put(EVENT_ERROR, 1);
     }};
 
     private boolean connected;
@@ -66,36 +66,50 @@ public class Socket extends Emitter {
     /**
      * Connects the socket.
      */
-    public void open() {
+    public Socket open() {
         EventThread.exec(new Runnable() {
             @Override
             public void run() {
+                if (Socket.this.connected) return;
                 final Manager io = Socket.this.io;
+                io.open();
                 Socket.this.subs = new LinkedList<On.Handle>() {{
                     add(On.on(io, Manager.EVENT_OPEN, new Listener() {
                         @Override
-                        public void call(Object... objects) {
+                        public void call(Object... args) {
                             Socket.this.onopen();
                         }
                     }));
                     add(On.on(io, Manager.EVENT_ERROR, new Listener() {
                         @Override
-                        public void call(Object... objects) {
-                            Socket.this.onerror(objects.length > 0 ? (Exception) objects[0] : null);
+                        public void call(Object... args) {
+                            Socket.this.onerror(args.length > 0 ? (Exception) args[0] : null);
+                        }
+                    }));
+                    add(On.on(io, Manager.EVENT_PACKET, new Listener() {
+                        @Override
+                        public void call(Object... args) {
+                            Socket.this.onpacket((Packet) args[0]);
+                        }
+                    }));
+                    add(On.on(io, Manager.EVENT_CLOSE, new Listener() {
+                        @Override
+                        public void call(Object... args) {
+                            Socket.this.onclose(args.length > 0 ? (String) args[0] : null);
                         }
                     }));
                 }};
-                if (Socket.this.io.readyState == Manager.ReadyState.OPEN) Socket.this.onopen();
-                io.open();
+                if (Manager.ReadyState.OPEN == Socket.this.io.readyState) Socket.this.onopen();
             }
         });
+        return this;
     }
 
     /**
      * Connects the socket.
      */
-    public void connect() {
-        this.open();
+    public Socket connect() {
+        return this.open();
     }
 
     /**
@@ -126,20 +140,25 @@ public class Socket extends Emitter {
         EventThread.exec(new Runnable() {
             @Override
             public void run() {
-                if (events.contains(event)) {
+                if (events.containsKey(event)) {
                     Socket.super.emit(event, args);
-                } else {
-                    LinkedList<Object> _args = new LinkedList<Object>(Arrays.asList(args));
-                    if (_args.peekLast() instanceof Ack) {
-                        Ack ack = (Ack)_args.pollLast();
-                        Socket.this.emit(event, _args.toArray(), ack);
-                        return;
-                    }
-
-                    _args.offerFirst(event);
-                    Packet packet = new Packet(Parser.EVENT, toJsonArray(_args));
-                    Socket.this.packet(packet);
+                    return;
                 }
+
+                List<Object> _args = new ArrayList<Object>(args.length + 1);
+                _args.add(event);
+                _args.addAll(Arrays.asList(args));
+                int parserType = Parser.EVENT;
+                // TODO: hasBin(_args)
+                Packet packet = new Packet(parserType, toJsonArray(_args));
+
+                if (_args.get(_args.size() - 1) instanceof Ack) {
+                    logger.fine(String.format("emitting packet with ack id %d", Socket.this.ids));
+                    Socket.this.acks.put(Socket.this.ids, (Ack)_args.remove(_args.size() - 1));
+                    packet.id = Socket.this.ids++;
+                }
+
+                Socket.this.packet(packet);
             }
         });
         return this;
@@ -190,21 +209,6 @@ public class Socket extends Emitter {
         if (!"/".equals(this.nsp)) {
             this.packet(new Packet(Parser.CONNECT));
         }
-
-        Manager io = this.io;
-        this.subs.add(On.on(io, Manager.EVENT_PACKET, new Listener() {
-            @Override
-            public void call(Object... objects) {
-                Socket.this.onpacket((Packet)objects[0]);
-            }
-        }));
-        this.subs.add(On.on(io, Manager.EVENT_CLOSE, new Listener() {
-            @Override
-            public void call(Object... objects) {
-                String reason = objects.length > 0 ? (String) objects[0] : null;
-                Socket.this.onclose(reason);
-            }
-        }));
     }
 
     private void onclose(String reason) {
@@ -223,6 +227,10 @@ public class Socket extends Emitter {
                 break;
 
             case Parser.EVENT:
+                this.onevent(packet);
+                break;
+
+            case Parser.BINARY_EVENT:
                 this.onevent(packet);
                 break;
 
@@ -303,8 +311,6 @@ public class Socket extends Emitter {
     }
 
     private void destroy() {
-        logger.fine(String.format("destroying socket (%s)", this.nsp));
-
         for (On.Handle sub : this.subs) {
             sub.destroy();
         }

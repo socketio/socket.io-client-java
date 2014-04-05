@@ -6,18 +6,25 @@ import java.net.URL;
 
 public class Url {
 
-    private Url() {
-    }
+    private Url() {}
 
     public static URL parse(URI uri) throws MalformedURLException {
         String protocol = uri.getScheme();
         if (protocol == null || !protocol.matches("^https?|wss?$")) {
             uri = uri.resolve("https://" + uri.getAuthority());
         }
+
+        int port = uri.getPort();
+        if (protocol != null && ((protocol.matches("^http|ws$") && port == 80) ||
+                (protocol.matches("^(http|ws)s$") && port == 443))) {
+            uri = uri.resolve("//" + uri.getHost());
+        }
+
         String path = uri.getPath();
         if (path == null || path.isEmpty()) {
             uri = uri.resolve("/");
         }
+
         return uri.toURL();
     }
 

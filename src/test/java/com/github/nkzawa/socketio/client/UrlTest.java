@@ -18,26 +18,31 @@ public class UrlTest {
 
     @Test
     public void parse() throws MalformedURLException, URISyntaxException {
-        URL url = Url.parse(new URI("http://woot.com/test"));
-        assertThat(url.getProtocol(), is("http"));
+        URL url = Url.parse(new URI("https://woot.com/test"));
+        assertThat(url.getProtocol(), is("https"));
         assertThat(url.getHost(), is("woot.com"));
         assertThat(url.getPath(), is("/test"));
     }
 
     @Test
-    public void parse_NoProtocol() throws MalformedURLException, URISyntaxException {
+    public void parseNoProtocol() throws MalformedURLException, URISyntaxException {
         URL url = Url.parse(new URI("//localhost:3000"));
         assertThat(url.getProtocol(), is("https"));
         assertThat(url.getHost(), is("localhost"));
-        assertThat(url.getAuthority(), is("localhost:3000"));
         assertThat(url.getPort(), is(3000));
     }
 
     @Test
-    public void parse_Namaspace() throws MalformedURLException, URISyntaxException {
+    public void parseNamespace() throws MalformedURLException, URISyntaxException {
         assertThat(Url.parse(new URI("http://woot.com/woot")).getPath(), is("/woot"));
         assertThat(Url.parse(new URI("http://google.com")).getPath(), is("/"));
         assertThat(Url.parse(new URI("http://google.com/")).getPath(), is("/"));
+    }
+
+    @Test
+    public void parseDefaultPort() throws MalformedURLException, URISyntaxException {
+        assertThat(Url.parse(new URI("http://google.com:80/")).toString(), is("http://google.com/"));
+        assertThat(Url.parse(new URI("https://google.com:443/")).toString(), is("https://google.com/"));
     }
 
     @Test

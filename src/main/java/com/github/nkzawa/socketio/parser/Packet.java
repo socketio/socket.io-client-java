@@ -8,6 +8,7 @@ public class Packet {
     public int id = -1;
     public String nsp;
     public JsonElement data;
+    public int attachments;
 
     public Packet() {}
 
