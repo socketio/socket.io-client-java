@@ -1,7 +1,7 @@
 package com.github.nkzawa.socketio.parser;
 
 import com.github.nkzawa.emitter.Emitter;
-import com.google.gson.JsonParser;
+import org.json.JSONTokener;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -32,12 +32,12 @@ public class ParserTest {
     @Test
     public void event() {
         Packet packet1 = new Packet(Parser.EVENT);
-        packet1.data = new JsonParser().parse("[\"a\", 1, {}]");
+        packet1.data = new JSONTokener("[\"a\", 1, {}]").nextValue();
         packet1.nsp = "/";
         test(packet1);
 
         Packet packet2 = new Packet(Parser.EVENT);
-        packet2.data = new JsonParser().parse("[\"a\", 1, {}]");
+        packet2.data = new JSONTokener("[\"a\", 1, {}]").nextValue();
         packet2.nsp = "/test";
         test(packet2);
     }
@@ -45,7 +45,7 @@ public class ParserTest {
     @Test
     public void ack() {
         Packet packet = new Packet(Parser.ACK);
-        packet.data = new JsonParser().parse("[\"a\", 1, {}]");
+        packet.data = new JSONTokener("[\"a\", 1, {}]").nextValue();
         packet.id = 123;
         packet.nsp = "/";
         test(packet);
@@ -62,7 +62,11 @@ public class ParserTest {
                         Packet packet = (Packet)args[0];
                         assertThat(packet.type, is(obj.type));
                         assertThat(packet.id, is(obj.id));
-                        assertThat(packet.data, is(obj.data));
+                        if (packet.data == null) {
+                            assertThat(packet.data, is(obj.data));
+                        } else {
+                            assertThat(packet.data.toString(), is(obj.data.toString()));
+                        }
                         assertThat(packet.nsp, is(obj.nsp));
                         assertThat(packet.attachments, is(obj.attachments));
                     }

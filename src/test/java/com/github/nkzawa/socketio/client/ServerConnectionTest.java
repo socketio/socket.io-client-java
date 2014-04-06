@@ -1,7 +1,7 @@
 package com.github.nkzawa.socketio.client;
 
 import com.github.nkzawa.emitter.Emitter;
-import com.google.gson.JsonObject;
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +15,7 @@ import java.net.URISyntaxException;
 import java.util.concurrent.*;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JUnit4.class)
@@ -136,10 +137,10 @@ public class ServerConnectionTest {
 
     @Test(timeout = TIMEOUT)
     public void event() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object[]> events = new LinkedBlockingQueue<Object[]>();
+        final Semaphore semaphore = new Semaphore(0);
 
-        final JsonObject obj = new JsonObject();
-        obj.addProperty("foo", 1);
+        final JSONObject obj = new JSONObject();
+        obj.put("foo", 1);
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -150,23 +151,26 @@ public class ServerConnectionTest {
             }
         }).on("echoBack", new Emitter.Listener() {
             @Override
-            public void call(Object... objects) {
-                System.out.println(String.format("echoBack: %s, %s, %s", objects));
-                events.offer(objects);
+            public void call(Object... args) {
+                System.out.println(String.format("echoBack: %s, %s, %s", args));
+                assertThat(args.length, is(3));
+                assertThat(args[0].toString(), is(obj.toString()));
+                assertThat(args[1], is(nullValue()));
+                assertThat((String)args[2], is("bar"));
+                socket.disconnect();
+                semaphore.release();
             }
         });
         socket.connect();
-
-        assertThat(events.take(), is(new Object[] {obj, null, "bar"}));
-        socket.disconnect();
+        semaphore.acquire();
     }
 
     @Test(timeout = TIMEOUT)
     public void ack() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object[]> events = new LinkedBlockingQueue<Object[]>();
+        final Semaphore semaphore = new Semaphore(0);
 
-        final JsonObject obj = new JsonObject();
-        obj.addProperty("foo", 1);
+        final JSONObject obj = new JSONObject();
+        obj.put("foo", 1);
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -177,15 +181,17 @@ public class ServerConnectionTest {
                     @Override
                     public void call(Object... args) {
                         System.out.println(String.format("ack: %s, %s", args));
-                        events.offer(args);
+                        assertThat(args.length, is(2));
+                        assertThat(args[0].toString(), is(obj.toString()));
+                        assertThat((String)args[1], is("bar"));
+                        socket.disconnect();
+                        semaphore.release();
                     }
                 });
             }
         });
         socket.connect();
-
-        assertThat(events.take(), is(new Object[] {obj, "bar"}));
-        socket.disconnect();
+        semaphore.acquire();
     }
 
     @Test(timeout = TIMEOUT)

@@ -1,7 +1,8 @@
 package com.github.nkzawa.socketio.parser;
 
 import com.github.nkzawa.emitter.Emitter;
-import com.google.gson.*;
+import org.json.JSONException;
+import org.json.JSONTokener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,9 +11,6 @@ import java.util.logging.Logger;
 public class Parser {
 
     private static final Logger logger = Logger.getLogger(Parser.class.getName());
-
-    private static final Gson gson = new Gson();
-    private static final JsonParser json = new JsonParser();
 
     /**
      * Packet type `connect`.
@@ -62,7 +60,7 @@ public class Parser {
     private Parser() {}
 
     private static Packet error() {
-        return new Packet(ERROR, new JsonPrimitive("parser error"));
+        return new Packet(ERROR, "parser error");
     }
 
 
@@ -107,7 +105,7 @@ public class Parser {
 
             if (obj.data != null) {
                 if (nsp) str.append(",");
-                str.append(gson.toJson(obj.data));
+                str.append(obj.data);
             }
 
             logger.fine(String.format("encoded %s as %s", obj, str));
@@ -211,10 +209,10 @@ public class Parser {
 
             try {
                 str.charAt(++i);
-                p.data = json.parse(str.substring(i));
+                p.data = new JSONTokener(str.substring(i)).nextValue();
             } catch (IndexOutOfBoundsException e) {
                 // do nothing
-            } catch (JsonParseException e) {
+            } catch (JSONException e) {
                 return error();
             }
 

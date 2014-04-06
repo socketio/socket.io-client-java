@@ -454,7 +454,7 @@ public class Manager extends Emitter {
     }
 
 
-    private class Engine extends com.github.nkzawa.engineio.client.Socket {
+    private static class Engine extends com.github.nkzawa.engineio.client.Socket {
 
         Engine(URI uri, Options opts) {
             super(uri, opts);

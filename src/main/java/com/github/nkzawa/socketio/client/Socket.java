@@ -4,9 +4,8 @@ import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.parser.Packet;
 import com.github.nkzawa.socketio.parser.Parser;
 import com.github.nkzawa.thread.EventThread;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -17,8 +16,6 @@ import java.util.logging.Logger;
 public class Socket extends Emitter {
 
     private static final Logger logger = Logger.getLogger(Socket.class.getName());
-
-    private static final Gson gson = new Gson();
 
     /**
      * Called on a connection.
@@ -55,7 +52,7 @@ public class Socket extends Emitter {
     private Manager io;
     private Map<Integer, Ack> acks = new HashMap<Integer, Ack>();
     private Queue<On.Handle> subs;
-    private final Queue<LinkedList<Object>> buffer = new LinkedList<LinkedList<Object>>();
+    private final Queue<List<Object>> buffer = new LinkedList<List<Object>>();
 
 
     public Socket(Manager io, String nsp) {
@@ -150,7 +147,7 @@ public class Socket extends Emitter {
                 _args.addAll(Arrays.asList(args));
                 int parserType = Parser.EVENT;
                 // TODO: hasBin(_args)
-                Packet packet = new Packet(parserType, toJsonArray(_args));
+                Packet packet = new Packet(parserType, new JSONArray(_args));
 
                 if (_args.get(_args.size() - 1) instanceof Ack) {
                     logger.fine(String.format("emitting packet with ack id %d", Socket.this.ids));
@@ -182,7 +179,7 @@ public class Socket extends Emitter {
                         addAll(Arrays.asList(args));
                     }
                 }};
-                Packet packet = new Packet(Parser.EVENT, toJsonArray(_args));
+                Packet packet = new Packet(Parser.EVENT, new JSONArray(_args));
 
                 logger.fine(String.format("emitting packet with ack id %d", ids));
                 Socket.this.acks.put(ids, ack);
@@ -249,16 +246,16 @@ public class Socket extends Emitter {
     }
 
     private void onevent(Packet packet) {
-        LinkedList<Object> args = new LinkedList<Object>(fromJsonArray(packet.data.getAsJsonArray()));
+        List<Object> args = new ArrayList<Object>(Arrays.asList(toArray((JSONArray) packet.data)));
         logger.fine(String.format("emitting event %s", args));
 
         if (packet.id >= 0) {
             logger.fine("attaching ack callback to event");
-            args.offerLast(this.ack(packet.id));
+            args.add(this.ack(packet.id));
         }
 
         if (this.connected) {
-            String event = (String)args.pollFirst();
+            String event = (String)args.remove(0);
             super.emit(event, args.toArray());
         } else {
             this.buffer.add(args);
@@ -274,7 +271,7 @@ public class Socket extends Emitter {
                 if (sent[0]) return;
                 sent[0] = true;
                 logger.fine(String.format("sending ack %s", args));
-                Packet packet = new Packet(Parser.ACK, gson.toJsonTree(args));
+                Packet packet = new Packet(Parser.ACK, new JSONArray(args));
                 packet.id = id;
                 self.packet(packet);
             }
@@ -284,7 +281,7 @@ public class Socket extends Emitter {
     private void onack(Packet packet) {
         logger.fine(String.format("calling ack %s with %s", packet.id, packet.data));
         Ack fn = this.acks.remove(packet.id);
-        fn.call(fromJsonArray(packet.data.getAsJsonArray()).toArray());
+        fn.call(toArray((JSONArray) packet.data));
     }
 
     private void onconnect() {
@@ -295,12 +292,10 @@ public class Socket extends Emitter {
     }
 
     private void emitBuffered() {
-        synchronized (this.buffer) {
-            LinkedList<Object> data;
-            while ((data = this.buffer.poll()) != null) {
-                String event = (String)data.pollFirst();
-                super.emit(event, data.toArray());
-            }
+        List<Object> data;
+        while ((data = this.buffer.poll()) != null) {
+            String event = (String)data.get(0);
+            super.emit(event, data.toArray());
         }
     }
 
@@ -349,18 +344,12 @@ public class Socket extends Emitter {
         return this.close();
     }
 
-    private static JsonArray toJsonArray(List<Object> list) {
-        JsonArray data = new JsonArray();
-        for (Object v : list) {
-            data.add(v instanceof JsonElement ? (JsonElement)v : gson.toJsonTree(v));
-        }
-        return data;
-    }
-
-    private static List<Object> fromJsonArray(JsonArray array) {
-        List<Object> data = new ArrayList<Object>();
-        for (JsonElement v : array) {
-            data.add(v.isJsonPrimitive() || v.isJsonNull() ? gson.fromJson(v, Object.class) : v);
+    private static Object[] toArray(JSONArray array) {
+        int length = array.length();
+        Object[] data = new Object[length];
+        for (int i = 0; i < length; i++) {
+            Object v = array.get(i);
+            data[i] = v == JSONObject.NULL ? null : v;
         }
         return data;
     }

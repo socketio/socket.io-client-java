@@ -1,13 +1,12 @@
 package com.github.nkzawa.socketio.parser;
 
-import com.google.gson.JsonElement;
 
 public class Packet {
 
     public int type = -1;
     public int id = -1;
     public String nsp;
-    public JsonElement data;
+    public Object data;
     public int attachments;
 
     public Packet() {}
@@ -16,7 +15,7 @@ public class Packet {
         this.type = type;
     }
 
-    public Packet(int type, JsonElement data) {
+    public Packet(int type, Object data) {
         this.type = type;
         this.data = data;
     }
