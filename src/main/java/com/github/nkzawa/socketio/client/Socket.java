@@ -1,6 +1,7 @@
 package com.github.nkzawa.socketio.client;
 
 import com.github.nkzawa.emitter.Emitter;
+import com.github.nkzawa.hasbinarydata.HasBinaryData;
 import com.github.nkzawa.socketio.parser.Packet;
 import com.github.nkzawa.socketio.parser.Parser;
 import com.github.nkzawa.thread.EventThread;
@@ -133,25 +134,26 @@ public class Socket extends Emitter {
      * @return a reference to this object.
      */
     @Override
-    public Emitter emit(final String event, final Object... args) {
+    public Emitter emit(final String event, final Object... arguments) {
         EventThread.exec(new Runnable() {
             @Override
             public void run() {
                 if (events.containsKey(event)) {
-                    Socket.super.emit(event, args);
+                    Socket.super.emit(event, arguments);
                     return;
                 }
 
-                List<Object> _args = new ArrayList<Object>(args.length + 1);
-                _args.add(event);
-                _args.addAll(Arrays.asList(args));
+                List<Object> args = new ArrayList<Object>(arguments.length + 1);
+                args.add(event);
+                args.addAll(Arrays.asList(arguments));
+                JSONArray _args = new JSONArray(args);
                 int parserType = Parser.EVENT;
-                // TODO: hasBin(_args)
-                Packet packet = new Packet(parserType, new JSONArray(_args));
+                if (HasBinaryData.hasBinary(_args)) { parserType = Parser.BINARY_EVENT; }
+                Packet packet = new Packet(parserType, _args);
 
-                if (_args.get(_args.size() - 1) instanceof Ack) {
+                if (args.get(args.size() - 1) instanceof Ack) {
                     logger.fine(String.format("emitting packet with ack id %d", Socket.this.ids));
-                    Socket.this.acks.put(Socket.this.ids, (Ack)_args.remove(_args.size() - 1));
+                    Socket.this.acks.put(Socket.this.ids, (Ack)args.remove(args.size() - 1));
                     packet.id = Socket.this.ids++;
                 }
 
