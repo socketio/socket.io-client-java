@@ -32,19 +32,19 @@ socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
 socket.connect();
 ```
 
-This Library uses [Gson](https://code.google.com/p/google-gson/) to parse and compose JSON strings:
+This Library uses [org.json](http://www.json.org/java/) to parse and compose JSON strings:
 
 ```java
 // Sending an object
-JsonObject obj = new JsonObject();
-obj.addProperty("hello", "server");
+JSONObject obj = new JSONObject();
+obj.put("hello", "server");
 socket.emit("foo", obj);
 
 // Receiving an object
 socket.on("foo", new Emitter.Listener() {
   @Override
   public void call(Object... args) {
-    JsonObject obj = (JsonObject)args[0];
+    JSONObject obj = (JSONObject)args[0];
   }
 });
 ```
