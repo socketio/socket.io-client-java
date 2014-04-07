@@ -348,9 +348,13 @@ public class Manager extends Emitter {
             self.encoding = true;
             this.encoder.encode(packet, new Parser.Encoder.Callback() {
                 @Override
-                public void call(String[] encodedPackets) {
-                    for (int i = 0; i < encodedPackets.length; i++) {
-                        self.engine.write(encodedPackets[i]);
+                public void call(Object[] encodedPackets) {
+                    for (Object packet : encodedPackets) {
+                        if (packet instanceof String) {
+                            self.engine.write((String)packet);
+                        } else if (packet instanceof byte[]) {
+                            self.engine.write((byte[])packet);
+                        }
                     }
                     self.encoding = false;
                     self.processPacketQueue();

@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONTokener;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -113,12 +114,17 @@ public class Parser {
         }
 
         private void encodeAsBinary(Packet obj, Callback callback) {
-            // TODO
+            Binary.DeconstructedPacket deconstruction = Binary.deconstructPacket(obj);
+            String pack = encodeAsString(deconstruction.packet);
+            List<Object> buffers = new ArrayList<Object>(Arrays.asList(deconstruction.buffers));
+
+            buffers.add(0, pack);
+            callback.call(buffers.toArray());
         }
 
         public interface Callback {
 
-            public void call(String[] data);
+            public void call(Object[] data);
         }
     }
 
@@ -242,7 +248,10 @@ public class Parser {
         public Packet takeBinaryData(byte[] binData) {
             this.buffers.add(binData);
             if (this.buffers.size() == this.reconPack.attachments) {
-                // TODO:
+                Packet packet = Binary.reconstructPacket(this.reconPack,
+                        this.buffers.toArray(new byte[this.buffers.size()][]));
+                this.finishReconstruction();
+                return packet;
             }
             return null;
         }
