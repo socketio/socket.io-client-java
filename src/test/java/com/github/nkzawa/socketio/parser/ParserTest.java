@@ -1,10 +1,13 @@
 package com.github.nkzawa.socketio.parser;
 
 import com.github.nkzawa.emitter.Emitter;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.nio.charset.Charset;
 
@@ -54,12 +57,64 @@ public class ParserTest {
     }
 
     @Test
-    public void encodeBytes() {
+    public void encodeByteArray() {
         Packet packet = new Packet(Parser.BINARY_EVENT);
         packet.data = "abc".getBytes(Charset.forName("UTF-8"));
         packet.id = 23;
         packet.nsp = "/cool";
         testBin(packet);
+    }
+
+    @Test
+    public void encodeByteArray2() {
+        Packet packet = new Packet(Parser.BINARY_EVENT);
+        packet.data = new byte[2];
+        packet.id = 0;
+        packet.nsp = "/";
+        testBin(packet);
+    }
+
+    @Test
+    public void encodeByteArrayDeep() {
+        JSONObject data = new JSONObject("{a: \"hi\", b: {}, c: {a: \"bye\", b: {}}}");
+        data.getJSONObject("b").put("why", new byte[3]);
+        data.getJSONObject("c").getJSONObject("b").put("a", new byte[6]);
+
+        Packet packet = new Packet(Parser.BINARY_EVENT);
+        packet.data = data;
+        packet.id = 999;
+        packet.nsp = "/deep";
+        testBin(packet);
+    }
+
+    @Test
+    public void cleanItselfUpOnClose() {
+        JSONArray data = new JSONArray();
+        data.put(new byte[2]);
+        data.put(new byte[3]);
+
+        Packet packet = new Packet(Parser.BINARY_EVENT);
+        packet.data = data;
+        packet.id = 0;
+        packet.nsp = "/";
+
+        encoder.encode(packet, new Parser.Encoder.Callback() {
+            @Override
+            public void call(final Object[] encodedPackets) {
+                final Parser.Decoder decoder = new Parser.Decoder();
+                decoder.on(Parser.Decoder.EVENT_DECODED, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        throw new RuntimeException("received a packet when not all binary data was sent.");
+                    }
+                });
+
+                decoder.add((String)encodedPackets[0]);
+                decoder.add((byte[]) encodedPackets[1]);
+                decoder.destroy();
+                assertThat(decoder.reconstructor.buffers.size(), is(0));
+            }
+        });
     }
 
     private void test(final Packet obj) {
@@ -71,15 +126,7 @@ public class ParserTest {
                     @Override
                     public void call(Object... args) {
                         Packet packet = (Packet)args[0];
-                        assertThat(packet.type, is(obj.type));
-                        assertThat(packet.id, is(obj.id));
-                        if (packet.data == null) {
-                            assertThat(packet.data, is(obj.data));
-                        } else {
-                            assertThat(packet.data.toString(), is(obj.data.toString()));
-                        }
-                        assertThat(packet.nsp, is(obj.nsp));
-                        assertThat(packet.attachments, is(obj.attachments));
+                        assertPacket(packet, obj);
                     }
                 });
                 decoder.add((String)encodedPackets[0]);
@@ -99,12 +146,7 @@ public class ParserTest {
                         Packet packet = (Packet)args[0];
                         obj.data = originalData;
                         obj.attachments = -1;
-
-                        assertThat(packet.type, is(obj.type));
-                        assertThat(packet.id, is(obj.id));
-                        assertThat(packet.data, is(obj.data));
-                        assertThat(packet.nsp, is(obj.nsp));
-                        assertThat(packet.attachments, is(obj.attachments));
+                        assertPacket(packet, obj);
                     }
                 });
 
@@ -117,5 +159,20 @@ public class ParserTest {
                 }
             }
         });
+    }
+
+    private void assertPacket(Packet expected, Packet actual) {
+        assertThat(actual.type, is(expected.type));
+        assertThat(actual.id, is(expected.id));
+        assertThat(actual.nsp, is(expected.nsp));
+        assertThat(actual.attachments, is(expected.attachments));
+
+        if (expected.data instanceof JSONArray) {
+            JSONAssert.assertEquals((JSONArray)expected.data, (JSONArray)actual.data, true);
+        } else if (expected.data instanceof JSONObject) {
+            JSONAssert.assertEquals((JSONObject)expected.data, (JSONObject)actual.data, true);
+        } else {
+            assertThat(actual.data, is(expected.data));
+        }
     }
 }

@@ -132,7 +132,7 @@ public class Parser {
 
         public static String EVENT_DECODED = "decoded";
 
-        private BinaryReconstructor reconstructor;
+        /*package*/ BinaryReconstructor reconstructor;
 
         public Decoder() {
             this.reconstructor = null;
@@ -234,11 +234,11 @@ public class Parser {
     }
 
 
-    private static class BinaryReconstructor {
+    /*package*/ static class BinaryReconstructor {
 
         public Packet reconPack;
 
-        private List<byte[]> buffers;
+        /*package*/ List<byte[]> buffers;
 
         BinaryReconstructor(Packet packet) {
             this.reconPack = packet;
