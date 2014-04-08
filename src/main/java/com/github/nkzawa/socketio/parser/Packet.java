@@ -1,12 +1,12 @@
 package com.github.nkzawa.socketio.parser;
 
 
-public class Packet {
+public class Packet<T> {
 
     public int type = -1;
     public int id = -1;
     public String nsp;
-    public Object data;
+    public T data;
     public int attachments;
 
     public Packet() {}
@@ -15,7 +15,7 @@ public class Packet {
         this.type = type;
     }
 
-    public Packet(int type, Object data) {
+    public Packet(int type, T data) {
         this.type = type;
         this.data = data;
     }

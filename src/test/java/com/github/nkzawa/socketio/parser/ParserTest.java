@@ -3,7 +3,6 @@ package com.github.nkzawa.socketio.parser;
 import com.github.nkzawa.emitter.Emitter;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -36,21 +35,21 @@ public class ParserTest {
 
     @Test
     public void encodeEvent() {
-        Packet packet1 = new Packet(Parser.EVENT);
-        packet1.data = new JSONTokener("[\"a\", 1, {}]").nextValue();
+        Packet<JSONArray> packet1 = new Packet<JSONArray>(Parser.EVENT);
+        packet1.data = new JSONArray("[\"a\", 1, {}]");
         packet1.nsp = "/";
         test(packet1);
 
-        Packet packet2 = new Packet(Parser.EVENT);
-        packet2.data = new JSONTokener("[\"a\", 1, {}]").nextValue();
+        Packet<JSONArray> packet2 = new Packet<JSONArray>(Parser.EVENT);
+        packet2.data = new JSONArray("[\"a\", 1, {}]");
         packet2.nsp = "/test";
         test(packet2);
     }
 
     @Test
     public void encodeAck() {
-        Packet packet = new Packet(Parser.ACK);
-        packet.data = new JSONTokener("[\"a\", 1, {}]").nextValue();
+        Packet<JSONArray> packet = new Packet<JSONArray>(Parser.ACK);
+        packet.data = new JSONArray("[\"a\", 1, {}]");
         packet.id = 123;
         packet.nsp = "/";
         test(packet);
@@ -58,7 +57,7 @@ public class ParserTest {
 
     @Test
     public void encodeByteArray() {
-        Packet packet = new Packet(Parser.BINARY_EVENT);
+        Packet<byte[]> packet = new Packet<byte[]>(Parser.BINARY_EVENT);
         packet.data = "abc".getBytes(Charset.forName("UTF-8"));
         packet.id = 23;
         packet.nsp = "/cool";
@@ -67,7 +66,7 @@ public class ParserTest {
 
     @Test
     public void encodeByteArray2() {
-        Packet packet = new Packet(Parser.BINARY_EVENT);
+        Packet<byte[]> packet = new Packet<byte[]>(Parser.BINARY_EVENT);
         packet.data = new byte[2];
         packet.id = 0;
         packet.nsp = "/";
@@ -80,7 +79,7 @@ public class ParserTest {
         data.getJSONObject("b").put("why", new byte[3]);
         data.getJSONObject("c").getJSONObject("b").put("a", new byte[6]);
 
-        Packet packet = new Packet(Parser.BINARY_EVENT);
+        Packet<JSONObject> packet = new Packet<JSONObject>(Parser.BINARY_EVENT);
         packet.data = data;
         packet.id = 999;
         packet.nsp = "/deep";
@@ -93,7 +92,7 @@ public class ParserTest {
         data.put(new byte[2]);
         data.put(new byte[3]);
 
-        Packet packet = new Packet(Parser.BINARY_EVENT);
+        Packet<JSONArray> packet = new Packet<JSONArray>(Parser.BINARY_EVENT);
         packet.data = data;
         packet.id = 0;
         packet.nsp = "/";

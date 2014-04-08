@@ -149,7 +149,7 @@ public class Socket extends Emitter {
                 JSONArray jsonArgs = new JSONArray(_args);
                 int parserType = Parser.EVENT;
                 if (HasBinaryData.hasBinary(jsonArgs)) { parserType = Parser.BINARY_EVENT; }
-                Packet packet = new Packet(parserType, jsonArgs);
+                Packet<JSONArray> packet = new Packet<JSONArray>(parserType, jsonArgs);
 
                 if (_args.get(_args.size() - 1) instanceof Ack) {
                     logger.fine(String.format("emitting packet with ack id %d", Socket.this.ids));
@@ -181,7 +181,7 @@ public class Socket extends Emitter {
                         addAll(Arrays.asList(args));
                     }
                 }};
-                Packet packet = new Packet(Parser.EVENT, new JSONArray(_args));
+                Packet<JSONArray> packet = new Packet<JSONArray>(Parser.EVENT, new JSONArray(_args));
 
                 logger.fine(String.format("emitting packet with ack id %d", ids));
                 Socket.this.acks.put(ids, ack);
@@ -247,8 +247,8 @@ public class Socket extends Emitter {
         }
     }
 
-    private void onevent(Packet packet) {
-        List<Object> args = new ArrayList<Object>(Arrays.asList(toArray((JSONArray) packet.data)));
+    private void onevent(Packet<JSONArray> packet) {
+        List<Object> args = new ArrayList<Object>(Arrays.asList(toArray(packet.data)));
         logger.fine(String.format("emitting event %s", args));
 
         if (packet.id >= 0) {
@@ -273,17 +273,17 @@ public class Socket extends Emitter {
                 if (sent[0]) return;
                 sent[0] = true;
                 logger.fine(String.format("sending ack %s", args));
-                Packet packet = new Packet(Parser.ACK, new JSONArray(args));
+                Packet<JSONArray> packet = new Packet<JSONArray>(Parser.ACK, new JSONArray(args));
                 packet.id = id;
                 self.packet(packet);
             }
         };
     }
 
-    private void onack(Packet packet) {
+    private void onack(Packet<JSONArray> packet) {
         logger.fine(String.format("calling ack %s with %s", packet.id, packet.data));
         Ack fn = this.acks.remove(packet.id);
-        fn.call(toArray((JSONArray) packet.data));
+        fn.call(toArray(packet.data));
     }
 
     private void onconnect() {

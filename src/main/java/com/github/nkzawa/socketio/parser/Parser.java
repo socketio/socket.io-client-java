@@ -60,8 +60,8 @@ public class Parser {
 
     private Parser() {}
 
-    private static Packet error() {
-        return new Packet(ERROR, "parser error");
+    private static Packet<String> error() {
+        return new Packet<String>(ERROR, "parser error");
     }
 
 
