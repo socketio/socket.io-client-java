@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "socket.io": "LearnBoost/socket.io"
+    "socket.io": "LearnBoost/socket.io",
+    "endine.io-parser": "nkzawa/engine.io-parser#patch-0"
   }
 }
