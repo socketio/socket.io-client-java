@@ -30,7 +30,7 @@ io.of(nsp).on('connection', function(socket) {
   });
 
   socket.on('error', function() {
-    console.log('error: ' + arguments);
+    console.log('error: ', arguments);
   });
 });
 

@@ -79,7 +79,7 @@ public class Manager extends Emitter {
     private List<Packet> packetBuffer;
     private Queue<On.Handle> subs;
     private IO.Options opts;
-    private com.github.nkzawa.engineio.client.Socket engine;
+    /*package*/ com.github.nkzawa.engineio.client.Socket engine;
     private Parser.Encoder encoder;
     private Parser.Decoder decoder;
 
@@ -91,6 +91,14 @@ public class Manager extends Emitter {
     private ScheduledExecutorService timeoutScheduler = Executors.newSingleThreadScheduledExecutor();
     private ScheduledExecutorService reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
 
+
+    public Manager() {
+        this(null, null);
+    }
+
+    public Manager(URI uri) {
+        this(uri, null);
+    }
 
     public Manager(IO.Options opts) {
         this(null, opts);

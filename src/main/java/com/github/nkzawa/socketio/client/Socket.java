@@ -50,7 +50,7 @@ public class Socket extends Emitter {
     private boolean disconnected = true;
     private int ids;
     private String nsp;
-    private Manager io;
+    /*package*/ Manager io;
     private Map<Integer, Ack> acks = new HashMap<Integer, Ack>();
     private Queue<On.Handle> subs;
     private final Queue<List<Object>> buffer = new LinkedList<List<Object>>();
