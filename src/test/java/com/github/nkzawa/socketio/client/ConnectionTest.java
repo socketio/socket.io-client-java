@@ -8,8 +8,12 @@ import org.junit.runners.JUnit4;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -29,6 +33,7 @@ public class ConnectionTest extends Connection {
                 socket.on("echoBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
+                        socket.close();
                         latch.countDown();
                     }
                 });
@@ -45,13 +50,22 @@ public class ConnectionTest extends Connection {
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                JSONObject data = new JSONObject();
-                data.put("test", true);
-                socket.emit("ack", 5, data, new Ack() {
+                socket.emit("callAck");
+                socket.on("ack", new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        Ack fn = (Ack) args[0];
+                        JSONObject data = new JSONObject();
+                        data.put("test", true);
+                        fn.call(5, data);
+                    }
+                });
+                socket.on("ackBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         JSONObject data = (JSONObject)args[1];
                         if ((Integer)args[0] == 5 && data.getBoolean("test")) {
+                            socket.close();
                             latch.countDown();
                         }
                     }
@@ -74,6 +88,7 @@ public class ConnectionTest extends Connection {
                     @Override
                     public void call(Object... args) {
                         assertThat((Boolean)args[0], is(false));
+                        socket.close();
                         latch.countDown();
                     }
                 });
@@ -118,6 +133,192 @@ public class ConnectionTest extends Connection {
                 socket.io.on(Manager.EVENT_RECONNECT, new Emitter.Listener() {
                     @Override
                     public void call(Object... objects) {
+                        socket.close();
+                        latch.countDown();
+                    }
+                });
+            }
+        });
+        socket.open();
+        latch.await();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void tryToReconnectTwiceAndFailWithIncorrectAddress() throws URISyntaxException, InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        IO.Options opts = new IO.Options();
+        opts.reconnection = true;
+        opts.reconnectionAttempts = 2;
+        opts.reconnectionDelay = 10;
+        Manager manager = new Manager(new URI("http://localhost:3940"), opts);
+        socket = manager.socket("/asd");
+        final int[] reconnects = new int[] {0};
+        Emitter.Listener cb = new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                reconnects[0]++;
+            }
+        };
+
+        manager.on(Manager.EVENT_RECONNECT_ATTEMPT, cb);
+
+        manager.on(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                assertThat(reconnects[0], is(2));
+                socket.close();
+                latch.countDown();
+            }
+        });
+
+        socket.open();
+        latch.await();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void tryToReconnectTwiceAndFailWithImmediateTimeout() throws URISyntaxException, InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        IO.Options opts = new IO.Options();
+        opts.reconnection = true;
+        opts.timeout = 0;
+        opts.reconnectionAttempts = 2;
+        opts.reconnectionDelay = 10;
+        Manager manager = new Manager(new URI(uri()), opts);
+
+        final int[] reconnects = new int[] {0};
+        Emitter.Listener reconnectCb = new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                reconnects[0]++;
+            }
+        };
+
+        manager.on(Manager.EVENT_RECONNECT_ATTEMPT, reconnectCb);
+        manager.on(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                assertThat(reconnects[0], is(2));
+                socket.close();
+                latch.countDown();
+            }
+        });
+
+        socket = manager.socket("/timeout");
+        socket.open();
+        latch.await();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void notTryToReconnectWithIncorrectPort() throws URISyntaxException, InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        IO.Options opts = new IO.Options();
+        opts.reconnection = false;
+        Manager manager = new Manager(new URI("http://localhost:9823"), opts);
+        Emitter.Listener cb = new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                socket.close();
+                throw new RuntimeException();
+            }
+        };
+        manager.on(Manager.EVENT_RECONNECT_ATTEMPT, cb);
+        manager.on(Manager.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                Timer timer = new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        socket.close();
+                        latch.countDown();
+                    }
+                }, 1000);
+            }
+        });
+
+        socket = manager.socket("/invalid");
+        socket.open();
+        latch.await();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void sendAndGetBinaryData() throws URISyntaxException, InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                final byte[] buf = "asdfasdf".getBytes(Charset.forName("UTF-8"));
+                socket.emit("echo", buf);
+                socket.on("echoBack", new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        assertThat(args[0], instanceOf(byte[].class));
+                        assertThat((byte[])args[0], is(buf));
+                        socket.close();
+                        latch.countDown();
+                    }
+                });
+            }
+        });
+        socket.open();
+        latch.await();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void sendBinaryDataMixedWithJson() throws URISyntaxException, InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                final byte[] buf = "howdy".getBytes(Charset.forName("UTF-8"));
+                JSONObject data = new JSONObject();
+                data.put("hello", "lol");
+                data.put("message", buf);
+                data.put("goodbye", "gotcha");
+                socket.emit("echo", data);
+                socket.on("echoBack", new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        JSONObject a = (JSONObject)args[0];
+                        assertThat(a.getString("hello"), is("lol"));
+                        assertThat((byte[])a.get("message"), is(buf));
+                        assertThat(a.getString("goodbye"), is("gotcha"));
+                        socket.close();
+                        latch.countDown();
+                    }
+                });
+            }
+        });
+        socket.open();
+        latch.await();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void sendEventsWithByteArraysInTheCorrectOrder() throws URISyntaxException, InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                final byte[] buf = "abuff1".getBytes(Charset.forName("UTF-8"));
+                socket.emit("echo", buf);
+                socket.emit("echo", "please arrive second");
+
+                final boolean[] receivedAbuff1 = new boolean[] {false};
+                socket.on("echoBack", new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        Object data = args[0];
+                        if (data instanceof byte[]) {
+                            assertThat((byte[])data, is(buf));
+                            receivedAbuff1[0] = true;
+                            return;
+                        }
+
+                        assertThat((String)data, is("please arrive second"));
+                        assertThat(receivedAbuff1[0], is(true));
                         socket.close();
                         latch.countDown();
                     }

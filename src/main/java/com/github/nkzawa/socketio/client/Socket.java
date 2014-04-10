@@ -146,7 +146,10 @@ public class Socket extends Emitter {
                 List<Object> _args = new ArrayList<Object>(args.length + 1);
                 _args.add(event);
                 _args.addAll(Arrays.asList(args));
-                JSONArray jsonArgs = new JSONArray(_args);
+                JSONArray jsonArgs = new JSONArray();
+                for (Object arg : _args) {
+                    jsonArgs.put(arg);
+                }
                 int parserType = Parser.EVENT;
                 if (HasBinaryData.hasBinary(jsonArgs)) { parserType = Parser.BINARY_EVENT; }
                 Packet<JSONArray> packet = new Packet<JSONArray>(parserType, jsonArgs);

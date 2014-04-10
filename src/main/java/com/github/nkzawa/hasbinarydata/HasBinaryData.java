@@ -24,7 +24,7 @@ public class HasBinaryData {
             JSONArray _obj = (JSONArray)obj;
             int length = _obj.length();
             for (int i = 0; i < length; i++) {
-                if (recursiveCheckForBinary(_obj.get(i))) {
+                if (recursiveCheckForBinary(_obj.isNull(i) ? null : _obj.get(i))) {
                     return true;
                 }
             }

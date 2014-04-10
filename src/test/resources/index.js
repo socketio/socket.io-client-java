@@ -8,21 +8,25 @@ io.of(nsp).on('connection', function(socket) {
 
   socket.on('message', function() {
     var args = Array.prototype.slice.call(arguments);
-    console.log('message:', args);
     socket.send.apply(socket, args);
   });
 
   socket.on('echo', function() {
     var args = Array.prototype.slice.call(arguments);
-    console.log('echo:', args);
     socket.emit.apply(socket, ['echoBack'].concat(args));
   });
 
   socket.on('ack', function() {
     var args = Array.prototype.slice.call(arguments),
         callback = args.pop();
-    console.log('ack:', args);
     callback.apply(null, args);
+  });
+
+  socket.on('callAck', function() {
+    socket.emit('ack', function() {
+        var args = Array.prototype.slice.call(arguments);
+        socket.emit.apply(socket, ['ackBack'].concat(args));
+    });
   });
 
   socket.on('disconnect', function() {

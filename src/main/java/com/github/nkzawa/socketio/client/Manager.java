@@ -280,7 +280,12 @@ public class Manager extends Emitter {
         this.subs.add(On.on(socket, Engine.EVENT_DATA, new Listener() {
             @Override
             public void call(Object... objects) {
-                Manager.this.ondata((String)objects[0]);
+                Object data = objects[0];
+                if (data instanceof String) {
+                    Manager.this.ondata((String)data);
+                } else if (data instanceof byte[]) {
+                    Manager.this.ondata((byte[])data);
+                }
             }
         }));
         this.subs.add(On.on(this.decoder, Parser.Decoder.EVENT_DECODED, new Listener() {
@@ -304,6 +309,10 @@ public class Manager extends Emitter {
     }
 
     private void ondata(String data) {
+        this.decoder.add(data);
+    }
+
+    private void ondata(byte[] data) {
         this.decoder.add(data);
     }
 
