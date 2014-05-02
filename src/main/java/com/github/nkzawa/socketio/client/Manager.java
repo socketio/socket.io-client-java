@@ -480,17 +480,5 @@ public class Manager extends Emitter {
         Engine(URI uri, Options opts) {
             super(uri, opts);
         }
-
-        @Override
-        public void onopen() {}
-
-        @Override
-        public void onmessage(String s) {}
-
-        @Override
-        public void onclose() {}
-
-        @Override
-        public void onerror(Exception err) {}
     }
 }
