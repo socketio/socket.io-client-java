@@ -8,9 +8,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 
 public class IO {
+
+    private static final Logger logger = Logger.getLogger(IO.class.getName());
 
     private static final ConcurrentHashMap<String, Manager> managers = new ConcurrentHashMap<String, Manager>();
 
@@ -53,15 +56,17 @@ public class IO {
         } catch (MalformedURLException e) {
             throw new URISyntaxException(uri.toString(), e.getMessage());
         }
-        URI href = parsed.toURI();
+        URI source = parsed.toURI();
         Manager io;
 
         if (opts.forceNew || !opts.multiplex) {
-            io = new Manager(href, opts);
+            logger.info(String.format("ignoring socket cache for %s", source));
+            io = new Manager(source, opts);
         } else {
             String id = Url.extractId(parsed);
             if (!managers.containsKey(id)) {
-                managers.putIfAbsent(id, new Manager(href, opts));
+                logger.info(String.format("new io instance for %s", source));
+                managers.putIfAbsent(id, new Manager(source, opts));
             }
             io = managers.get(id);
         }
