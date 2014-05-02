@@ -5,6 +5,19 @@ This is the Socket.IO v1.0 Client Library for Java, which is simply ported from 
 
 See also: [Engine.IO-client.java](https://github.com/nkzawa/engine.io-client.java)
 
+## Installation
+The latest artifact is available on Maven Central. Add the following dependency to your `pom.xml`.
+
+```xml
+<dependencies>
+  <dependency>
+    <groupId>com.github.nkzawa</groupId>
+    <artifactId>socket.io-client</artifactId>
+    <version>0.1.0</version>
+  </dependency>
+</dependencies>
+```
+
 ## Usage
 Socket.IO-client.java has almost the same api and features with the original JS client. You use `IO#socket` to initialize `Socket`:
 
