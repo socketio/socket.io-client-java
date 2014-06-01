@@ -146,6 +146,7 @@ public class Socket extends Emitter {
                 List<Object> _args = new ArrayList<Object>(args.length + 1);
                 _args.add(event);
                 _args.addAll(Arrays.asList(args));
+
                 JSONArray jsonArgs = new JSONArray();
                 for (Object arg : _args) {
                     jsonArgs.put(arg);
@@ -157,6 +158,7 @@ public class Socket extends Emitter {
                 if (_args.get(_args.size() - 1) instanceof Ack) {
                     logger.fine(String.format("emitting packet with ack id %d", Socket.this.ids));
                     Socket.this.acks.put(Socket.this.ids, (Ack)_args.remove(_args.size() - 1));
+                    jsonArgs.remove(jsonArgs.length() - 1);
                     packet.id = Socket.this.ids++;
                 }
 
@@ -240,6 +242,10 @@ public class Socket extends Emitter {
                 this.onack(packet);
                 break;
 
+            case Parser.BINARY_ACK:
+                this.onack(packet);
+                break;
+
             case Parser.DISCONNECT:
                 this.ondisconnect();
                 break;
@@ -276,7 +282,9 @@ public class Socket extends Emitter {
                 if (sent[0]) return;
                 sent[0] = true;
                 logger.fine(String.format("sending ack %s", args));
-                Packet<JSONArray> packet = new Packet<JSONArray>(Parser.ACK, new JSONArray(args));
+
+                int type = HasBinaryData.hasBinary(args) ? Parser.BINARY_ACK : Parser.ACK;
+                Packet<JSONArray> packet = new Packet<JSONArray>(type, new JSONArray(args));
                 packet.id = id;
                 self.packet(packet);
             }

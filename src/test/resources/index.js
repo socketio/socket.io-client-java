@@ -29,6 +29,10 @@ io.of(nsp).on('connection', function(socket) {
     });
   });
 
+  socket.on('getAckDate', function(data, callback) {
+    callback(new Date());
+  });
+
   socket.on('disconnect', function() {
     console.log('disconnect');
   });

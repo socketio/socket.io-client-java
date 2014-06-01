@@ -9,6 +9,7 @@ import org.junit.runners.JUnit4;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
@@ -77,6 +78,27 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
+    public void receiveDateWithAck() throws URISyntaxException, InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                socket.emit("getAckDate", new JSONObject("{test: true}"), new Ack() {
+                    @Override
+                    public void call(Object... args) {
+                        assertThat(args[0], instanceOf(String.class));
+                        socket.close();
+                        latch.countDown();
+                    }
+                });
+            }
+        });
+        socket.connect();
+        latch.await();
+    }
+
+    @Test(timeout = TIMEOUT)
     public void workWithFalse() throws URISyntaxException, InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
         socket = client();
@@ -92,6 +114,42 @@ public class ConnectionTest extends Connection {
                         latch.countDown();
                     }
                 });
+            }
+        });
+        socket.connect();
+        latch.await();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void receiveUTF8MultibyteCharacters() throws URISyntaxException, InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String[] correct = new String[] {
+            "てすと",
+            "Я Б Г Д Ж Й",
+            "Ä ä Ü ü ß",
+            "utf8 — string",
+            "utf8 — string"
+        };
+
+        socket = client();
+        final int[] i = new int[] {0};
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                socket.on("echoBack", new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        assertThat((String)args[0], is(correct[i[0]]));
+                        i[0]++;
+                        if (i[0] == correct.length) {
+                            socket.close();
+                            latch.countDown();
+                        }
+                    }
+                });
+                for (String data : correct) {
+                    socket.emit("echo", data);
+                }
             }
         });
         socket.connect();
@@ -209,7 +267,7 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void notTryToReconnectWithIncorrectPort() throws URISyntaxException, InterruptedException {
+    public void notTryToReconnectWithIncorrectPortWhenReconnectionDisabled() throws URISyntaxException, InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
         IO.Options opts = new IO.Options();
         opts.reconnection = false;
@@ -238,6 +296,53 @@ public class ConnectionTest extends Connection {
 
         socket = manager.socket("/invalid");
         socket.open();
+        latch.await();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void emitDateAsString() throws URISyntaxException, InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                socket.emit("echo", new Date());
+                socket.on("echoBack", new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        assertThat(args[0], instanceOf(String.class));
+                        socket.close();
+                        latch.countDown();
+                    }
+                });
+            }
+        });
+        socket.connect();
+        latch.await();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void emitDateInObject() throws URISyntaxException, InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                JSONObject data = new JSONObject();
+                data.put("date", new Date());
+                socket.emit("echo", data);
+                socket.on("echoBack", new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        assertThat(args[0], instanceOf(JSONObject.class));
+                        assertThat(((JSONObject)args[0]).get("date"), instanceOf(String.class));
+                        socket.close();
+                        latch.countDown();
+                    }
+                });
+            }
+        });
+        socket.connect();
         latch.await();
     }
 
