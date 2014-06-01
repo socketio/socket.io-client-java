@@ -43,7 +43,12 @@ public class Parser {
      */
     public static final int BINARY_EVENT = 5;
 
-    public static int protocol = 3;
+    /**
+     * Packet type `binary ack`.
+     */
+    public static final int BINARY_ACK = 6;
+
+    public static int protocol = 4;
 
     /**
      * Packet types.
@@ -54,6 +59,7 @@ public class Parser {
         "EVENT",
         "BINARY_EVENT",
         "ACK",
+        "BINARY_ACK",
         "ERROR",
     };
 
@@ -72,7 +78,7 @@ public class Parser {
         public void encode(Packet obj, Callback callback) {
             logger.fine(String.format("encoding packet %s", obj));
 
-            if (BINARY_EVENT == obj.type || ACK == obj.type) {
+            if (BINARY_EVENT == obj.type || BINARY_ACK == obj.type) {
                 encodeAsBinary(obj, callback);
             } else {
                 String encoding = encodeAsString(obj);
@@ -86,7 +92,7 @@ public class Parser {
 
             str.append(obj.type);
 
-            if (BINARY_EVENT == obj.type || ACK == obj.type) {
+            if (BINARY_EVENT == obj.type || BINARY_ACK == obj.type) {
                 str.append(obj.attachments);
                 str.append("-");
             }
@@ -140,7 +146,7 @@ public class Parser {
 
         public void add(String obj) {
             Packet packet = decodeString(obj);
-            if (BINARY_EVENT == packet.type || ACK == packet.type) {
+            if (BINARY_EVENT == packet.type || BINARY_ACK == packet.type) {
                 this.reconstructor = new BinaryReconstructor(packet);
 
                 if (this.reconstructor.reconPack.attachments == 0) {
@@ -170,7 +176,7 @@ public class Parser {
             p.type = Character.getNumericValue(str.charAt(0));
             if (p.type < 0 || p.type > types.length - 1) return error();
 
-            if (BINARY_EVENT == p.type || ACK == p.type) {
+            if (BINARY_EVENT == p.type || BINARY_ACK == p.type) {
                 StringBuilder attachments = new StringBuilder();
                 while (str.charAt(++i) != '-') {
                     attachments.append(str.charAt(i));

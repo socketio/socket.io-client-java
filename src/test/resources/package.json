@@ -3,6 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "socket.io": "1.0.0-pre2"
+    "socket.io": "1.0.3"
   }
 }

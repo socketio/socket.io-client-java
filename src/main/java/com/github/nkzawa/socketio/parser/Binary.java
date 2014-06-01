@@ -17,7 +17,7 @@ public class Binary {
     public static DeconstructedPacket deconstructPacket(Packet packet) {
         List<byte[]> buffers = new ArrayList<byte[]>();
 
-        packet.data = deconstructBinPackRecursive(packet.data, buffers);
+        packet.data = _deconstructPacket(packet.data, buffers);
         packet.attachments = buffers.size();
 
         DeconstructedPacket result = new DeconstructedPacket();
@@ -26,7 +26,7 @@ public class Binary {
         return result;
     }
 
-    private static Object deconstructBinPackRecursive(Object data, List<byte[]> buffers) {
+    private static Object _deconstructPacket(Object data, List<byte[]> buffers) {
         if (data == null) return null;
 
         if (data instanceof byte[]) {
@@ -40,7 +40,7 @@ public class Binary {
             JSONArray _data = (JSONArray)data;
             int len = _data.length();
             for (int i = 0; i < len; i ++) {
-                newData.put(i, deconstructBinPackRecursive(_data.get(i), buffers));
+                newData.put(i, _deconstructPacket(_data.get(i), buffers));
             }
             return newData;
         } else if (data instanceof JSONObject) {
@@ -49,7 +49,7 @@ public class Binary {
             Iterator<?> iterator = _data.keys();
             while (iterator.hasNext()) {
                 String key = (String)iterator.next();
-                newData.put(key, deconstructBinPackRecursive(_data.get(key), buffers));
+                newData.put(key, _deconstructPacket(_data.get(key), buffers));
             }
             return newData;
         }
@@ -57,17 +57,17 @@ public class Binary {
     }
 
     public static Packet reconstructPacket(Packet packet, byte[][] buffers) {
-        packet.data = reconstructBinPackRecursive(packet.data, buffers);
+        packet.data = _reconstructPacket(packet.data, buffers);
         packet.attachments = -1;
        return packet;
     }
 
-    private static Object reconstructBinPackRecursive(Object data, byte[][] buffers) {
+    private static Object _reconstructPacket(Object data, byte[][] buffers) {
         if (data instanceof JSONArray) {
             JSONArray _data = (JSONArray)data;
             int len = _data.length();
             for (int i = 0; i < len; i ++) {
-                _data.put(i, reconstructBinPackRecursive(_data.get(i), buffers));
+                _data.put(i, _reconstructPacket(_data.get(i), buffers));
             }
             return _data;
         } else if (data instanceof JSONObject) {
@@ -79,7 +79,7 @@ public class Binary {
             Iterator<?> iterator = _data.keys();
             while (iterator.hasNext()) {
                 String key = (String)iterator.next();
-                _data.put(key, reconstructBinPackRecursive(_data.get(key), buffers));
+                _data.put(key, _reconstructPacket(_data.get(key), buffers));
             }
             return _data;
         }
