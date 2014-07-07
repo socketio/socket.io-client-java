@@ -6,6 +6,7 @@ import com.github.nkzawa.socketio.parser.Packet;
 import com.github.nkzawa.socketio.parser.Parser;
 import com.github.nkzawa.thread.EventThread;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.*;
@@ -46,6 +47,18 @@ public class Socket extends Emitter {
         put(EVENT_ERROR, 1);
     }};
 
+    private static boolean jsonArrayNativeRemove;
+
+    {
+        try {
+            jsonArrayNativeRemove = JSONArray.class.getMethod("remove", new Class[] {
+                int.class
+            }) != null;
+        } catch (NoSuchMethodException e) {
+            jsonArrayNativeRemove = false;
+        }
+    }
+
     private boolean connected;
     private boolean disconnected = true;
     private int ids;
@@ -54,7 +67,6 @@ public class Socket extends Emitter {
     private Map<Integer, Ack> acks = new HashMap<Integer, Ack>();
     private Queue<On.Handle> subs;
     private final Queue<List<Object>> buffer = new LinkedList<List<Object>>();
-
 
     public Socket(Manager io, String nsp) {
         this.io = io;
@@ -158,7 +170,12 @@ public class Socket extends Emitter {
                 if (_args.get(_args.size() - 1) instanceof Ack) {
                     logger.fine(String.format("emitting packet with ack id %d", Socket.this.ids));
                     Socket.this.acks.put(Socket.this.ids, (Ack)_args.remove(_args.size() - 1));
-                    jsonArgs.remove(jsonArgs.length() - 1);
+                    if (jsonArrayNativeRemove) {
+                        jsonArgs.remove(jsonArgs.length() - 1);
+                    } else {
+                        jsonArgs = remove(jsonArgs, jsonArgs.length() - 1);
+                        packet.data = jsonArgs;
+                    }
                     packet.id = Socket.this.ids++;
                 }
 
@@ -166,6 +183,20 @@ public class Socket extends Emitter {
             }
         });
         return this;
+    }
+
+    private static JSONArray remove(JSONArray a, int pos) {
+        JSONArray na = new JSONArray();
+        try {
+            for (int i = 0; i < a.length(); i++){
+                if (i != pos) {
+                    na.put(a.get(i));
+                }
+            }
+        } catch (Exception e) {
+            throw new JSONException(e);
+        }
+        return na;
     }
 
     /**
@@ -284,7 +315,7 @@ public class Socket extends Emitter {
                 logger.fine(String.format("sending ack %s", args));
 
                 int type = HasBinaryData.hasBinary(args) ? Parser.BINARY_ACK : Parser.ACK;
-                Packet<JSONArray> packet = new Packet<JSONArray>(type, new JSONArray(args));
+                Packet<JSONArray> packet = new Packet<JSONArray>(type, new JSONArray(Arrays.asList(args)));
                 packet.id = id;
                 self.packet(packet);
             }
