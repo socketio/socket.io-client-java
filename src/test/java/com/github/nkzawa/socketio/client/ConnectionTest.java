@@ -1,6 +1,7 @@
 package com.github.nkzawa.socketio.client;
 
 import com.github.nkzawa.emitter.Emitter;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,7 +58,11 @@ public class ConnectionTest extends Connection {
                     public void call(Object... args) {
                         Ack fn = (Ack) args[0];
                         JSONObject data = new JSONObject();
-                        data.put("test", true);
+                        try {
+                            data.put("test", true);
+                        } catch (JSONException e) {
+                            throw new AssertionError(e);
+                        }
                         fn.call(5, data);
                     }
                 });
@@ -65,9 +70,13 @@ public class ConnectionTest extends Connection {
                     @Override
                     public void call(Object... args) {
                         JSONObject data = (JSONObject)args[1];
-                        if ((Integer)args[0] == 5 && data.getBoolean("test")) {
-                            socket.close();
-                            latch.countDown();
+                        try {
+                            if ((Integer)args[0] == 5 && data.getBoolean("test")) {
+                                socket.close();
+                                latch.countDown();
+                            }
+                        } catch (JSONException e) {
+                            throw new AssertionError(e);
                         }
                     }
                 });
@@ -84,14 +93,18 @@ public class ConnectionTest extends Connection {
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                socket.emit("getAckDate", new JSONObject("{test: true}"), new Ack() {
-                    @Override
-                    public void call(Object... args) {
-                        assertThat(args[0], instanceOf(String.class));
-                        socket.close();
-                        latch.countDown();
-                    }
-                });
+                try {
+                    socket.emit("getAckDate", new JSONObject("{test: true}"), new Ack() {
+                        @Override
+                        public void call(Object... args) {
+                            assertThat(args[0], instanceOf(String.class));
+                            socket.close();
+                            latch.countDown();
+                        }
+                    });
+                } catch (JSONException e) {
+                    throw new AssertionError(e);
+                }
             }
         });
         socket.connect();
@@ -329,13 +342,21 @@ public class ConnectionTest extends Connection {
             @Override
             public void call(Object... objects) {
                 JSONObject data = new JSONObject();
-                data.put("date", new Date());
+                try {
+                    data.put("date", new Date());
+                } catch (JSONException e) {
+                    throw new AssertionError(e);
+                }
                 socket.emit("echo", data);
                 socket.on("echoBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         assertThat(args[0], instanceOf(JSONObject.class));
-                        assertThat(((JSONObject)args[0]).get("date"), instanceOf(String.class));
+                        try {
+                            assertThat(((JSONObject)args[0]).get("date"), instanceOf(String.class));
+                        } catch (JSONException e) {
+                            throw new AssertionError(e);
+                        }
                         socket.close();
                         latch.countDown();
                     }
@@ -379,17 +400,25 @@ public class ConnectionTest extends Connection {
             public void call(Object... args) {
                 final byte[] buf = "howdy".getBytes(Charset.forName("UTF-8"));
                 JSONObject data = new JSONObject();
-                data.put("hello", "lol");
-                data.put("message", buf);
-                data.put("goodbye", "gotcha");
+                try {
+                    data.put("hello", "lol");
+                    data.put("message", buf);
+                    data.put("goodbye", "gotcha");
+                } catch (JSONException e) {
+                    throw new AssertionError(e);
+                }
                 socket.emit("echo", data);
                 socket.on("echoBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         JSONObject a = (JSONObject)args[0];
-                        assertThat(a.getString("hello"), is("lol"));
-                        assertThat((byte[])a.get("message"), is(buf));
-                        assertThat(a.getString("goodbye"), is("gotcha"));
+                        try {
+                            assertThat(a.getString("hello"), is("lol"));
+                            assertThat((byte[])a.get("message"), is(buf));
+                            assertThat(a.getString("goodbye"), is("gotcha"));
+                        } catch (JSONException e) {
+                            throw new AssertionError(e);
+                        }
                         socket.close();
                         latch.countDown();
                     }
@@ -401,7 +430,7 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void sendEventsWithByteArraysInTheCorrectOrder() throws URISyntaxException, InterruptedException {
+    public void sendEventsWithByteArraysInTheCorrectOrder() throws Exception {
         final CountDownLatch latch = new CountDownLatch(1);
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {

@@ -1,6 +1,7 @@
 package com.github.nkzawa.socketio.parser;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -26,7 +27,7 @@ public class ParserTest {
     }
 
     @Test
-    public void encodeEvent() {
+    public void encodeEvent() throws JSONException {
         Packet<JSONArray> packet1 = new Packet<JSONArray>(Parser.EVENT);
         packet1.data = new JSONArray("[\"a\", 1, {}]");
         packet1.nsp = "/";
@@ -39,7 +40,7 @@ public class ParserTest {
     }
 
     @Test
-    public void encodeAck() {
+    public void encodeAck() throws JSONException {
         Packet<JSONArray> packet = new Packet<JSONArray>(Parser.ACK);
         packet.data = new JSONArray("[\"a\", 1, {}]");
         packet.id = 123;

@@ -2,6 +2,7 @@ package com.github.nkzawa.socketio.parser;
 
 import com.github.nkzawa.emitter.Emitter;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +37,7 @@ public class ByteArrayTest {
     }
 
     @Test
-    public void encodeByteArrayDeepInJson() {
+    public void encodeByteArrayDeepInJson() throws JSONException {
         JSONObject data = new JSONObject("{a: \"hi\", b: {}, c: {a: \"bye\", b: {}}}");
         data.getJSONObject("b").put("why", new byte[3]);
         data.getJSONObject("c").getJSONObject("b").put("a", new byte[6]);
@@ -49,7 +50,7 @@ public class ByteArrayTest {
     }
 
     @Test
-    public void encodeDeepBinaryJSONWithNullValue() {
+    public void encodeDeepBinaryJSONWithNullValue() throws JSONException {
         JSONObject data = new JSONObject("{a: \"b\", c: 4, e: {g: null}, h: null}");
         data.put("h", new byte[9]);
 
@@ -61,7 +62,7 @@ public class ByteArrayTest {
     }
 
     @Test
-    public void encodeBinaryAckWithByteArray() {
+    public void encodeBinaryAckWithByteArray() throws JSONException {
         JSONArray data = new JSONArray("[a, null, {}]");
         data.put(1, "xxx".getBytes(Charset.forName("UTF-8")));
 

@@ -1,6 +1,7 @@
 package com.github.nkzawa.hasbinarydata;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Iterator;
@@ -24,7 +25,13 @@ public class HasBinaryData {
             JSONArray _obj = (JSONArray)obj;
             int length = _obj.length();
             for (int i = 0; i < length; i++) {
-                if (recursiveCheckForBinary(_obj.isNull(i) ? null : _obj.get(i))) {
+                Object v;
+                try {
+                    v = _obj.isNull(i) ? null : _obj.get(i);
+                } catch (JSONException e) {
+                    return false;
+                }
+                if (recursiveCheckForBinary(v)) {
                     return true;
                 }
             }
@@ -33,7 +40,13 @@ public class HasBinaryData {
             Iterator keys = _obj.keys();
             while (keys.hasNext()) {
                 String key = (String)keys.next();
-                if (recursiveCheckForBinary(_obj.get(key))) {
+                Object v;
+                try {
+                    v = _obj.get(key);
+                } catch (JSONException e) {
+                    return false;
+                }
+                if (recursiveCheckForBinary(v)) {
                     return true;
                 }
             }

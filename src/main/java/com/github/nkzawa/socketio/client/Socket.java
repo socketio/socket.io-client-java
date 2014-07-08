@@ -47,18 +47,6 @@ public class Socket extends Emitter {
         put(EVENT_ERROR, 1);
     }};
 
-    private static boolean jsonArrayNativeRemove;
-
-    {
-        try {
-            jsonArrayNativeRemove = JSONArray.class.getMethod("remove", new Class[] {
-                int.class
-            }) != null;
-        } catch (NoSuchMethodException e) {
-            jsonArrayNativeRemove = false;
-        }
-    }
-
     private boolean connected;
     private boolean disconnected = true;
     private int ids;
@@ -170,12 +158,8 @@ public class Socket extends Emitter {
                 if (_args.get(_args.size() - 1) instanceof Ack) {
                     logger.fine(String.format("emitting packet with ack id %d", Socket.this.ids));
                     Socket.this.acks.put(Socket.this.ids, (Ack)_args.remove(_args.size() - 1));
-                    if (jsonArrayNativeRemove) {
-                        jsonArgs.remove(jsonArgs.length() - 1);
-                    } else {
-                        jsonArgs = remove(jsonArgs, jsonArgs.length() - 1);
-                        packet.data = jsonArgs;
-                    }
+                    jsonArgs = remove(jsonArgs, jsonArgs.length() - 1);
+                    packet.data = jsonArgs;
                     packet.id = Socket.this.ids++;
                 }
 
@@ -187,14 +171,16 @@ public class Socket extends Emitter {
 
     private static JSONArray remove(JSONArray a, int pos) {
         JSONArray na = new JSONArray();
-        try {
-            for (int i = 0; i < a.length(); i++){
-                if (i != pos) {
-                    na.put(a.get(i));
+        for (int i = 0; i < a.length(); i++){
+            if (i != pos) {
+                Object v;
+                try {
+                    v = a.get(i);
+                } catch (JSONException e) {
+                    v = null;
                 }
+                na.put(v);
             }
-        } catch (Exception e) {
-            throw new JSONException(e);
         }
         return na;
     }
@@ -392,7 +378,12 @@ public class Socket extends Emitter {
         int length = array.length();
         Object[] data = new Object[length];
         for (int i = 0; i < length; i++) {
-            Object v = array.get(i);
+            Object v;
+            try {
+                v = array.get(i);
+            } catch (JSONException e) {
+                v = null;
+            }
             data[i] = v == JSONObject.NULL ? null : v;
         }
         return data;

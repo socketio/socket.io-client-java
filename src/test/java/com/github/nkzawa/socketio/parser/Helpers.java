@@ -2,6 +2,7 @@ package com.github.nkzawa.socketio.parser;
 
 import com.github.nkzawa.emitter.Emitter;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -66,9 +67,17 @@ public class Helpers {
         assertThat(actual.attachments, is(expected.attachments));
 
         if (expected.data instanceof JSONArray) {
-            JSONAssert.assertEquals((JSONArray)expected.data, (JSONArray)actual.data, true);
+            try {
+                JSONAssert.assertEquals((JSONArray)expected.data, (JSONArray)actual.data, true);
+            } catch (JSONException e) {
+                throw new AssertionError(e);
+            }
         } else if (expected.data instanceof JSONObject) {
-            JSONAssert.assertEquals((JSONObject)expected.data, (JSONObject)actual.data, true);
+            try {
+                JSONAssert.assertEquals((JSONObject)expected.data, (JSONObject)actual.data, true);
+            } catch (JSONException e) {
+                throw new AssertionError(e);
+            }
         } else {
             assertThat(actual.data, is(expected.data));
         }

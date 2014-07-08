@@ -72,7 +72,7 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void event() throws URISyntaxException, InterruptedException {
+    public void event() throws Exception {
         final Semaphore semaphore = new Semaphore(0);
 
         final JSONObject obj = new JSONObject();
@@ -102,7 +102,7 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void ack() throws URISyntaxException, InterruptedException {
+    public void ack() throws Exception {
         final Semaphore semaphore = new Semaphore(0);
 
         final JSONObject obj = new JSONObject();

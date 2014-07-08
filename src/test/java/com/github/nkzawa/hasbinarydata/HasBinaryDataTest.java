@@ -13,7 +13,7 @@ import static org.junit.Assert.assertTrue;
 public class HasBinaryDataTest {
 
     @Test
-    public void arrayContainsByteArray() {
+    public void arrayContainsByteArray() throws Exception {
         JSONArray arr = new JSONArray("[1, null, 2]");
         arr.put(1, "asdfasdf".getBytes(Charset.forName("UTF-8")));
         assertTrue(HasBinaryData.hasBinary(arr));

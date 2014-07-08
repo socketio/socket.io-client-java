@@ -57,12 +57,12 @@
     <dependency>
       <groupId>com.github.nkzawa</groupId>
       <artifactId>engine.io-client</artifactId>
-      <version>0.2.1</version>
+      <version>0.2.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>20140107</version>
+      <version>20090211</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

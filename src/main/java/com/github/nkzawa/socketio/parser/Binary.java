@@ -1,6 +1,7 @@
 package com.github.nkzawa.socketio.parser;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -31,8 +32,12 @@ public class Binary {
 
         if (data instanceof byte[]) {
             JSONObject placeholder = new JSONObject();
-            placeholder.put(KEY_PLACEHOLDER, true);
-            placeholder.put(KEY_NUM, buffers.size());
+            try {
+                placeholder.put(KEY_PLACEHOLDER, true);
+                placeholder.put(KEY_NUM, buffers.size());
+            } catch (JSONException e) {
+                return null;
+            }
             buffers.add((byte[])data);
             return placeholder;
         } else if (data instanceof JSONArray) {
@@ -40,7 +45,11 @@ public class Binary {
             JSONArray _data = (JSONArray)data;
             int len = _data.length();
             for (int i = 0; i < len; i ++) {
-                newData.put(i, _deconstructPacket(_data.get(i), buffers));
+                try {
+                    newData.put(i, _deconstructPacket(_data.get(i), buffers));
+                } catch (JSONException e) {
+                    return null;
+                }
             }
             return newData;
         } else if (data instanceof JSONObject) {
@@ -49,7 +58,11 @@ public class Binary {
             Iterator<?> iterator = _data.keys();
             while (iterator.hasNext()) {
                 String key = (String)iterator.next();
-                newData.put(key, _deconstructPacket(_data.get(key), buffers));
+                try {
+                    newData.put(key, _deconstructPacket(_data.get(key), buffers));
+                } catch (JSONException e) {
+                    return null;
+                }
             }
             return newData;
         }
@@ -67,7 +80,11 @@ public class Binary {
             JSONArray _data = (JSONArray)data;
             int len = _data.length();
             for (int i = 0; i < len; i ++) {
-                _data.put(i, _reconstructPacket(_data.get(i), buffers));
+                try {
+                    _data.put(i, _reconstructPacket(_data.get(i), buffers));
+                } catch (JSONException e) {
+                    return null;
+                }
             }
             return _data;
         } else if (data instanceof JSONObject) {
@@ -79,7 +96,11 @@ public class Binary {
             Iterator<?> iterator = _data.keys();
             while (iterator.hasNext()) {
                 String key = (String)iterator.next();
-                _data.put(key, _reconstructPacket(_data.get(key), buffers));
+                try {
+                    _data.put(key, _reconstructPacket(_data.get(key), buffers));
+                } catch (JSONException e) {
+                    return null;
+                }
             }
             return _data;
         }
