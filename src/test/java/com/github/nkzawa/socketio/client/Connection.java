@@ -16,7 +16,7 @@ public abstract class Connection {
 
     private Process serverProcess;
     private ExecutorService serverService;
-    private Future serverOutout;
+    private Future serverOutput;
     private Future serverError;
 
     @Before
@@ -25,10 +25,9 @@ public abstract class Connection {
 
         final CountDownLatch latch = new CountDownLatch(1);
         serverProcess = Runtime.getRuntime().exec(
-                String.format("node src/test/resources/index.js %s %s", PORT, nsp()),
-                new String[] {"DEBUG=socket.io:*"});
+                String.format("node src/test/resources/server.js %s", nsp()), createEnv());
         serverService = Executors.newCachedThreadPool();
-        serverOutout = serverService.submit(new Runnable() {
+        serverOutput = serverService.submit(new Runnable() {
             @Override
             public void run() {
                 BufferedReader reader = new BufferedReader(
@@ -67,24 +66,36 @@ public abstract class Connection {
     public void stopServer() throws InterruptedException {
         System.out.println("Stopping server ...");
         serverProcess.destroy();
-        serverOutout.cancel(false);
+        serverOutput.cancel(false);
         serverError.cancel(false);
         serverService.shutdown();
         serverService.awaitTermination(3000, TimeUnit.MILLISECONDS);
     }
 
-    protected Socket client() throws URISyntaxException {
-        IO.Options opts = new IO.Options();
-        opts.forceNew = true;
-        opts.reconnection = false;
+    Socket client() throws URISyntaxException {
+        return client(createOptions());
+    }
+
+    Socket client(IO.Options opts) throws URISyntaxException {
         return IO.socket(uri() + nsp(), opts);
     }
 
-    protected String uri() {
+    String uri() {
         return "http://localhost:" + PORT;
     }
 
-    protected String nsp() {
+    String nsp() {
         return "/";
+    }
+
+    IO.Options createOptions() {
+        IO.Options opts = new IO.Options();
+        opts.forceNew = true;
+        opts.reconnection = false;
+        return opts;
+    }
+
+    String[] createEnv() {
+        return new String[] {"DEBUG=socket.io:*", "PORT=" + PORT};
     }
 }

@@ -3,6 +3,7 @@ package com.github.nkzawa.socketio.client;
 
 import com.github.nkzawa.socketio.parser.Parser;
 
+import javax.net.ssl.SSLContext;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -22,6 +23,9 @@ public class IO {
      */
     public static int protocol = Parser.protocol;
 
+    public static void setDefaultSSLContext(SSLContext sslContext) {
+        Manager.defaultSSLContext = sslContext;
+    }
 
     private IO() {}
 

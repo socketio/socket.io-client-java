@@ -5,6 +5,7 @@ import com.github.nkzawa.socketio.parser.Packet;
 import com.github.nkzawa.socketio.parser.Parser;
 import com.github.nkzawa.thread.EventThread;
 
+import javax.net.ssl.SSLContext;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -62,6 +63,8 @@ public class Manager extends Emitter {
 
     public static final String EVENT_RECONNECT_ATTEMPT = "reconnect_attempt";
 
+    /*package*/ static SSLContext defaultSSLContext;
+
     /*package*/ ReadyState readyState = null;
 
     private boolean _reconnection;
@@ -110,6 +113,9 @@ public class Manager extends Emitter {
         }
         if (opts.path == null) {
             opts.path = "/socket.io";
+        }
+        if (opts.sslContext == null) {
+            opts.sslContext = defaultSSLContext;
         }
         this.opts = opts;
         this.nsps = new ConcurrentHashMap<String, Socket>();
