@@ -97,7 +97,7 @@ public class Parser {
                 str.append("-");
             }
 
-            if (obj.nsp != null && !obj.nsp.isEmpty() && !"/".equals(obj.nsp)) {
+            if (obj.nsp != null && obj.nsp.length() != 0 && !"/".equals(obj.nsp)) {
                 nsp = true;
                 str.append(obj.nsp);
             }

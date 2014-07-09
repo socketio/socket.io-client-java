@@ -21,7 +21,7 @@ public class Url {
         }
 
         String path = uri.getPath();
-        if (path == null || path.isEmpty()) {
+        if (path == null || path.length() == 0) {
             uri = uri.resolve("/");
         }
 
