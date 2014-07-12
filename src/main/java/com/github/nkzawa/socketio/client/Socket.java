@@ -295,15 +295,20 @@ public class Socket extends Emitter {
         final boolean[] sent = new boolean[] {false};
         return new Ack() {
             @Override
-            public synchronized void call(Object... args) {
-                if (sent[0]) return;
-                sent[0] = true;
-                logger.fine(String.format("sending ack %s", args));
+            public void call(final Object... args) {
+                EventThread.exec(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (sent[0]) return;
+                        sent[0] = true;
+                        logger.fine(String.format("sending ack %s", args.length != 0 ? args : null));
 
-                int type = HasBinaryData.hasBinary(args) ? Parser.BINARY_ACK : Parser.ACK;
-                Packet<JSONArray> packet = new Packet<JSONArray>(type, new JSONArray(Arrays.asList(args)));
-                packet.id = id;
-                self.packet(packet);
+                        int type = HasBinaryData.hasBinary(args) ? Parser.BINARY_ACK : Parser.ACK;
+                        Packet<JSONArray> packet = new Packet<JSONArray>(type, new JSONArray(Arrays.asList(args)));
+                        packet.id = id;
+                        self.packet(packet);
+                    }
+                });
             }
         };
     }

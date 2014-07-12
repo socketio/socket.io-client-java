@@ -9,8 +9,7 @@ import org.junit.runners.JUnit4;
 import java.net.URISyntaxException;
 import java.util.concurrent.Semaphore;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JUnit4.class)
@@ -25,12 +24,15 @@ public class ServerConnectionTest extends Connection {
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
-            public void call(Object... objects) {
+            public void call(Object... args) {
+                assertThat(args.length, is(0));
                 socket.disconnect();
             }
         }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
             @Override
-            public void call(Object... objects) {
+            public void call(Object... args) {
+                assertThat(args.length, is(1));
+                assertThat(args[0], is(instanceOf(String.class)));
                 semaphore.release();
             }
         });
@@ -138,11 +140,42 @@ public class ServerConnectionTest extends Connection {
                 socket.emit("ack", null, new Ack() {
                     @Override
                     public void call(Object... args) {
-                        assertThat(args, is(new Object[] {}));
+                        assertThat(args.length, is(0));
                         socket.disconnect();
                         semaphore.release();
                     }
                 });
+            }
+        });
+        socket.connect();
+        semaphore.acquire();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void ackWithoutArgsFromClient() throws URISyntaxException, InterruptedException {
+        final Semaphore semaphore = new Semaphore(0);
+
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                socket.on("ack", new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        assertThat(args.length, is(1));
+                        assertThat(args[0], is(instanceOf(Ack.class)));
+                        Ack ack = (Ack)args[0];
+                        ack.call();
+                    }
+                }).on("ackBack", new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        assertThat(args.length, is(0));
+                        socket.disconnect();
+                        semaphore.release();
+                    }
+                });
+                socket.emit("callAck");
             }
         });
         socket.connect();
