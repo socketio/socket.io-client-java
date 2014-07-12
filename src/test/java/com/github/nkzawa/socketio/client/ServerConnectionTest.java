@@ -7,8 +7,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.net.URISyntaxException;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -22,53 +20,52 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void openAndClose() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<String> events = new LinkedBlockingQueue<String>();
+        final Semaphore semaphore = new Semaphore(0);
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                System.out.println("connect:");
-                events.offer("connect");
+                socket.disconnect();
             }
         }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                System.out.println("disconnect:");
-                events.offer("disconnect");
+                semaphore.release();
             }
         });
         socket.connect();
-
-        assertThat(events.take(), is("connect"));
-        socket.disconnect();
-        assertThat(events.take(), is("disconnect"));
+        semaphore.acquire();
     }
 
     @Test(timeout = TIMEOUT)
     public void message() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object[]> events = new LinkedBlockingQueue<Object[]>();
+        final Semaphore semaphore = new Semaphore(0);
+        final int[] count = new int[] {0};
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                System.out.println("connect:");
                 socket.send("foo", "bar");
             }
         }).on(Socket.EVENT_MESSAGE, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                System.out.println(String.format(
-                        objects.length > 1 ? "message: %s, %s" : "message: %s", objects));
-                events.offer(objects);
+                switch (count[0]++) {
+                case 0:
+                    assertThat(objects, is(new Object[] {"hello client"}));
+                    break;
+                case 1:
+                    assertThat(objects, is(new Object[] {"foo", "bar"}));
+                    socket.disconnect();
+                    semaphore.release();
+                    break;
+                }
             }
         });
         socket.connect();
-
-        assertThat(events.take(), is(new Object[] {"hello client"}));
-        assertThat(events.take(), is(new Object[] {"foo", "bar"}));
-        socket.disconnect();
+        semaphore.acquire();
     }
 
     @Test(timeout = TIMEOUT)
@@ -132,7 +129,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void ackWithoutArgs() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object[]> events = new LinkedBlockingQueue<Object[]>();
+        final Semaphore semaphore = new Semaphore(0);
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -141,15 +138,14 @@ public class ServerConnectionTest extends Connection {
                 socket.emit("ack", null, new Ack() {
                     @Override
                     public void call(Object... args) {
-                        System.out.println("ack: " + args);
-                        events.offer(args);
+                        assertThat(args, is(new Object[] {}));
+                        socket.disconnect();
+                        semaphore.release();
                     }
                 });
             }
         });
         socket.connect();
-
-        assertThat(events.take(), is(new Object[] {}));
-        socket.disconnect();
+        semaphore.acquire();
     }
 }
