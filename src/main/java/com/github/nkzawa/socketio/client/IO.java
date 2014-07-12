@@ -79,7 +79,7 @@ public class IO {
     }
 
 
-    public static class Options extends com.github.nkzawa.engineio.client.Socket.Options {
+    public static class Options extends Manager.Options {
 
         public boolean forceNew;
 
@@ -87,12 +87,5 @@ public class IO {
          * Whether to enable multiplexing. Default is true.
          */
         public boolean multiplex = true;
-
-        public boolean reconnection = true;
-        public int reconnectionAttempts;
-        public long reconnectionDelay;
-        public long reconnectionDelayMax;
-        public long timeout = -1;
-
     }
 }

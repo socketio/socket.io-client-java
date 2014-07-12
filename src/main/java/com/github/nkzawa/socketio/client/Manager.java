@@ -81,7 +81,7 @@ public class Manager extends Emitter {
     private URI uri;
     private List<Packet> packetBuffer;
     private Queue<On.Handle> subs;
-    private IO.Options opts;
+    private Options opts;
     /*package*/ com.github.nkzawa.engineio.client.Socket engine;
     private Parser.Encoder encoder;
     private Parser.Decoder decoder;
@@ -103,13 +103,13 @@ public class Manager extends Emitter {
         this(uri, null);
     }
 
-    public Manager(IO.Options opts) {
+    public Manager(Options opts) {
         this(null, opts);
     }
 
-    public Manager(URI uri, IO.Options opts) {
+    public Manager(URI uri, Options opts) {
         if (opts == null) {
-            opts = new IO.Options();
+            opts = new Options();
         }
         if (opts.path == null) {
             opts.path = "/socket.io";
@@ -486,5 +486,14 @@ public class Manager extends Emitter {
         Engine(URI uri, Options opts) {
             super(uri, opts);
         }
+    }
+
+    public static class Options extends com.github.nkzawa.engineio.client.Socket.Options {
+
+        public boolean reconnection = true;
+        public int reconnectionAttempts;
+        public long reconnectionDelay;
+        public long reconnectionDelayMax;
+        public long timeout = -1;
     }
 }
