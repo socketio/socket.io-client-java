@@ -13,30 +13,31 @@ if (process.env.SSL) {
 var io = require('socket.io')(server);
 var port = process.env.PORT || 3000;
 var nsp = process.argv[2] || '/';
+var slice = Array.prototype.slice;
 
 io.of(nsp).on('connection', function(socket) {
   socket.send('hello client');
 
   socket.on('message', function() {
-    var args = Array.prototype.slice.call(arguments);
+    var args = slice.call(arguments);
     socket.send.apply(socket, args);
   });
 
   socket.on('echo', function() {
-    var args = Array.prototype.slice.call(arguments);
+    var args = slice.call(arguments);
     socket.emit.apply(socket, ['echoBack'].concat(args));
   });
 
   socket.on('ack', function() {
-    var args = Array.prototype.slice.call(arguments),
-        callback = args.pop();
+    var args = slice.call(arguments);
+    var callback = args.pop();
     callback.apply(null, args);
   });
 
   socket.on('callAck', function() {
     socket.emit('ack', function() {
-        var args = Array.prototype.slice.call(arguments);
-        socket.emit.apply(socket, ['ackBack'].concat(args));
+      var args = slice.call(arguments);
+      socket.emit.apply(socket, ['ackBack'].concat(args));
     });
   });
 
