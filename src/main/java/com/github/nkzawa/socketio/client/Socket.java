@@ -41,10 +41,31 @@ public class Socket extends Emitter {
 
     public static final String EVENT_MESSAGE = "message";
 
+    public static final String EVENT_CONNECT_ERROR = Manager.EVENT_CONNECT_ERROR;
+
+    public static final String EVENT_CONNECT_TIMEOUT = Manager.EVENT_CONNECT_TIMEOUT;
+
+    public static final String EVENT_RECONNECT = Manager.EVENT_RECONNECT;
+
+    public static final String EVENT_RECONNECT_ERROR = Manager.EVENT_RECONNECT_ERROR;
+
+    public static final String EVENT_RECONNECT_FAILED = Manager.EVENT_RECONNECT_FAILED;
+
+    public static final String EVENT_RECONNECT_ATTEMPT = Manager.EVENT_RECONNECT_ATTEMPT;
+
+    public static final String EVENT_RECONNECTING = Manager.EVENT_RECONNECTING;
+
     private static Map<String, Integer> events = new HashMap<String, Integer>() {{
         put(EVENT_CONNECT, 1);
+        put(EVENT_CONNECT_ERROR, 1);
+        put(EVENT_CONNECT_TIMEOUT, 1);
         put(EVENT_DISCONNECT, 1);
         put(EVENT_ERROR, 1);
+        put(EVENT_RECONNECT, 1);
+        put(EVENT_RECONNECT_ATTEMPT, 1);
+        put(EVENT_RECONNECT_FAILED, 1);
+        put(EVENT_RECONNECT_ERROR, 1);
+        put(EVENT_RECONNECTING, 1);
     }};
 
     private boolean connected;
@@ -54,11 +75,37 @@ public class Socket extends Emitter {
     /*package*/ Manager io;
     private Map<Integer, Ack> acks = new HashMap<Integer, Ack>();
     private Queue<On.Handle> subs;
-    private final Queue<List<Object>> buffer = new LinkedList<List<Object>>();
+    private final Queue<List<Object>> receiveBuffer = new LinkedList<List<Object>>();
+    private final Queue<Packet<JSONArray>> sendBuffer = new LinkedList<Packet<JSONArray>>();
 
     public Socket(Manager io, String nsp) {
         this.io = io;
         this.nsp = nsp;
+        this.subEvents();
+    }
+
+    private void subEvents() {
+        final Manager io = Socket.this.io;
+        Socket.this.subs = new LinkedList<On.Handle>() {{
+            add(On.on(io, Manager.EVENT_OPEN, new Listener() {
+                @Override
+                public void call(Object... args) {
+                    Socket.this.onopen();
+                }
+            }));
+            add(On.on(io, Manager.EVENT_PACKET, new Listener() {
+                @Override
+                public void call(Object... args) {
+                    Socket.this.onpacket((Packet) args[0]);
+                }
+            }));
+            add(On.on(io, Manager.EVENT_CLOSE, new Listener() {
+                @Override
+                public void call(Object... args) {
+                    Socket.this.onclose(args.length > 0 ? (String) args[0] : null);
+                }
+            }));
+        }};
     }
 
     /**
@@ -69,34 +116,8 @@ public class Socket extends Emitter {
             @Override
             public void run() {
                 if (Socket.this.connected) return;
-                final Manager io = Socket.this.io;
-                io.open();
-                Socket.this.subs = new LinkedList<On.Handle>() {{
-                    add(On.on(io, Manager.EVENT_OPEN, new Listener() {
-                        @Override
-                        public void call(Object... args) {
-                            Socket.this.onopen();
-                        }
-                    }));
-                    add(On.on(io, Manager.EVENT_ERROR, new Listener() {
-                        @Override
-                        public void call(Object... args) {
-                            Socket.this.onerror(args.length > 0 ? (Exception) args[0] : null);
-                        }
-                    }));
-                    add(On.on(io, Manager.EVENT_PACKET, new Listener() {
-                        @Override
-                        public void call(Object... args) {
-                            Socket.this.onpacket((Packet) args[0]);
-                        }
-                    }));
-                    add(On.on(io, Manager.EVENT_CLOSE, new Listener() {
-                        @Override
-                        public void call(Object... args) {
-                            Socket.this.onclose(args.length > 0 ? (String) args[0] : null);
-                        }
-                    }));
-                }};
+
+                Socket.this.io.open();
                 if (Manager.ReadyState.OPEN == Socket.this.io.readyState) Socket.this.onopen();
             }
         });
@@ -163,7 +184,11 @@ public class Socket extends Emitter {
                     packet.id = Socket.this.ids++;
                 }
 
-                Socket.this.packet(packet);
+                if (Socket.this.connected) {
+                    Socket.this.packet(packet);
+                } else {
+                    Socket.this.sendBuffer.add(packet);
+                }
             }
         });
         return this;
@@ -218,10 +243,6 @@ public class Socket extends Emitter {
     private void packet(Packet packet) {
         packet.nsp = this.nsp;
         this.io.packet(packet);
-    }
-
-    private void onerror(Exception err) {
-        this.emit(EVENT_ERROR, err);
     }
 
     private void onopen() {
@@ -286,7 +307,7 @@ public class Socket extends Emitter {
             String event = (String)args.remove(0);
             super.emit(event, args.toArray());
         } else {
-            this.buffer.add(args);
+            this.receiveBuffer.add(args);
         }
     }
 
@@ -328,10 +349,17 @@ public class Socket extends Emitter {
 
     private void emitBuffered() {
         List<Object> data;
-        while ((data = this.buffer.poll()) != null) {
+        while ((data = this.receiveBuffer.poll()) != null) {
             String event = (String)data.get(0);
             super.emit(event, data.toArray());
         }
+        this.receiveBuffer.clear();
+
+        Packet<JSONArray> packet;
+        while ((packet = this.sendBuffer.poll()) != null) {
+            this.packet(packet);
+        }
+        this.sendBuffer.clear();
     }
 
     private void ondisconnect() {

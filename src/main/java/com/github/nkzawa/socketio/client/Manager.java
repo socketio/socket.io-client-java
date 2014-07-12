@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
@@ -62,6 +63,8 @@ public class Manager extends Emitter {
     public static final String EVENT_RECONNECT_FAILED = "reconnect_failed";
 
     public static final String EVENT_RECONNECT_ATTEMPT = "reconnect_attempt";
+
+    public static final String EVENT_RECONNECTING = "reconnecting";
 
     /*package*/ static SSLContext defaultSSLContext;
 
@@ -133,6 +136,13 @@ public class Manager extends Emitter {
         this.packetBuffer = new ArrayList<Packet>();
         this.encoder = new Parser.Encoder();
         this.decoder = new Parser.Decoder();
+    }
+
+    private void emitAll(String event, Object... args) {
+        this.emit(event, args);
+        for (Socket socket : this.nsps.values()) {
+            socket.emit(event, args);
+        }
     }
 
     public boolean reconnection() {
@@ -226,7 +236,7 @@ public class Manager extends Emitter {
                         logger.fine("connect_error");
                         self.cleanup();
                         self.readyState = ReadyState.CLOSED;
-                        self.emit(EVENT_CONNECT_ERROR, data);
+                        self.emitAll(EVENT_CONNECT_ERROR, data);
                         if (fn != null) {
                             Exception err = new SocketIOException("Connection error",
                                     data instanceof Exception ? (Exception) data : null);
@@ -251,7 +261,7 @@ public class Manager extends Emitter {
                                     openSub.destroy();
                                     socket.close();
                                     socket.emit(Engine.EVENT_ERROR, new SocketIOException("timeout"));
-                                    self.emit(EVENT_CONNECT_TIMEOUT, timeout);
+                                    self.emitAll(EVENT_CONNECT_TIMEOUT, timeout);
                                 }
                             });
                         }
@@ -327,7 +337,8 @@ public class Manager extends Emitter {
     }
 
     private void onerror(Exception err) {
-        this.emit(EVENT_ERROR, err);
+        logger.log(Level.FINE, "error", err);
+        this.emitAll(EVENT_ERROR, err);
     }
 
     /**
@@ -423,7 +434,7 @@ public class Manager extends Emitter {
 
         if (attempts > this._reconnectionAttempts) {
             logger.fine("reconnect failed");
-            this.emit(EVENT_RECONNECT_FAILED);
+            this.emitAll(EVENT_RECONNECT_FAILED);
             this.reconnecting = false;
         } else {
             long delay = this.attempts * this.reconnectionDelay();
@@ -438,7 +449,8 @@ public class Manager extends Emitter {
                         @Override
                         public void run() {
                             logger.fine("attempting reconnect");
-                            self.emit(EVENT_RECONNECT_ATTEMPT);
+                            self.emitAll(EVENT_RECONNECT_ATTEMPT, self.attempts);
+                            self.emitAll(EVENT_RECONNECTING, self.attempts);
                             self.open(new OpenCallback() {
                                 @Override
                                 public void call(Exception err) {
@@ -446,7 +458,7 @@ public class Manager extends Emitter {
                                         logger.fine("reconnect attempt error");
                                         self.reconnecting = false;
                                         self.reconnect();
-                                        self.emit(EVENT_RECONNECT_ERROR, err);
+                                        self.emitAll(EVENT_RECONNECT_ERROR, err);
                                     } else {
                                         logger.fine("reconnect success");
                                         self.onreconnect();
@@ -471,7 +483,7 @@ public class Manager extends Emitter {
         int attempts = this.attempts;
         this.attempts = 0;
         this.reconnecting = false;
-        this.emit(EVENT_RECONNECT, attempts);
+        this.emitAll(EVENT_RECONNECT, attempts);
     }
 
 

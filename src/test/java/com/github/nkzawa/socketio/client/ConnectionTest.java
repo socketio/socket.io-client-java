@@ -196,21 +196,42 @@ public class ConnectionTest extends Connection {
     @Test(timeout = TIMEOUT)
     public void reconnectByDefault() throws URISyntaxException, InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
-        socket = IO.socket(uri());
-        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+        socket = client();
+        socket.io.on(Manager.EVENT_RECONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                socket.io.engine.close();
-                socket.io.on(Manager.EVENT_RECONNECT, new Emitter.Listener() {
-                    @Override
-                    public void call(Object... objects) {
-                        socket.close();
-                        latch.countDown();
-                    }
-                });
+                socket.close();
+                latch.countDown();
             }
         });
         socket.open();
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                socket.io.engine.close();
+            }
+        }, 500);
+        latch.await();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void reconnectEventFireInSocket() throws URISyntaxException, InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        socket = client();
+        socket.on(Socket.EVENT_RECONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                socket.close();
+                latch.countDown();
+            }
+        });
+        socket.open();
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                socket.io.engine.close();
+            }
+        }, 500);
         latch.await();
     }
 
@@ -308,6 +329,74 @@ public class ConnectionTest extends Connection {
         });
 
         socket = manager.socket("/invalid");
+        socket.open();
+        latch.await();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void fireReconnectEventsOnSocket() throws URISyntaxException, InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        Manager.Options opts = new Manager.Options();
+        opts.reconnection = true;
+        opts.timeout = 0;
+        opts.reconnectionAttempts = 2;
+        opts.reconnectionDelay = 10;
+        Manager manager = new Manager(new URI(uri()), opts);
+        socket = manager.socket("/timeout_socket");
+
+        final int[] reconnects = new int[] {0};
+        Emitter.Listener reconnectCb = new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                reconnects[0]++;
+                assertThat((Integer)args[0], is(reconnects[0]));
+            }
+        };
+
+        socket.on(Socket.EVENT_RECONNECT_ATTEMPT, reconnectCb);
+        socket.on(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                assertThat(reconnects[0], is(2));
+                socket.close();
+                latch.countDown();
+            }
+        });
+        socket.open();
+        latch.await();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void fireReconnectingWithAttemptsNumberWhenReconnectingTwice() throws URISyntaxException, InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        Manager.Options opts = new Manager.Options();
+        opts.reconnection = true;
+        opts.timeout = 0;
+        opts.reconnectionAttempts = 2;
+        opts.reconnectionDelay = 10;
+        Manager manager = new Manager(new URI(uri()), opts);
+        socket = manager.socket("/timeout_socket");
+
+        final int[] reconnects = new int[] {0};
+        Emitter.Listener reconnectCb = new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                reconnects[0]++;
+                assertThat((Integer)args[0], is(reconnects[0]));
+            }
+        };
+
+        socket.on(Socket.EVENT_RECONNECTING, reconnectCb);
+        socket.on(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                assertThat(reconnects[0], is(2));
+                socket.close();
+                latch.countDown();
+            }
+        });
         socket.open();
         latch.await();
     }
