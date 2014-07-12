@@ -72,7 +72,7 @@ public class Socket extends Emitter {
     private boolean disconnected = true;
     private int ids;
     private String nsp;
-    /*package*/ Manager io;
+    private Manager io;
     private Map<Integer, Ack> acks = new HashMap<Integer, Ack>();
     private Queue<On.Handle> subs;
     private final Queue<List<Object>> receiveBuffer = new LinkedList<List<Object>>();
@@ -405,6 +405,10 @@ public class Socket extends Emitter {
      */
     public Socket disconnect() {
         return this.close();
+    }
+
+    public Manager io() {
+        return io;
     }
 
     private static Object[] toArray(JSONArray array) {

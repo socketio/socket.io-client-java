@@ -197,7 +197,7 @@ public class ConnectionTest extends Connection {
     public void reconnectByDefault() throws URISyntaxException, InterruptedException {
         final CountDownLatch latch = new CountDownLatch(1);
         socket = client();
-        socket.io.on(Manager.EVENT_RECONNECT, new Emitter.Listener() {
+        socket.io().on(Manager.EVENT_RECONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
                 socket.close();
@@ -208,7 +208,7 @@ public class ConnectionTest extends Connection {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                socket.io.engine.close();
+                socket.io().engine.close();
             }
         }, 500);
         latch.await();
@@ -229,7 +229,7 @@ public class ConnectionTest extends Connection {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                socket.io.engine.close();
+                socket.io().engine.close();
             }
         }, 500);
         latch.await();
