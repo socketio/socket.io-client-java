@@ -13,10 +13,12 @@ The latest artifact is available on Maven Central. Add the following dependency 
   <dependency>
     <groupId>com.github.nkzawa</groupId>
     <artifactId>socket.io-client</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
   </dependency>
 </dependencies>
 ```
+
+Or to install it manually, please refer dependencies to [pom.xml](https://github.com/nkzawa/socket.io-client.java/blob/master/pom.xml).
 
 ## Usage
 Socket.IO-client.java has almost the same api and features with the original JS client. You use `IO#socket` to initialize `Socket`:
@@ -51,6 +53,7 @@ This Library uses [org.json](http://www.json.org/java/) to parse and compose JSO
 // Sending an object
 JSONObject obj = new JSONObject();
 obj.put("hello", "server");
+obj.put("binary", new byte[42]);
 socket.emit("foo", obj);
 
 // Receiving an object
@@ -81,9 +84,24 @@ socket.emit("foo", "woot", new Ack() {
 });
 ```
 
+Use custom SSL settings:
+
+```java
+// default SSLContext for all sockets
+IO.setDefaultSSLContext(mySSLContext);
+
+// set as an option
+opts = new IO.Options();
+opts.sslContext = mySSLContext;
+socket = IO.socket("https://localhost", opts);
+```
+
 See the Javadoc for more details.
 
 http://nkzawa.github.io/socket.io-client.java/apidocs/
+
+## Features
+This library supports all of the features the JS client does, including events, options and upgrading transport. Android is fully supported.
 
 ## License
 
