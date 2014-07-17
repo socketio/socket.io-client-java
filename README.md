@@ -20,6 +20,11 @@ The latest artifact is available on Maven Central. Add the following dependency 
 
 Or to install it manually, please refer dependencies to [pom.xml](https://github.com/nkzawa/socket.io-client.java/blob/master/pom.xml).
 
+Add it as a gradle dependency for Android Studio, in build.gradle:
+```javascript
+compile 'com.github.nkzawa:socket.io-client:0.1.2'
+```
+
 ## Usage
 Socket.IO-client.java has almost the same api and features with the original JS client. You use `IO#socket` to initialize `Socket`:
 
