@@ -169,7 +169,7 @@ public class Parser {
             }
         }
 
-        public static Packet decodeString(String str) {
+        private static Packet decodeString(String str) {
             Packet p = new Packet();
             int i = 0;
 
