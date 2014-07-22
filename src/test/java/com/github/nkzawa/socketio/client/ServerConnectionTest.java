@@ -16,6 +16,7 @@ import static org.junit.Assert.assertThat;
 public class ServerConnectionTest extends Connection {
 
     private Socket socket;
+    private Socket socket2;
 
     @Test(timeout = TIMEOUT)
     public void openAndClose() throws URISyntaxException, InterruptedException {
@@ -176,6 +177,64 @@ public class ServerConnectionTest extends Connection {
                     }
                 });
                 socket.emit("callAck");
+            }
+        });
+        socket.connect();
+        semaphore.acquire();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void closeEngineConnection() throws URISyntaxException, InterruptedException {
+        final Semaphore semaphore = new Semaphore(0);
+
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                socket.io().engine.on(com.github.nkzawa.engineio.client.Socket.EVENT_CLOSE, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... objects) {
+                        semaphore.release();
+                    }
+                });
+                socket.disconnect();
+            }
+        });
+        socket.connect();
+        semaphore.acquire();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void broadcast() throws URISyntaxException, InterruptedException {
+        final Semaphore semaphore = new Semaphore(0);
+
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                try {
+                    socket2 = client();
+                } catch (URISyntaxException e) {
+                    throw new RuntimeException(e);
+                }
+
+                socket2.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... objects) {
+                        socket2.emit("broadcast", "hi");
+                    }
+                });
+                socket2.connect();
+            }
+        }).on("broadcastBack", new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                assertThat(objects.length, is(1));
+                assertThat(objects[0], is(instanceOf(String.class)));
+                assertThat((String)objects[0], is("hi"));
+                socket.disconnect();
+                socket2.disconnect();
+                semaphore.release();
             }
         });
         socket.connect();

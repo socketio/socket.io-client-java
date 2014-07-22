@@ -45,6 +45,11 @@ io.of(nsp).on('connection', function(socket) {
     callback(new Date());
   });
 
+  socket.on('broadcast', function(data) {
+    var args = slice.call(arguments);
+    socket.broadcast.emit.apply(socket, ['broadcastBack'].concat(args));
+  });
+
   socket.on('disconnect', function() {
     console.log('disconnect');
   });
