@@ -64,12 +64,12 @@ public class IO {
         Manager io;
 
         if (opts.forceNew || !opts.multiplex) {
-            logger.info(String.format("ignoring socket cache for %s", source));
+            logger.fine(String.format("ignoring socket cache for %s", source));
             io = new Manager(source, opts);
         } else {
             String id = Url.extractId(parsed);
             if (!managers.containsKey(id)) {
-                logger.info(String.format("new io instance for %s", source));
+                logger.fine(String.format("new io instance for %s", source));
                 managers.putIfAbsent(id, new Manager(source, opts));
             }
             io = managers.get(id);
