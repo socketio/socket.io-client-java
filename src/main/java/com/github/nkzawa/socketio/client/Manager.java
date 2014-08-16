@@ -94,8 +94,8 @@ public class Manager extends Emitter {
      */
     private ConcurrentHashMap<String, Socket> nsps;
 
-    private ScheduledExecutorService timeoutScheduler = Executors.newSingleThreadScheduledExecutor();
-    private ScheduledExecutorService reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService timeoutScheduler;
+    private ScheduledExecutorService reconnectScheduler;
 
 
     public Manager() {
@@ -251,7 +251,7 @@ public class Manager extends Emitter {
                     final long timeout = Manager.this._timeout;
                     logger.fine(String.format("connection attempt will timeout after %d", timeout));
 
-                    final Future timer = timeoutScheduler.schedule(new Runnable() {
+                    final Future timer = getTimeoutScheduler().schedule(new Runnable() {
                         @Override
                         public void run() {
                             EventThread.exec(new Runnable() {
@@ -421,6 +421,14 @@ public class Manager extends Emitter {
         this.cleanup();
         this.readyState = ReadyState.CLOSED;
         this.emit(EVENT_CLOSE, reason);
+
+        if (this.timeoutScheduler != null) {
+            this.timeoutScheduler.shutdown();
+        }
+        if (this.reconnectScheduler != null) {
+            this.reconnectScheduler.shutdown();
+        }
+
         if (this._reconnection && !this.skipReconnect) {
             this.reconnect();
         }
@@ -442,7 +450,7 @@ public class Manager extends Emitter {
             logger.fine(String.format("will wait %dms before reconnect attempt", delay));
 
             this.reconnecting = true;
-            final Future timer = this.reconnectScheduler.schedule(new Runnable() {
+            final Future timer = this.getReconnectScheduler().schedule(new Runnable() {
                 @Override
                 public void run() {
                     EventThread.exec(new Runnable() {
@@ -484,6 +492,20 @@ public class Manager extends Emitter {
         this.attempts = 0;
         this.reconnecting = false;
         this.emitAll(EVENT_RECONNECT, attempts);
+    }
+
+    private ScheduledExecutorService getTimeoutScheduler() {
+        if (this.timeoutScheduler == null || this.timeoutScheduler.isShutdown()) {
+           this.timeoutScheduler = Executors.newSingleThreadScheduledExecutor();
+        }
+        return timeoutScheduler;
+    }
+
+    private ScheduledExecutorService getReconnectScheduler() {
+        if (this.reconnectScheduler == null || this.reconnectScheduler.isShutdown()) {
+            this.reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
+        }
+        return this.reconnectScheduler;
     }
 
 
