@@ -230,10 +230,32 @@ public class ServerConnectionTest extends Connection {
             @Override
             public void call(Object... objects) {
                 assertThat(objects.length, is(1));
-                assertThat(objects[0], is(instanceOf(String.class)));
                 assertThat((String)objects[0], is("hi"));
                 socket.disconnect();
                 socket2.disconnect();
+                semaphore.release();
+            }
+        });
+        socket.connect();
+        semaphore.acquire();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void room() throws URISyntaxException, InterruptedException {
+        final Semaphore semaphore = new Semaphore(0);
+
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                socket.emit("room", "hi");
+            }
+        }).on("roomBack", new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                assertThat(objects.length, is(1));
+                assertThat((String)objects[0], is("hi"));
+                socket.disconnect();
                 semaphore.release();
             }
         });

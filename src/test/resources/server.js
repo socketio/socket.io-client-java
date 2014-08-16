@@ -50,6 +50,11 @@ io.of(nsp).on('connection', function(socket) {
     socket.broadcast.emit.apply(socket, ['broadcastBack'].concat(args));
   });
 
+  socket.on('room', function() {
+    var args = slice.call(arguments);
+    io.to(socket.id).emit.apply(socket, ['roomBack'].concat(args));
+  });
+
   socket.on('disconnect', function() {
     console.log('disconnect');
   });
