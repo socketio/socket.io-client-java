@@ -11,6 +11,8 @@ import org.junit.runners.JUnit4;
 
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -269,7 +271,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void pollingHeaders() throws URISyntaxException, InterruptedException {
-        final Semaphore semaphore = new Semaphore(0);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         IO.Options opts = createOptions();
         opts.transports = new String[] {Polling.NAME};
@@ -290,20 +292,21 @@ public class ServerConnectionTest extends Connection {
                     public void call(Object... args) {
                         @SuppressWarnings("unchecked")
                         Map<String, String> headers = (Map<String, String>)args[0];
-                        assertThat(headers.get("X-SocketIO"), is("hi"));
-                        socket.close();
-                        semaphore.release();
+                        String value = headers.get("X-SocketIO");
+                        values.offer(value != null ? value : "");
                     }
                 });
             }
         });
         socket.open();
-        semaphore.acquire();
+
+        assertThat((String)values.take(), is("hi"));
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void websocketHandshakeHeaders() throws URISyntaxException, InterruptedException {
-        final Semaphore semaphore = new Semaphore(0);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         IO.Options opts = createOptions();
         opts.transports = new String[] {WebSocket.NAME};
@@ -324,14 +327,15 @@ public class ServerConnectionTest extends Connection {
                     public void call(Object... args) {
                         @SuppressWarnings("unchecked")
                         Map<String, String> headers = (Map<String, String>)args[0];
-                        assertThat(headers.get("X-SocketIO"), is("hi"));
-                        socket.close();
-                        semaphore.release();
+                        String value = headers.get("X-SocketIO");
+                        values.offer(value != null ? value : "");
                     }
                 });
             }
         });
         socket.open();
-        semaphore.acquire();
+
+        assertThat((String)values.take(), is("hi"));
+        socket.close();
     }
 }

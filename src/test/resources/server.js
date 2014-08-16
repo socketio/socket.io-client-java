@@ -73,14 +73,14 @@ function before(context, name, fn) {
   };
 }
 
-before(io.eio, 'handleRequest', function(req, res) {
+before(io.engine, 'handleRequest', function(req, res) {
   // echo a header value
   var value = req.headers['x-socketio'];
   if (!value) return;
   res.setHeader('X-SocketIO', value);
 });
 
-before(io.eio, 'handleUpgrade', function(req, socket, head) {
+before(io.engine, 'handleUpgrade', function(req, socket, head) {
   // echo a header value for websocket handshake
   var value = req.headers['x-socketio'];
   if (!value) return;
