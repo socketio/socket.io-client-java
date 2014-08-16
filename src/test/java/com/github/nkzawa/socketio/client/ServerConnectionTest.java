@@ -1,12 +1,16 @@
 package com.github.nkzawa.socketio.client;
 
 import com.github.nkzawa.emitter.Emitter;
+import com.github.nkzawa.engineio.client.Transport;
+import com.github.nkzawa.engineio.client.transports.Polling;
+import com.github.nkzawa.engineio.client.transports.WebSocket;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.net.URISyntaxException;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -260,6 +264,74 @@ public class ServerConnectionTest extends Connection {
             }
         });
         socket.connect();
+        semaphore.acquire();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void pollingHeaders() throws URISyntaxException, InterruptedException {
+        final Semaphore semaphore = new Semaphore(0);
+
+        IO.Options opts = createOptions();
+        opts.transports = new String[] {Polling.NAME};
+        socket = client(opts);
+        socket.io().on(Manager.EVENT_TRANSPORT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Transport transport = (Transport)args[0];
+                transport.on(Transport.EVENT_REQUEST_HEADERS, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, String> headers = (Map<String, String>)args[0];
+                        headers.put("X-SocketIO", "hi");
+                    }
+                }).on(Transport.EVENT_RESPONSE_HEADERS, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, String> headers = (Map<String, String>)args[0];
+                        assertThat(headers.get("X-SocketIO"), is("hi"));
+                        socket.close();
+                        semaphore.release();
+                    }
+                });
+            }
+        });
+        socket.open();
+        semaphore.acquire();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void websocketHandshakeHeaders() throws URISyntaxException, InterruptedException {
+        final Semaphore semaphore = new Semaphore(0);
+
+        IO.Options opts = createOptions();
+        opts.transports = new String[] {WebSocket.NAME};
+        socket = client(opts);
+        socket.io().on(Manager.EVENT_TRANSPORT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Transport transport = (Transport)args[0];
+                transport.on(Transport.EVENT_REQUEST_HEADERS, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, String> headers = (Map<String, String>)args[0];
+                        headers.put("X-SocketIO", "hi");
+                    }
+                }).on(Transport.EVENT_RESPONSE_HEADERS, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, String> headers = (Map<String, String>)args[0];
+                        assertThat(headers.get("X-SocketIO"), is("hi"));
+                        socket.close();
+                        semaphore.release();
+                    }
+                });
+            }
+        });
+        socket.open();
         semaphore.acquire();
     }
 }

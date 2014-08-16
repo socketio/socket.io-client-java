@@ -66,6 +66,11 @@ public class Manager extends Emitter {
 
     public static final String EVENT_RECONNECTING = "reconnecting";
 
+    /**
+     * Called when a new transport is created. (experimental)
+     */
+    public static final String EVENT_TRANSPORT = Engine.EVENT_TRANSPORT;
+
     /*package*/ static SSLContext defaultSSLContext;
 
     /*package*/ ReadyState readyState = null;
@@ -220,6 +225,14 @@ public class Manager extends Emitter {
                 final Manager self = Manager.this;
 
                 Manager.this.readyState = ReadyState.OPENING;
+
+                // propagate transport event.
+                socket.on(Engine.EVENT_TRANSPORT, new Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        self.emit(Manager.EVENT_TRANSPORT, args);
+                    }
+                });
 
                 final On.Handle openSub = On.on(socket, Engine.EVENT_OPEN, new Listener() {
                     @Override

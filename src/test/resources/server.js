@@ -64,6 +64,32 @@ io.of(nsp).on('connection', function(socket) {
   });
 });
 
+
+function before(context, name, fn) {
+  var method = context[name];
+  context[name] = function() {
+    fn.apply(this, arguments);
+    return method.apply(this, arguments);
+  };
+}
+
+before(io.eio, 'handleRequest', function(req, res) {
+  // echo a header value
+  var value = req.headers['x-socketio'];
+  if (!value) return;
+  res.setHeader('X-SocketIO', value);
+});
+
+before(io.eio, 'handleUpgrade', function(req, socket, head) {
+  // echo a header value for websocket handshake
+  var value = req.headers['x-socketio'];
+  if (!value) return;
+  this.ws.once('headers', function(headers) {
+    headers.push('X-SocketIO: ' + value);
+  });
+});
+
+
 server.listen(port, function() {
   console.log('Socket.IO server listening on port', port);
 });
