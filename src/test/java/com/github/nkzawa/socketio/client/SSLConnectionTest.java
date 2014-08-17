@@ -14,7 +14,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 @RunWith(JUnit4.class)
 public class SSLConnectionTest extends Connection {
@@ -71,7 +72,7 @@ public class SSLConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void connect() throws Exception {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         IO.Options opts = createOptions();
         opts.sslContext = createSSLContext();
         socket = client(opts);
@@ -82,19 +83,19 @@ public class SSLConnectionTest extends Connection {
                 socket.on("echoBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        socket.close();
-                        latch.countDown();
+                        values.offer("done");
                     }
                 });
             }
         });
         socket.connect();
-        latch.await();
+        values.take();
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void defaultSSLContext() throws Exception {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         IO.setDefaultSSLContext(createSSLContext());
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -104,13 +105,13 @@ public class SSLConnectionTest extends Connection {
                 socket.on("echoBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        socket.close();
-                        latch.countDown();
+                        values.offer("done");
                     }
                 });
             }
         });
         socket.connect();
-        latch.await();
+        values.take();
+        socket.close();
     }
 }

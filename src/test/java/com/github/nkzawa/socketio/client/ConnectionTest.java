@@ -13,7 +13,8 @@ import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -26,7 +27,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void connectToLocalhost() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -35,19 +36,19 @@ public class ConnectionTest extends Connection {
                 socket.on("echoBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        socket.close();
-                        latch.countDown();
+                        values.offer("done");
                     }
                 });
             }
         });
         socket.connect();
-        latch.await();
+        values.take();
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void workWithAcks() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -72,8 +73,7 @@ public class ConnectionTest extends Connection {
                         JSONObject data = (JSONObject)args[1];
                         try {
                             if ((Integer)args[0] == 5 && data.getBoolean("test")) {
-                                socket.close();
-                                latch.countDown();
+                                values.offer("done");
                             }
                         } catch (JSONException e) {
                             throw new AssertionError(e);
@@ -83,12 +83,13 @@ public class ConnectionTest extends Connection {
             }
         });
         socket.connect();
-        latch.await();
+        values.take();
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void receiveDateWithAck() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -97,9 +98,7 @@ public class ConnectionTest extends Connection {
                     socket.emit("getAckDate", new JSONObject("{test: true}"), new Ack() {
                         @Override
                         public void call(Object... args) {
-                            assertThat(args[0], instanceOf(String.class));
-                            socket.close();
-                            latch.countDown();
+                            values.offer(args[0]);
                         }
                     });
                 } catch (JSONException e) {
@@ -108,12 +107,13 @@ public class ConnectionTest extends Connection {
             }
         });
         socket.connect();
-        latch.await();
+        assertThat(values.take(), instanceOf(String.class));
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void workWithFalse() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -122,20 +122,19 @@ public class ConnectionTest extends Connection {
                 socket.on("echoBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        assertThat((Boolean)args[0], is(false));
-                        socket.close();
-                        latch.countDown();
+                        values.offer(args[0]);
                     }
                 });
             }
         });
         socket.connect();
-        latch.await();
+        assertThat((Boolean)values.take(), is(false));
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void receiveUTF8MultibyteCharacters() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         final String[] correct = new String[] {
             "てすと",
             "Я Б Г Д Ж Й",
@@ -152,12 +151,7 @@ public class ConnectionTest extends Connection {
                 socket.on("echoBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        assertThat((String)args[0], is(correct[i[0]]));
-                        i[0]++;
-                        if (i[0] == correct.length) {
-                            socket.close();
-                            latch.countDown();
-                        }
+                        values.offer(args[0]);
                     }
                 });
                 for (String data : correct) {
@@ -166,12 +160,15 @@ public class ConnectionTest extends Connection {
             }
         });
         socket.connect();
-        latch.await();
+        for (String expected : correct) {
+            assertThat((String)values.take(), is(expected));
+        }
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void connectToNamespaceAfterConnectionEstablished() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         final Manager manager = new Manager(new URI(uri()));
         socket = manager.socket("/");
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -181,27 +178,26 @@ public class ConnectionTest extends Connection {
                 foo.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
+                        values.offer("done");
                         foo.close();
-                        socket.close();
-                        latch.countDown();
                     }
                 });
                 foo.open();
             }
         });
         socket.open();
-        latch.await();
+        values.take();
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void reconnectByDefault() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         socket = client();
         socket.io().on(Manager.EVENT_RECONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                socket.close();
-                latch.countDown();
+                values.offer("done");
             }
         });
         socket.open();
@@ -211,18 +207,18 @@ public class ConnectionTest extends Connection {
                 socket.io().engine.close();
             }
         }, 500);
-        latch.await();
+        values.take();
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void reconnectEventFireInSocket() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         socket = client();
         socket.on(Socket.EVENT_RECONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                socket.close();
-                latch.countDown();
+                values.offer("done");
             }
         });
         socket.open();
@@ -232,12 +228,13 @@ public class ConnectionTest extends Connection {
                 socket.io().engine.close();
             }
         }, 500);
-        latch.await();
+        values.take();
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void tryToReconnectTwiceAndFailWithIncorrectAddress() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         IO.Options opts = new IO.Options();
         opts.reconnection = true;
         opts.reconnectionAttempts = 2;
@@ -257,19 +254,18 @@ public class ConnectionTest extends Connection {
         manager.on(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                assertThat(reconnects[0], is(2));
-                socket.close();
-                latch.countDown();
+                values.offer(reconnects[0]);
             }
         });
 
         socket.open();
-        latch.await();
+        assertThat((Integer)values.take(), is(2));
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void tryToReconnectTwiceAndFailWithImmediateTimeout() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         IO.Options opts = new IO.Options();
         opts.reconnection = true;
         opts.timeout = 0;
@@ -289,20 +285,19 @@ public class ConnectionTest extends Connection {
         manager.on(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                assertThat(reconnects[0], is(2));
-                socket.close();
-                latch.countDown();
+                values.offer(reconnects[0]);
             }
         });
 
         socket = manager.socket("/timeout");
         socket.open();
-        latch.await();
+        assertThat((Integer)values.take(), is(2));
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void notTryToReconnectWithIncorrectPortWhenReconnectionDisabled() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         IO.Options opts = new IO.Options();
         opts.reconnection = false;
         Manager manager = new Manager(new URI("http://localhost:9823"), opts);
@@ -321,8 +316,7 @@ public class ConnectionTest extends Connection {
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        socket.close();
-                        latch.countDown();
+                        values.offer("done");
                     }
                 }, 1000);
             }
@@ -330,12 +324,13 @@ public class ConnectionTest extends Connection {
 
         socket = manager.socket("/invalid");
         socket.open();
-        latch.await();
+        values.take();
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void fireReconnectEventsOnSocket() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         Manager.Options opts = new Manager.Options();
         opts.reconnection = true;
@@ -350,7 +345,7 @@ public class ConnectionTest extends Connection {
             @Override
             public void call(Object... args) {
                 reconnects[0]++;
-                assertThat((Integer)args[0], is(reconnects[0]));
+                values.offer(args[0]);
             }
         };
 
@@ -358,18 +353,18 @@ public class ConnectionTest extends Connection {
         socket.on(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                assertThat(reconnects[0], is(2));
-                socket.close();
-                latch.countDown();
+                values.offer(reconnects[0]);
             }
         });
         socket.open();
-        latch.await();
+        assertThat((Integer)values.take(), is(reconnects[0]));
+        assertThat((Integer)values.take(), is(2));
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void fireReconnectingWithAttemptsNumberWhenReconnectingTwice() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         Manager.Options opts = new Manager.Options();
         opts.reconnection = true;
@@ -384,7 +379,7 @@ public class ConnectionTest extends Connection {
             @Override
             public void call(Object... args) {
                 reconnects[0]++;
-                assertThat((Integer)args[0], is(reconnects[0]));
+                values.offer(args[0]);
             }
         };
 
@@ -392,18 +387,18 @@ public class ConnectionTest extends Connection {
         socket.on(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                assertThat(reconnects[0], is(2));
-                socket.close();
-                latch.countDown();
+                values.offer(reconnects[0]);
             }
         });
         socket.open();
-        latch.await();
+        assertThat((Integer)values.take(), is(reconnects[0]));
+        assertThat((Integer)values.take(), is(2));
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void emitDateAsString() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -412,20 +407,20 @@ public class ConnectionTest extends Connection {
                 socket.on("echoBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        assertThat(args[0], instanceOf(String.class));
+                        values.offer(args[0]);
                         socket.close();
-                        latch.countDown();
                     }
                 });
             }
         });
         socket.connect();
-        latch.await();
+        assertThat(values.take(), instanceOf(String.class));
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
-    public void emitDateInObject() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+    public void emitDateInObject() throws URISyntaxException, InterruptedException, JSONException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -440,54 +435,48 @@ public class ConnectionTest extends Connection {
                 socket.on("echoBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        assertThat(args[0], instanceOf(JSONObject.class));
-                        try {
-                            assertThat(((JSONObject)args[0]).get("date"), instanceOf(String.class));
-                        } catch (JSONException e) {
-                            throw new AssertionError(e);
-                        }
-                        socket.close();
-                        latch.countDown();
+                        values.offer(args[0]);
                     }
                 });
             }
         });
         socket.connect();
-        latch.await();
+        Object data = values.take();
+        assertThat(data, instanceOf(JSONObject.class));
+        assertThat(((JSONObject)data).get("date"), instanceOf(String.class));
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void sendAndGetBinaryData() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final byte[] buf = "asdfasdf".getBytes(Charset.forName("UTF-8"));
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                final byte[] buf = "asdfasdf".getBytes(Charset.forName("UTF-8"));
                 socket.emit("echo", buf);
                 socket.on("echoBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        assertThat(args[0], instanceOf(byte[].class));
-                        assertThat((byte[])args[0], is(buf));
-                        socket.close();
-                        latch.countDown();
+                        values.offer(args[0]);
                     }
                 });
             }
         });
         socket.open();
-        latch.await();
+        assertThat((byte[])values.take(), is(buf));
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
-    public void sendBinaryDataMixedWithJson() throws URISyntaxException, InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
+    public void sendBinaryDataMixedWithJson() throws URISyntaxException, InterruptedException, JSONException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final byte[] buf = "howdy".getBytes(Charset.forName("UTF-8"));
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                final byte[] buf = "howdy".getBytes(Charset.forName("UTF-8"));
                 JSONObject data = new JSONObject();
                 try {
                     data.put("hello", "lol");
@@ -500,55 +489,41 @@ public class ConnectionTest extends Connection {
                 socket.on("echoBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        JSONObject a = (JSONObject)args[0];
-                        try {
-                            assertThat(a.getString("hello"), is("lol"));
-                            assertThat((byte[])a.get("message"), is(buf));
-                            assertThat(a.getString("goodbye"), is("gotcha"));
-                        } catch (JSONException e) {
-                            throw new AssertionError(e);
-                        }
-                        socket.close();
-                        latch.countDown();
+                        values.offer(args[0]);
                     }
                 });
             }
         });
         socket.open();
-        latch.await();
+        JSONObject a = (JSONObject)values.take();
+        assertThat(a.getString("hello"), is("lol"));
+        assertThat((byte[])a.get("message"), is(buf));
+        assertThat(a.getString("goodbye"), is("gotcha"));
+        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void sendEventsWithByteArraysInTheCorrectOrder() throws Exception {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final byte[] buf = "abuff1".getBytes(Charset.forName("UTF-8"));
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                final byte[] buf = "abuff1".getBytes(Charset.forName("UTF-8"));
                 socket.emit("echo", buf);
                 socket.emit("echo", "please arrive second");
 
-                final boolean[] receivedAbuff1 = new boolean[] {false};
                 socket.on("echoBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        Object data = args[0];
-                        if (data instanceof byte[]) {
-                            assertThat((byte[])data, is(buf));
-                            receivedAbuff1[0] = true;
-                            return;
-                        }
-
-                        assertThat((String)data, is("please arrive second"));
-                        assertThat(receivedAbuff1[0], is(true));
-                        socket.close();
-                        latch.countDown();
+                        values.offer(args[0]);
                     }
                 });
             }
         });
         socket.open();
-        latch.await();
+        assertThat((byte[])values.take(), is(buf));
+        assertThat((String)values.take(), is("please arrive second"));
+        socket.close();
     }
 }

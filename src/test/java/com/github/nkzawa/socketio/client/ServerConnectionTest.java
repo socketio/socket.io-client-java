@@ -13,7 +13,6 @@ import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
@@ -26,31 +25,32 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void openAndClose() throws URISyntaxException, InterruptedException {
-        final Semaphore semaphore = new Semaphore(0);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                assertThat(args.length, is(0));
+                values.offer(args);
                 socket.disconnect();
             }
         }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                assertThat(args.length, is(1));
-                assertThat(args[0], is(instanceOf(String.class)));
-                semaphore.release();
+                values.offer(args);
             }
         });
         socket.connect();
-        semaphore.acquire();
+
+        assertThat(((Object[])values.take()).length, is(0));
+        Object[] args = (Object[] )values.take();
+        assertThat(args.length, is(1));
+        assertThat(args[0], is(instanceOf(String.class)));
     }
 
     @Test(timeout = TIMEOUT)
     public void message() throws URISyntaxException, InterruptedException {
-        final Semaphore semaphore = new Semaphore(0);
-        final int[] count = new int[] {0};
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -60,26 +60,20 @@ public class ServerConnectionTest extends Connection {
             }
         }).on(Socket.EVENT_MESSAGE, new Emitter.Listener() {
             @Override
-            public void call(Object... objects) {
-                switch (count[0]++) {
-                case 0:
-                    assertThat(objects, is(new Object[] {"hello client"}));
-                    break;
-                case 1:
-                    assertThat(objects, is(new Object[] {"foo", "bar"}));
-                    socket.disconnect();
-                    semaphore.release();
-                    break;
-                }
+            public void call(Object... args) {
+                values.offer(args);
             }
         });
         socket.connect();
-        semaphore.acquire();
+
+        assertThat((Object[])values.take(), is(new Object[] {"hello client"}));
+        assertThat((Object[])values.take(), is(new Object[] {"foo", "bar"}));
+        socket.disconnect();
     }
 
     @Test(timeout = TIMEOUT)
     public void event() throws Exception {
-        final Semaphore semaphore = new Semaphore(0);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         final JSONObject obj = new JSONObject();
         obj.put("foo", 1);
@@ -88,28 +82,27 @@ public class ServerConnectionTest extends Connection {
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                System.out.println("connect:");
                 socket.emit("echo", obj, null, "bar");
             }
         }).on("echoBack", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                System.out.println(String.format("echoBack: %s, %s, %s", args));
-                assertThat(args.length, is(3));
-                assertThat(args[0].toString(), is(obj.toString()));
-                assertThat(args[1], is(nullValue()));
-                assertThat((String)args[2], is("bar"));
-                socket.disconnect();
-                semaphore.release();
+                values.offer(args);
             }
         });
         socket.connect();
-        semaphore.acquire();
+
+        Object[] args = (Object[])values.take();
+        assertThat(args.length, is(3));
+        assertThat(args[0].toString(), is(obj.toString()));
+        assertThat(args[1], is(nullValue()));
+        assertThat((String)args[2], is("bar"));
+        socket.disconnect();
     }
 
     @Test(timeout = TIMEOUT)
     public void ack() throws Exception {
-        final Semaphore semaphore = new Semaphore(0);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         final JSONObject obj = new JSONObject();
         obj.put("foo", 1);
@@ -118,27 +111,26 @@ public class ServerConnectionTest extends Connection {
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                System.out.println("connect:");
                 socket.emit("ack", new Object[] {obj, "bar"}, new Ack() {
                     @Override
                     public void call(Object... args) {
-                        System.out.println(String.format("ack: %s, %s", args));
-                        assertThat(args.length, is(2));
-                        assertThat(args[0].toString(), is(obj.toString()));
-                        assertThat((String)args[1], is("bar"));
-                        socket.disconnect();
-                        semaphore.release();
+                        values.offer(args);
                     }
                 });
             }
         });
         socket.connect();
-        semaphore.acquire();
+
+        Object[] args = (Object[])values.take();
+        assertThat(args.length, is(2));
+        assertThat(args[0].toString(), is(obj.toString()));
+        assertThat((String)args[1], is("bar"));
+        socket.disconnect();
     }
 
     @Test(timeout = TIMEOUT)
     public void ackWithoutArgs() throws URISyntaxException, InterruptedException {
-        final Semaphore semaphore = new Semaphore(0);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -147,20 +139,20 @@ public class ServerConnectionTest extends Connection {
                 socket.emit("ack", null, new Ack() {
                     @Override
                     public void call(Object... args) {
-                        assertThat(args.length, is(0));
-                        socket.disconnect();
-                        semaphore.release();
+                        values.offer(args.length);
                     }
                 });
             }
         });
         socket.connect();
-        semaphore.acquire();
+
+        assertThat((Integer)values.take(), is(0));
+        socket.disconnect();
     }
 
     @Test(timeout = TIMEOUT)
     public void ackWithoutArgsFromClient() throws URISyntaxException, InterruptedException {
-        final Semaphore semaphore = new Semaphore(0);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -169,29 +161,33 @@ public class ServerConnectionTest extends Connection {
                 socket.on("ack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        assertThat(args.length, is(1));
-                        assertThat(args[0], is(instanceOf(Ack.class)));
+                        values.offer(args);
                         Ack ack = (Ack)args[0];
                         ack.call();
                     }
                 }).on("ackBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        assertThat(args.length, is(0));
+                        values.offer(args);
                         socket.disconnect();
-                        semaphore.release();
                     }
                 });
                 socket.emit("callAck");
             }
         });
         socket.connect();
-        semaphore.acquire();
+
+        Object[] args = (Object[])values.take();
+        assertThat(args.length, is(1));
+        assertThat(args[0], is(instanceOf(Ack.class)));
+        args = (Object[])values.take();
+        assertThat(args.length, is(0));
+        socket.disconnect();
     }
 
     @Test(timeout = TIMEOUT)
     public void closeEngineConnection() throws URISyntaxException, InterruptedException {
-        final Semaphore semaphore = new Semaphore(0);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -200,19 +196,19 @@ public class ServerConnectionTest extends Connection {
                 socket.io().engine.on(com.github.nkzawa.engineio.client.Socket.EVENT_CLOSE, new Emitter.Listener() {
                     @Override
                     public void call(Object... objects) {
-                        semaphore.release();
+                        values.offer("done");
                     }
                 });
                 socket.disconnect();
             }
         });
         socket.connect();
-        semaphore.acquire();
+        values.take();
     }
 
     @Test(timeout = TIMEOUT)
     public void broadcast() throws URISyntaxException, InterruptedException {
-        final Semaphore semaphore = new Semaphore(0);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -234,21 +230,22 @@ public class ServerConnectionTest extends Connection {
             }
         }).on("broadcastBack", new Emitter.Listener() {
             @Override
-            public void call(Object... objects) {
-                assertThat(objects.length, is(1));
-                assertThat((String)objects[0], is("hi"));
-                socket.disconnect();
-                socket2.disconnect();
-                semaphore.release();
+            public void call(Object... args) {
+                values.offer(args);
             }
         });
         socket.connect();
-        semaphore.acquire();
+
+        Object[] args = (Object[])values.take();
+        assertThat(args.length, is(1));
+        assertThat((String)args[0], is("hi"));
+        socket.disconnect();
+        socket2.disconnect();
     }
 
     @Test(timeout = TIMEOUT)
     public void room() throws URISyntaxException, InterruptedException {
-        final Semaphore semaphore = new Semaphore(0);
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -258,15 +255,16 @@ public class ServerConnectionTest extends Connection {
             }
         }).on("roomBack", new Emitter.Listener() {
             @Override
-            public void call(Object... objects) {
-                assertThat(objects.length, is(1));
-                assertThat((String)objects[0], is("hi"));
-                socket.disconnect();
-                semaphore.release();
+            public void call(Object... args) {
+                values.offer(args);
             }
         });
         socket.connect();
-        semaphore.acquire();
+
+        Object[] args = (Object[])values.take();
+        assertThat(args.length, is(1));
+        assertThat((String)args[0], is("hi"));
+        socket.disconnect();
     }
 
     @Test(timeout = TIMEOUT)
