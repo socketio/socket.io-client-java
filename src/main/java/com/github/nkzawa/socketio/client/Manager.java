@@ -382,7 +382,8 @@ public class Manager extends Emitter {
 
     /*package*/ void destroy(Socket socket) {
         --this.connected;
-        if (this.connected == 0) {
+        if (this.connected <= 0) {
+            this.connected = 0;
             this.close();
         }
     }
