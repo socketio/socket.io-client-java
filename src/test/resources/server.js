@@ -55,6 +55,10 @@ io.of(nsp).on('connection', function(socket) {
     io.to(socket.id).emit.apply(socket, ['roomBack'].concat(args));
   });
 
+  socket.on('requestDisconnect', function() {
+    socket.disconnect();
+  });
+
   socket.on('disconnect', function() {
     console.log('disconnect');
   });

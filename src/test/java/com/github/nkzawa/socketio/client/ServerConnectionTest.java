@@ -336,4 +336,24 @@ public class ServerConnectionTest extends Connection {
         assertThat((String)values.take(), is("hi"));
         socket.close();
     }
+
+    @Test(timeout = TIMEOUT)
+    public void disconnectFromServer() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                socket.emit("requestDisconnect");
+            }
+        }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                values.offer("disconnected");
+            }
+        });
+        socket.connect();
+        assertThat((String)values.take(), is("disconnected"));
+    }
 }
