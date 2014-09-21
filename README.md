@@ -13,7 +13,7 @@ The latest artifact is available on Maven Central. Add the following dependency 
   <dependency>
     <groupId>com.github.nkzawa</groupId>
     <artifactId>socket.io-client</artifactId>
-    <version>0.1.3</version>
+    <version>0.2.0</version>
   </dependency>
 </dependencies>
 ```
@@ -22,7 +22,7 @@ Or to install it manually, please refer dependencies to [pom.xml](https://github
 
 Add it as a gradle dependency for Android Studio, in build.gradle:
 ```javascript
-compile 'com.github.nkzawa:socket.io-client:0.1.3'
+compile 'com.github.nkzawa:socket.io-client:0.2.0'
 ```
 
 ## Usage
