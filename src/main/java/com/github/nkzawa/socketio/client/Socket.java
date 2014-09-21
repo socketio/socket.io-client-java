@@ -1,7 +1,7 @@
 package com.github.nkzawa.socketio.client;
 
 import com.github.nkzawa.emitter.Emitter;
-import com.github.nkzawa.hasbinarydata.HasBinaryData;
+import com.github.nkzawa.hasbinary.HasBinary;
 import com.github.nkzawa.socketio.parser.Packet;
 import com.github.nkzawa.socketio.parser.Parser;
 import com.github.nkzawa.thread.EventThread;
@@ -173,7 +173,7 @@ public class Socket extends Emitter {
                     jsonArgs.put(arg);
                 }
                 int parserType = Parser.EVENT;
-                if (HasBinaryData.hasBinary(jsonArgs)) { parserType = Parser.BINARY_EVENT; }
+                if (HasBinary.hasBinary(jsonArgs)) { parserType = Parser.BINARY_EVENT; }
                 Packet<JSONArray> packet = new Packet<JSONArray>(parserType, jsonArgs);
 
                 if (_args.get(_args.size() - 1) instanceof Ack) {
@@ -324,7 +324,7 @@ public class Socket extends Emitter {
                         sent[0] = true;
                         logger.fine(String.format("sending ack %s", args.length != 0 ? args : null));
 
-                        int type = HasBinaryData.hasBinary(args) ? Parser.BINARY_ACK : Parser.ACK;
+                        int type = HasBinary.hasBinary(args) ? Parser.BINARY_ACK : Parser.ACK;
                         Packet<JSONArray> packet = new Packet<JSONArray>(type, new JSONArray(Arrays.asList(args)));
                         packet.id = id;
                         self.packet(packet);

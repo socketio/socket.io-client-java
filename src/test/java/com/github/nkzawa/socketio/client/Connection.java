@@ -11,7 +11,7 @@ import java.util.concurrent.*;
 
 public abstract class Connection {
 
-    final static int TIMEOUT = 3000;
+    final static int TIMEOUT = 7000;
     final static int PORT = 3000;
 
     private Process serverProcess;

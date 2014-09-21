@@ -144,7 +144,6 @@ public class ConnectionTest extends Connection {
         };
 
         socket = client();
-        final int[] i = new int[] {0};
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
@@ -178,8 +177,10 @@ public class ConnectionTest extends Connection {
                 foo.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        values.offer("done");
                         foo.close();
+                        socket.close();
+                        manager.close();
+                        values.offer("done");
                     }
                 });
                 foo.open();
@@ -187,7 +188,35 @@ public class ConnectionTest extends Connection {
         });
         socket.open();
         values.take();
-        socket.close();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void connectToNamespaceAfterConnectionGetsClosed() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final Manager manager = new Manager(new URI(uri()));
+        socket = manager.socket("/");
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                socket.close();
+            }
+        }).on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                final Socket foo = manager.socket("/foo");
+                foo.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        foo.close();
+                        manager.close();
+                        values.offer("done");
+                    }
+                });
+                foo.open();
+            }
+        });
+        socket.open();
+        values.take();
     }
 
     @Test(timeout = TIMEOUT)
@@ -197,6 +226,7 @@ public class ConnectionTest extends Connection {
         socket.io().on(Manager.EVENT_RECONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
+                socket.close();
                 values.offer("done");
             }
         });
@@ -208,7 +238,6 @@ public class ConnectionTest extends Connection {
             }
         }, 500);
         values.take();
-        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
@@ -239,7 +268,7 @@ public class ConnectionTest extends Connection {
         opts.reconnection = true;
         opts.reconnectionAttempts = 2;
         opts.reconnectionDelay = 10;
-        Manager manager = new Manager(new URI("http://localhost:3940"), opts);
+        final Manager manager = new Manager(new URI("http://localhost:3940"), opts);
         socket = manager.socket("/asd");
         final int[] reconnects = new int[] {0};
         Emitter.Listener cb = new Emitter.Listener() {
@@ -254,13 +283,14 @@ public class ConnectionTest extends Connection {
         manager.on(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
+                socket.close();
+                manager.close();
                 values.offer(reconnects[0]);
             }
         });
 
         socket.open();
         assertThat((Integer)values.take(), is(2));
-        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
@@ -271,7 +301,7 @@ public class ConnectionTest extends Connection {
         opts.timeout = 0;
         opts.reconnectionAttempts = 2;
         opts.reconnectionDelay = 10;
-        Manager manager = new Manager(new URI(uri()), opts);
+        final Manager manager = new Manager(new URI(uri()), opts);
 
         final int[] reconnects = new int[] {0};
         Emitter.Listener reconnectCb = new Emitter.Listener() {
@@ -285,6 +315,8 @@ public class ConnectionTest extends Connection {
         manager.on(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
+                socket.close();
+                manager.close();
                 values.offer(reconnects[0]);
             }
         });
@@ -292,7 +324,6 @@ public class ConnectionTest extends Connection {
         socket = manager.socket("/timeout");
         socket.open();
         assertThat((Integer)values.take(), is(2));
-        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
@@ -300,7 +331,7 @@ public class ConnectionTest extends Connection {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         IO.Options opts = new IO.Options();
         opts.reconnection = false;
-        Manager manager = new Manager(new URI("http://localhost:9823"), opts);
+        final Manager manager = new Manager(new URI("http://localhost:9823"), opts);
         Emitter.Listener cb = new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
@@ -316,6 +347,8 @@ public class ConnectionTest extends Connection {
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
+                        socket.close();
+                        manager.close();
                         values.offer("done");
                     }
                 }, 1000);
@@ -325,7 +358,6 @@ public class ConnectionTest extends Connection {
         socket = manager.socket("/invalid");
         socket.open();
         values.take();
-        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
@@ -337,7 +369,7 @@ public class ConnectionTest extends Connection {
         opts.timeout = 0;
         opts.reconnectionAttempts = 2;
         opts.reconnectionDelay = 10;
-        Manager manager = new Manager(new URI(uri()), opts);
+        final Manager manager = new Manager(new URI(uri()), opts);
         socket = manager.socket("/timeout_socket");
 
         final int[] reconnects = new int[] {0};
@@ -353,13 +385,14 @@ public class ConnectionTest extends Connection {
         socket.on(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
+                socket.close();
+                manager.close();
                 values.offer(reconnects[0]);
             }
         });
         socket.open();
         assertThat((Integer)values.take(), is(reconnects[0]));
         assertThat((Integer)values.take(), is(2));
-        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
@@ -371,7 +404,7 @@ public class ConnectionTest extends Connection {
         opts.timeout = 0;
         opts.reconnectionAttempts = 2;
         opts.reconnectionDelay = 10;
-        Manager manager = new Manager(new URI(uri()), opts);
+        final Manager manager = new Manager(new URI(uri()), opts);
         socket = manager.socket("/timeout_socket");
 
         final int[] reconnects = new int[] {0};
@@ -387,13 +420,14 @@ public class ConnectionTest extends Connection {
         socket.on(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
+                socket.close();
+                manager.close();
                 values.offer(reconnects[0]);
             }
         });
         socket.open();
         assertThat((Integer)values.take(), is(reconnects[0]));
         assertThat((Integer)values.take(), is(2));
-        socket.close();
     }
 
     @Test(timeout = TIMEOUT)
@@ -407,15 +441,14 @@ public class ConnectionTest extends Connection {
                 socket.on("echoBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        values.offer(args[0]);
                         socket.close();
+                        values.offer(args[0]);
                     }
                 });
             }
         });
         socket.connect();
         assertThat(values.take(), instanceOf(String.class));
-        socket.close();
     }
 
     @Test(timeout = TIMEOUT)

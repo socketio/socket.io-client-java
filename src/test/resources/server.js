@@ -15,6 +15,22 @@ var port = process.env.PORT || 3000;
 var nsp = process.argv[2] || '/';
 var slice = Array.prototype.slice;
 
+io.of('/foo').on('connection', function() {
+  // register namespace
+});
+
+io.of('/timeout_socket').on('connection', function() {
+  // register namespace
+});
+
+io.of('/valid').on('connection', function() {
+  // register namespace
+});
+
+io.of('/asd').on('connection', function() {
+  // register namespace
+});
+
 io.of(nsp).on('connection', function(socket) {
   socket.send('hello client');
 

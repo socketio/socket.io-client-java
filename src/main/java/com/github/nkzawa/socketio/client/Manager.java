@@ -196,7 +196,8 @@ public class Manager extends Emitter {
     }
 
     private void maybeReconnectOnOpen() {
-        if (!this.openReconnect && !this.reconnecting && this._reconnection) {
+        // Only try to reconnect if it's the first time we're connecting
+        if (!this.openReconnect && !this.reconnecting && this._reconnection && this.attempts == 0) {
             this.openReconnect = true;
             this.reconnect();
         }
@@ -425,7 +426,7 @@ public class Manager extends Emitter {
         while ((sub = this.subs.poll()) != null) sub.destroy();
     }
 
-    private void close() {
+    /*package*/ void close() {
         this.skipReconnect = true;
         this.engine.close();
     }
