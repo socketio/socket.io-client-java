@@ -7,10 +7,7 @@ import com.github.nkzawa.thread.EventThread;
 
 import javax.net.ssl.SSLContext;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -84,7 +81,7 @@ public class Manager extends Emitter {
     private long _reconnectionDelay;
     private long _reconnectionDelayMax;
     private long _timeout;
-    private int connected;
+    private Set<Socket> connected;
     private int attempts;
     private URI uri;
     private List<Packet> packetBuffer;
@@ -135,7 +132,7 @@ public class Manager extends Emitter {
         this.timeout(opts.timeout < 0 ? 20000 : opts.timeout);
         this.readyState = ReadyState.CLOSED;
         this.uri = uri;
-        this.connected = 0;
+        this.connected = new HashSet<Socket>();
         this.attempts = 0;
         this.encoding = false;
         this.packetBuffer = new ArrayList<Packet>();
@@ -224,8 +221,8 @@ public class Manager extends Emitter {
                 Manager.this.engine = new Engine(Manager.this.uri, Manager.this.opts);
                 final com.github.nkzawa.engineio.client.Socket socket = Manager.this.engine;
                 final Manager self = Manager.this;
-
                 Manager.this.readyState = ReadyState.OPENING;
+                Manager.this.skipReconnect = false;
 
                 // propagate transport event.
                 socket.on(Engine.EVENT_TRANSPORT, new Listener() {
@@ -370,10 +367,11 @@ public class Manager extends Emitter {
                 socket = _socket;
             } else {
                 final Manager self = this;
+                final Socket s = socket;
                 socket.on(Socket.EVENT_CONNECT, new Listener() {
                     @Override
                     public void call(Object... objects) {
-                        self.connected++;
+                        self.connected.add(s);
                     }
                 });
             }
@@ -382,11 +380,10 @@ public class Manager extends Emitter {
     }
 
     /*package*/ void destroy(Socket socket) {
-        --this.connected;
-        if (this.connected <= 0) {
-            this.connected = 0;
-            this.close();
-        }
+        this.connected.remove(socket);
+        if (this.connected.size() > 0) return;
+
+        this.close();
     }
 
     /*package*/ void packet(Packet packet) {
@@ -428,7 +425,10 @@ public class Manager extends Emitter {
 
     /*package*/ void close() {
         this.skipReconnect = true;
-        this.engine.close();
+        this.readyState = ReadyState.CLOSED;
+        if (this.engine != null) {
+            this.engine.close();
+        }
     }
 
     private void onclose(String reason) {
@@ -450,7 +450,7 @@ public class Manager extends Emitter {
     }
 
     private void reconnect() {
-        if (this.reconnecting) return;
+        if (this.reconnecting || this.skipReconnect) return;
 
         final Manager self = this;
         this.attempts++;
@@ -471,9 +471,15 @@ public class Manager extends Emitter {
                     EventThread.exec(new Runnable() {
                         @Override
                         public void run() {
+                            if (self.skipReconnect) return;
+
                             logger.fine("attempting reconnect");
                             self.emitAll(EVENT_RECONNECT_ATTEMPT, self.attempts);
                             self.emitAll(EVENT_RECONNECTING, self.attempts);
+
+                            // check again for the case socket closed in above events
+                            if (self.skipReconnect) return;
+
                             self.open(new OpenCallback() {
                                 @Override
                                 public void call(Exception err) {

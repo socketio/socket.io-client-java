@@ -81,10 +81,11 @@ public class Socket extends Emitter {
     public Socket(Manager io, String nsp) {
         this.io = io;
         this.nsp = nsp;
-        this.subEvents();
     }
 
     private void subEvents() {
+        if (this.subs != null) return;
+
         final Manager io = Socket.this.io;
         Socket.this.subs = new LinkedList<On.Handle>() {{
             add(On.on(io, Manager.EVENT_OPEN, new Listener() {
@@ -117,7 +118,8 @@ public class Socket extends Emitter {
             public void run() {
                 if (Socket.this.connected) return;
 
-                Socket.this.io.open();
+                Socket.this.subEvents();
+                Socket.this.io.open(); // ensure open
                 if (Manager.ReadyState.OPEN == Socket.this.io.readyState) Socket.this.onopen();
             }
         });
@@ -369,8 +371,12 @@ public class Socket extends Emitter {
     }
 
     private void destroy() {
-        for (On.Handle sub : this.subs) {
-            sub.destroy();
+        if (this.subs != null) {
+            // clean subscriptions to avoid reconnection
+            for (On.Handle sub : this.subs) {
+                sub.destroy();
+            }
+            this.subs = null;
         }
 
         this.io.destroy(this);
@@ -385,14 +391,16 @@ public class Socket extends Emitter {
         EventThread.exec(new Runnable() {
             @Override
             public void run() {
-                if (!Socket.this.connected) return;
-
-                logger.fine(String.format("performing disconnect (%s)", Socket.this.nsp));
-                Socket.this.packet(new Packet(Parser.DISCONNECT));
+                if (Socket.this.connected) {
+                    logger.fine(String.format("performing disconnect (%s)", Socket.this.nsp));
+                    Socket.this.packet(new Packet(Parser.DISCONNECT));
+                }
 
                 Socket.this.destroy();
 
-                Socket.this.onclose("io client disconnect");
+                if (Socket.this.connected) {
+                    Socket.this.onclose("io client disconnect");
+                }
             }
         });
         return this;

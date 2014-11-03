@@ -241,6 +241,64 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
+    public void reconnectManually() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        socket = client();
+        socket.once(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                socket.disconnect();
+            }
+        }).once(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                socket.once(Socket.EVENT_CONNECT, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        socket.disconnect();
+                        values.offer("done");
+                    }
+                });
+                socket.connect();
+            }
+        });
+        socket.connect();
+        values.take();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void reconnectAutomaticallyAfterReconnectingManually() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        socket = client();
+        socket.once(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                socket.disconnect();
+            }
+        }).once(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                socket.on(Socket.EVENT_RECONNECT, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        socket.disconnect();
+                        values.offer("done");
+                    }
+                });
+                socket.connect();
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        socket.io().engine.close();
+                    }
+                }, 500);
+            }
+        });
+        socket.connect();
+        values.take();
+    }
+
+    @Test(timeout = TIMEOUT)
     public void reconnectEventFireInSocket() throws URISyntaxException, InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         socket = client();
@@ -259,6 +317,111 @@ public class ConnectionTest extends Connection {
         }, 500);
         values.take();
         socket.close();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void notReconnectWhenForceClosed() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        IO.Options opts = createOptions();
+        opts.timeout = 0;
+        opts.reconnectionDelay = 10;
+        socket = IO.socket(uri() + "/invalid", opts);
+        socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                socket.on(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        values.offer(false);
+                    }
+                });
+                socket.disconnect();
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        values.offer(true);
+                    }
+                }, 500);
+            }
+        });
+        socket.connect();
+        assertThat((Boolean)values.take(), is(true));
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void stopReconnectingWhenForceClosed() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        IO.Options opts = createOptions();
+        opts.timeout = 0;
+        opts.reconnectionDelay = 10;
+        socket = IO.socket(uri() + "/invalid", opts);
+        socket.once(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                socket.on(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        values.offer(false);
+                    }
+                });
+                socket.disconnect();
+                // set a timer to let reconnection possibly fire
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        values.offer(true);
+                    }
+                }, 500);
+            }
+        });
+        socket.connect();
+        assertThat((Boolean) values.take(), is(true));
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void stopReconnectingOnASocketAndKeepToReconnectOnAnother() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final Manager manager = new Manager(new URI(uri()));
+        final Socket socket1 = manager.socket("/");
+        final Socket socket2 = manager.socket("/asd");
+
+        manager.on(Manager.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                socket1.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        values.offer(false);
+                    }
+                });
+                socket2.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        new Timer().schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                socket2.disconnect();
+                                manager.close();
+                                values.offer(true);
+                            }
+                        }, 500);
+                    }
+                });
+                socket1.disconnect();
+            }
+        });
+
+        socket1.connect();
+        socket2.connect();
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                manager.engine.close();
+            }
+        }, 1000);
+
+        assertThat((Boolean) values.take(), is(true));
     }
 
     @Test(timeout = TIMEOUT)
