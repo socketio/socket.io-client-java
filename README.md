@@ -1,7 +1,7 @@
 # Socket.IO-client.java
 [![Build Status](https://travis-ci.org/nkzawa/socket.io-client.java.png?branch=master)](https://travis-ci.org/nkzawa/socket.io-client.java)
 
-This is the Socket.IO v1.0 Client Library for Java, which is simply ported from the [JavaScript client](https://github.com/LearnBoost/socket.io-client).
+This is the Socket.IO v1.x Client Library for Java, which is simply ported from the [JavaScript client](https://github.com/Automattic/socket.io-client).
 
 See also: [Engine.IO-client.java](https://github.com/nkzawa/engine.io-client.java)
 
@@ -13,7 +13,7 @@ The latest artifact is available on Maven Central. Add the following dependency 
   <dependency>
     <groupId>com.github.nkzawa</groupId>
     <artifactId>socket.io-client</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
   </dependency>
 </dependencies>
 ```
@@ -22,7 +22,7 @@ Or to install it manually, please refer dependencies to [pom.xml](https://github
 
 Add it as a gradle dependency for Android Studio, in build.gradle:
 ```javascript
-compile 'com.github.nkzawa:socket.io-client:0.2.0'
+compile 'com.github.nkzawa:socket.io-client:0.3.0'
 ```
 
 ## Usage
