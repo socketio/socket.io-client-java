@@ -68,8 +68,7 @@ public class Socket extends Emitter {
         put(EVENT_RECONNECTING, 1);
     }};
 
-    private boolean connected;
-    private boolean disconnected = true;
+    private volatile boolean connected;
     private int ids;
     private String nsp;
     private Manager io;
@@ -258,7 +257,6 @@ public class Socket extends Emitter {
     private void onclose(String reason) {
         logger.fine(String.format("close (%s)", reason));
         this.connected = false;
-        this.disconnected = true;
         this.emit(EVENT_DISCONNECT, reason);
     }
 
@@ -344,7 +342,6 @@ public class Socket extends Emitter {
 
     private void onconnect() {
         this.connected = true;
-        this.disconnected = false;
         this.emit(EVENT_CONNECT);
         this.emitBuffered();
     }
@@ -417,6 +414,10 @@ public class Socket extends Emitter {
 
     public Manager io() {
         return io;
+    }
+
+    public boolean connected() {
+        return connected;
     }
 
     private static Object[] toArray(JSONArray array) {
