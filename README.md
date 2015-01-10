@@ -3,10 +3,16 @@
 
 This is the Socket.IO v1.x Client Library for Java, which is simply ported from the [JavaScript client](https://github.com/Automattic/socket.io-client).
 
-See also: [Engine.IO-client.java](https://github.com/nkzawa/engine.io-client.java)
+See also:
+
+- [Android chat demo](https://github.com/nkzawa/socket.io-android-chat)
+- [engine.io-client.java](https://github.com/nkzawa/engine.io-client.java)
 
 ## Installation
-The latest artifact is available on Maven Central. Add the following dependency to your `pom.xml`.
+The latest artifact is available on Maven Central. To install manually, please refer dependencies to [pom.xml](https://github.com/nkzawa/socket.io-client.java/blob/master/pom.xml).
+
+### Maven
+Add the following dependency to your `pom.xml`.
 
 ```xml
 <dependencies>
@@ -18,10 +24,10 @@ The latest artifact is available on Maven Central. Add the following dependency 
 </dependencies>
 ```
 
-Or to install it manually, please refer dependencies to [pom.xml](https://github.com/nkzawa/socket.io-client.java/blob/master/pom.xml).
+### Gradle
 
-Add it as a gradle dependency for Android Studio, in build.gradle:
-```javascript
+Add it as a gradle dependency for Android Studio, in `build.gradle`:
+```groovy
 compile 'com.github.nkzawa:socket.io-client:0.3.0'
 ```
 
