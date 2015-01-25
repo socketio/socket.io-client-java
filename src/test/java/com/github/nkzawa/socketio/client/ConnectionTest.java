@@ -299,6 +299,93 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
+    public void attemptReconnectsAfterAFailedReconnect() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        IO.Options opts = createOptions();
+        opts.reconnection = true;
+        opts.timeout = 0;
+        opts.reconnectionAttempts = 2;
+        opts.reconnectionDelay = 10;
+        final Manager manager = new Manager(new URI(uri()), opts);
+        socket = manager.socket("/timeout");
+        socket.once(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                final int[] reconnects = new int[] {0};
+                Emitter.Listener reconnectCb = new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        reconnects[0]++;
+                    }
+                };
+
+                manager.on(Manager.EVENT_RECONNECT_ATTEMPT, reconnectCb);
+                manager.on(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        values.offer(reconnects[0]);
+                    }
+                });
+                socket.connect();
+            }
+        });
+        socket.connect();
+        assertThat((Integer)values.take(), is(2));
+        socket.close();
+        manager.close();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void reconnectDelayShouldIncreaseEveryTime() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        IO.Options opts = createOptions();
+        opts.reconnection = true;
+        opts.timeout = 0;
+        opts.reconnectionAttempts = 5;
+        opts.reconnectionDelay = 10;
+        opts.randomizationFactor = 0.2;
+        final Manager manager = new Manager(new URI(uri()), opts);
+        socket = manager.socket("/timeout");
+
+        final int[] reconnects = new int[] {0};
+        final boolean[] increasingDelay = new boolean[] {true};
+        final long[] startTime = new long[] {0};
+        final long[] prevDelay = new long[] {0};
+
+        socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                startTime[0] = new Date().getTime();
+            }
+        });
+        socket.on(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                reconnects[0]++;
+                long currentTime = new Date().getTime();
+                long delay = currentTime - startTime[0];
+                if (delay <= prevDelay[0]) {
+                    increasingDelay[0] = false;
+                }
+                prevDelay[0] = delay;
+            }
+        });
+        socket.on(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                values.offer(true);
+            }
+        });
+
+        socket.connect();
+        values.take();
+        assertThat(reconnects[0], is(5));
+        assertThat(increasingDelay[0], is(true));
+        socket.close();
+        manager.close();
+    }
+
+    @Test(timeout = TIMEOUT)
     public void reconnectEventFireInSocket() throws URISyntaxException, InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         socket = client();
@@ -446,14 +533,14 @@ public class ConnectionTest extends Connection {
         manager.on(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                socket.close();
-                manager.close();
                 values.offer(reconnects[0]);
             }
         });
 
         socket.open();
         assertThat((Integer)values.take(), is(2));
+        socket.close();
+        manager.close();
     }
 
     @Test(timeout = TIMEOUT)

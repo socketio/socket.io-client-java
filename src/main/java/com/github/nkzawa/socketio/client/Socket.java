@@ -68,6 +68,8 @@ public class Socket extends Emitter {
         put(EVENT_RECONNECTING, 1);
     }};
 
+    /*package*/ String id;
+
     private volatile boolean connected;
     private int ids;
     private String nsp;
@@ -262,6 +264,7 @@ public class Socket extends Emitter {
     private void onclose(String reason) {
         logger.fine(String.format("close (%s)", reason));
         this.connected = false;
+        this.id = null;
         this.emit(EVENT_DISCONNECT, reason);
     }
 
@@ -418,11 +421,22 @@ public class Socket extends Emitter {
     }
 
     public Manager io() {
-        return io;
+        return this.io;
     }
 
     public boolean connected() {
-        return connected;
+        return this.connected;
+    }
+
+    /**
+     * A property on the socket instance that is equal to the underlying engine.io socket id.
+     *
+     * The value is present once the socket has connected, is removed when the socket disconnects and is updated if the socket reconnects.
+     *
+     * @return a socket id
+     */
+    public String id() {
+        return this.id;
     }
 
     private static Object[] toArray(JSONArray array) {
