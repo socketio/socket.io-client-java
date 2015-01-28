@@ -19,16 +19,16 @@ Add the following dependency to your `pom.xml`.
   <dependency>
     <groupId>com.github.nkzawa</groupId>
     <artifactId>socket.io-client</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
   </dependency>
 </dependencies>
 ```
 
 ### Gradle
-
 Add it as a gradle dependency for Android Studio, in `build.gradle`:
+
 ```groovy
-compile 'com.github.nkzawa:socket.io-client:0.3.0'
+compile 'com.github.nkzawa:socket.io-client:0.4.0'
 ```
 
 ## Usage
