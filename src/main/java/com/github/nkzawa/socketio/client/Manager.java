@@ -97,9 +97,6 @@ public class Manager extends Emitter {
      */
     private ConcurrentHashMap<String, Socket> nsps;
 
-    private ScheduledExecutorService timeoutScheduler;
-    private ScheduledExecutorService reconnectScheduler;
-
 
     public Manager() {
         this(null, null);
@@ -294,7 +291,8 @@ public class Manager extends Emitter {
                     final long timeout = Manager.this._timeout;
                     logger.fine(String.format("connection attempt will timeout after %d", timeout));
 
-                    final Future timer = getTimeoutScheduler().schedule(new Runnable() {
+                    final Timer timer = new Timer();
+                    timer.schedule(new TimerTask() {
                         @Override
                         public void run() {
                             EventThread.exec(new Runnable() {
@@ -308,12 +306,12 @@ public class Manager extends Emitter {
                                 }
                             });
                         }
-                    }, timeout, TimeUnit.MILLISECONDS);
+                    }, timeout);
 
                     Manager.this.subs.add(new On.Handle() {
                         @Override
                         public void destroy() {
-                            timer.cancel(false);
+                            timer.cancel();
                         }
                     });
                 }
@@ -457,6 +455,9 @@ public class Manager extends Emitter {
     }
 
     /*package*/ void close() {
+        if (this.readyState != ReadyState.OPEN) {
+            this.cleanup();
+        }
         this.skipReconnect = true;
         this.backoff.reset();
         this.readyState = ReadyState.CLOSED;
@@ -471,13 +472,6 @@ public class Manager extends Emitter {
         this.backoff.reset();
         this.readyState = ReadyState.CLOSED;
         this.emit(EVENT_CLOSE, reason);
-
-        if (this.timeoutScheduler != null) {
-            this.timeoutScheduler.shutdown();
-        }
-        if (this.reconnectScheduler != null) {
-            this.reconnectScheduler.shutdown();
-        }
 
         if (this._reconnection && !this.skipReconnect) {
             this.reconnect();
@@ -499,7 +493,8 @@ public class Manager extends Emitter {
             logger.fine(String.format("will wait %dms before reconnect attempt", delay));
 
             this.reconnecting = true;
-            final Future timer = this.getReconnectScheduler().schedule(new Runnable() {
+            final Timer timer = new Timer();
+            timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
                     EventThread.exec(new Runnable() {
@@ -532,12 +527,12 @@ public class Manager extends Emitter {
                         }
                     });
                 }
-            }, delay, TimeUnit.MILLISECONDS);
+            }, delay);
 
             this.subs.add(new On.Handle() {
                 @Override
                 public void destroy() {
-                    timer.cancel(false);
+                    timer.cancel();
                 }
             });
         }
@@ -549,20 +544,6 @@ public class Manager extends Emitter {
         this.backoff.reset();
         this.updateSocketIds();
         this.emitAll(EVENT_RECONNECT, attempts);
-    }
-
-    private ScheduledExecutorService getTimeoutScheduler() {
-        if (this.timeoutScheduler == null || this.timeoutScheduler.isShutdown()) {
-           this.timeoutScheduler = Executors.newSingleThreadScheduledExecutor();
-        }
-        return timeoutScheduler;
-    }
-
-    private ScheduledExecutorService getReconnectScheduler() {
-        if (this.reconnectScheduler == null || this.reconnectScheduler.isShutdown()) {
-            this.reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
-        }
-        return this.reconnectScheduler;
     }
 
 
