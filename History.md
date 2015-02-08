@@ -1,3 +1,9 @@
+0.4.1 / 2015-02-08
+==================
+
+* bump `engine.io-client`.
+* fix program doesn't terminate when closing socket before eatablishing connection.
+
 0.4.0 / 2015-01-26
 ==================
 
