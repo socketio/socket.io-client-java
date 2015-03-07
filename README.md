@@ -19,7 +19,7 @@ Add the following dependency to your `pom.xml`.
   <dependency>
     <groupId>com.github.nkzawa</groupId>
     <artifactId>socket.io-client</artifactId>
-    <version>0.4.1</version>
+    <version>0.4.2</version>
   </dependency>
 </dependencies>
 ```
@@ -28,7 +28,7 @@ Add the following dependency to your `pom.xml`.
 Add it as a gradle dependency for Android Studio, in `build.gradle`:
 
 ```groovy
-compile 'com.github.nkzawa:socket.io-client:0.4.1'
+compile 'com.github.nkzawa:socket.io-client:0.4.2'
 ```
 
 ## Usage
