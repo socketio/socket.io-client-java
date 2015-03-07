@@ -19,4 +19,17 @@ public class BackoffTest {
         assertTrue(100 == b.duration());
         assertTrue(200 == b.duration());
     }
+
+    @Test
+    public void durationOverflow() {
+        Backoff b = new Backoff();
+        b.setMin(100);
+        b.setMax(10000);
+        b.setJitter(1.0);
+
+        for (int i = 0; i < 100; i++) {
+            long duration = b.duration();
+            assertTrue(100 <= duration && duration <= 10000);
+        }
+    }
 }
