@@ -57,10 +57,10 @@ public class Parser {
         "CONNECT",
         "DISCONNECT",
         "EVENT",
-        "BINARY_EVENT",
         "ACK",
-        "BINARY_ACK",
         "ERROR",
+        "BINARY_EVENT",
+        "BINARY_ACK"
     };
 
 
@@ -172,11 +172,13 @@ public class Parser {
         private static Packet decodeString(String str) {
             Packet p = new Packet();
             int i = 0;
+            int length = str.length();
 
             p.type = Character.getNumericValue(str.charAt(0));
             if (p.type < 0 || p.type > types.length - 1) return error();
 
             if (BINARY_EVENT == p.type || BINARY_ACK == p.type) {
+                if (!str.contains("-") || length <= i + 1) return error();
                 StringBuilder attachments = new StringBuilder();
                 while (str.charAt(++i) != '-') {
                     attachments.append(str.charAt(i));
@@ -184,48 +186,49 @@ public class Parser {
                 p.attachments = Integer.parseInt(attachments.toString());
             }
 
-            if (str.length() > i + 1 && '/' == str.charAt(i + 1)) {
+            if (length > i + 1 && '/' == str.charAt(i + 1)) {
                 StringBuilder nsp = new StringBuilder();
                 while (true) {
                     ++i;
                     char c = str.charAt(i);
                     if (',' == c) break;
                     nsp.append(c);
-                    if (i + 1 == str.length()) break;
+                    if (i + 1 == length) break;
                 }
                 p.nsp = nsp.toString();
             } else {
                 p.nsp = "/";
             }
 
-            Character next;
-            try {
-                next = str.charAt(i + 1);
-            } catch (IndexOutOfBoundsException e) {
-                next = Character.UNASSIGNED;
-            }
-            if (Character.UNASSIGNED != next && Character.getNumericValue(next) > -1) {
-                StringBuilder id = new StringBuilder();
-                while (true) {
-                    ++i;
-                    char c = str.charAt(i);
-                    if (Character.getNumericValue(c) < 0) {
-                        --i;
-                        break;
+            if (length > i + 1){
+                Character next = str.charAt(i + 1);
+                if (Character.getNumericValue(next) > -1) {
+                    StringBuilder id = new StringBuilder();
+                    while (true) {
+                        ++i;
+                        char c = str.charAt(i);
+                        if (Character.getNumericValue(c) < 0) {
+                            --i;
+                            break;
+                        }
+                        id.append(c);
+                        if (i + 1 == length) break;
                     }
-                    id.append(c);
-                    if (i + 1 == str.length()) break;
+                    try {
+                        p.id = Integer.parseInt(id.toString());
+                    } catch (NumberFormatException e){
+                        return error();
+                    }
                 }
-                p.id = Integer.parseInt(id.toString());
             }
 
-            try {
-                str.charAt(++i);
-                p.data = new JSONTokener(str.substring(i)).nextValue();
-            } catch (IndexOutOfBoundsException e) {
-                // do nothing
-            } catch (JSONException e) {
-                return error();
+            if (length > i + 1){
+                try {
+                    str.charAt(++i);
+                    p.data = new JSONTokener(str.substring(i)).nextValue();
+                } catch (JSONException e) {
+                    return error();
+                }
             }
 
             logger.fine(String.format("decoded %s as %s", str, p));
