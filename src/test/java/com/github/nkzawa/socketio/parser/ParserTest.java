@@ -11,7 +11,6 @@ public class ParserTest {
 
     private static Parser.Encoder encoder = new Parser.Encoder();
 
-
     @Test
     public void encodeConnection() {
         Packet packet = new Packet(Parser.CONNECT);
@@ -46,5 +45,23 @@ public class ParserTest {
         packet.id = 123;
         packet.nsp = "/";
         Helpers.test(packet);
+    }
+
+    @Test
+    public void decodeInError() throws JSONException {
+        // Random string
+        Helpers.testDecodeError("asdf");
+        // Unknown type
+        Helpers.testDecodeError(Parser.types.length + "asdf");
+        // Binary event with no `-`
+        Helpers.testDecodeError(Parser.BINARY_EVENT + "asdf");
+        // Binary ack with no `-`
+        Helpers.testDecodeError(Parser.BINARY_ACK + "asdf");
+        // Binary event with no attachment
+        Helpers.testDecodeError(String.valueOf(Parser.BINARY_EVENT));
+        // event non numeric id
+        Helpers.testDecodeError(Parser.EVENT + "2sd");
+        // event with invalid json data
+        Helpers.testDecodeError(Parser.EVENT + "2[\"a\",1,{asdf}]");
     }
 }

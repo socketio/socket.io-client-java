@@ -15,6 +15,7 @@ import static org.junit.Assert.assertThat;
 public class Helpers {
 
     private static Parser.Encoder encoder = new Parser.Encoder();
+    private static Packet<String> errorPacket = new Packet<String>(Parser.ERROR, "parser error");
 
     public static void test(final Packet obj) {
         encoder.encode(obj, new Parser.Encoder.Callback() {
@@ -31,6 +32,18 @@ public class Helpers {
                 decoder.add((String)encodedPackets[0]);
             }
         });
+    }
+
+    public static void testDecodeError(final String errorMessage) {
+        Parser.Decoder decoder = new Parser.Decoder();
+        decoder.on(Parser.Decoder.EVENT_DECODED, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Packet packet = (Packet)args[0];
+                assertPacket(errorPacket, packet);
+            }
+        });
+        decoder.add(errorMessage);
     }
 
     public static void testBin(final Packet obj) {
