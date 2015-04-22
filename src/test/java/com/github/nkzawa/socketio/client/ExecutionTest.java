@@ -7,12 +7,15 @@ import org.junit.runners.JUnit4;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.logging.Logger;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JUnit4.class)
 public class ExecutionTest extends Connection {
+
+    private static final Logger logger = Logger.getLogger(ExecutionTest.class.getName());
 
     final static int TIMEOUT = 30 * 1000;
 
@@ -38,7 +41,7 @@ public class ExecutionTest extends Connection {
                 new InputStreamReader(process.getInputStream()));
         String line;
         while ((line = input.readLine()) != null) {
-            System.out.println("EXEC OUT: " + line);
+            logger.fine("EXEC OUT: " + line);
         }
         process.waitFor();
         assertThat(process.exitValue(), is(0));

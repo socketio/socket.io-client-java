@@ -10,8 +10,11 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.logging.Logger;
 
 public abstract class Connection {
+
+    private static final Logger logger = Logger.getLogger(Connection.class.getName());
 
     final static int TIMEOUT = 7000;
     final static int PORT = 3000;
@@ -23,7 +26,7 @@ public abstract class Connection {
 
     @Before
     public void startServer() throws IOException, InterruptedException {
-        System.out.println("Starting server ...");
+        logger.fine("Starting server ...");
 
         final CountDownLatch latch = new CountDownLatch(1);
         serverProcess = Runtime.getRuntime().exec(
@@ -39,10 +42,10 @@ public abstract class Connection {
                     line = reader.readLine();
                     latch.countDown();
                     do {
-                        System.out.println("SERVER OUT: " + line);
+                        logger.fine("SERVER OUT: " + line);
                     } while ((line = reader.readLine()) != null);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.warning(e.getMessage());
                 }
             }
         });
@@ -54,10 +57,10 @@ public abstract class Connection {
                 String line;
                 try {
                     while ((line = reader.readLine()) != null) {
-                        System.err.println("SERVER ERR: " + line);
+                        logger.fine("SERVER ERR: " + line);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.warning(e.getMessage());
                 }
             }
         });
@@ -66,7 +69,7 @@ public abstract class Connection {
 
     @After
     public void stopServer() throws InterruptedException {
-        System.out.println("Stopping server ...");
+        logger.fine("Stopping server ...");
         serverProcess.destroy();
         serverOutput.cancel(false);
         serverError.cancel(false);
