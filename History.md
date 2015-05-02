@@ -1,3 +1,11 @@
+0.5.0 / 2015-05-02
+==================
+
+* bump `engine.io-client`.
+* enhance parser decode [niqo01]
+* add a wrong event name check
+* add setDefaultHostnameVerifier method
+
 0.4.2 / 2015-03-07
 ==================
 
