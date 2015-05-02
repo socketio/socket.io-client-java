@@ -3,6 +3,7 @@ package com.github.nkzawa.socketio.client;
 
 import com.github.nkzawa.socketio.parser.Parser;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -25,6 +26,10 @@ public class IO {
 
     public static void setDefaultSSLContext(SSLContext sslContext) {
         Manager.defaultSSLContext = sslContext;
+    }
+
+    public static void setDefaultHostnameVerifier(HostnameVerifier hostnameVerifier) {
+        Manager.defaultHostnameVerifier = hostnameVerifier;
     }
 
     private IO() {}

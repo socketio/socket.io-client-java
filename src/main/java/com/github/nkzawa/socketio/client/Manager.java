@@ -6,10 +6,11 @@ import com.github.nkzawa.socketio.parser.Packet;
 import com.github.nkzawa.socketio.parser.Parser;
 import com.github.nkzawa.thread.EventThread;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import java.net.URI;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,6 +71,7 @@ public class Manager extends Emitter {
     public static final String EVENT_TRANSPORT = Engine.EVENT_TRANSPORT;
 
     /*package*/ static SSLContext defaultSSLContext;
+    /*package*/ static HostnameVerifier defaultHostnameVerifier;
 
     /*package*/ ReadyState readyState = null;
 
@@ -119,6 +121,9 @@ public class Manager extends Emitter {
         }
         if (opts.sslContext == null) {
             opts.sslContext = defaultSSLContext;
+        }
+        if (opts.hostnameVerifier == null) {
+            opts.hostnameVerifier = defaultHostnameVerifier;
         }
         this.opts = opts;
         this.nsps = new ConcurrentHashMap<String, Socket>();
