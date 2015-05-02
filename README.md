@@ -86,6 +86,15 @@ opts.reconnection = false;
 socket = IO.socket("http://localhost", opts);
 ```
 
+You can supply query parameters with the `query` option. NB: if you don't want to reuse a cached socket instance when the query parameter changes, you should use the `forceNew` option, the use case might be if your app allows for a user to logout, and a new user to login again:
+
+```java
+IO.Options opts = new IO.Options();
+opts.forceNew = true;
+opts.query = "auth_token=" + authToken;
+Socket socket = IO.socket("http://localhost", opts);
+```
+
 You can get a callback with `Ack` when the server received a message:
 
 ```java
