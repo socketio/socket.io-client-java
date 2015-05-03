@@ -137,7 +137,7 @@ public class Manager extends Emitter {
                 .setMin(this.reconnectionDelay())
                 .setMax(this.reconnectionDelayMax())
                 .setJitter(this.randomizationFactor());
-        this.timeout(opts.timeout < 0 ? 20000 : opts.timeout);
+        this.timeout(opts.timeout);
         this.readyState = ReadyState.CLOSED;
         this.uri = uri;
         this.connected = new HashSet<Socket>();
@@ -572,6 +572,10 @@ public class Manager extends Emitter {
         public long reconnectionDelay;
         public long reconnectionDelayMax;
         public double randomizationFactor;
-        public long timeout = -1;
+
+        /**
+         * Connection timeout (ms). Set -1 to disable.
+         */
+        public long timeout = 20000;
     }
 }
