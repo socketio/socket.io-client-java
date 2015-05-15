@@ -329,7 +329,7 @@ public class Socket extends Emitter {
                 EventThread.exec(new Runnable() {
                     @Override
                     public void run() {
-                        if (sent[0]) return;
+                        if (sent == null || sent[0]) return;
                         sent[0] = true;
                         logger.fine(String.format("sending ack %s", args.length != 0 ? args : null));
 
