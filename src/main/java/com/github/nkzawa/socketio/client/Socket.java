@@ -344,9 +344,13 @@ public class Socket extends Emitter {
     }
 
     private void onack(Packet<JSONArray> packet) {
-        logger.fine(String.format("calling ack %s with %s", packet.id, packet.data));
         Ack fn = this.acks.remove(packet.id);
-        fn.call(toArray(packet.data));
+        if (fn != null) {
+            logger.fine(String.format("calling ack %s with %s", packet.id, packet.data));
+            fn.call(toArray(packet.data));
+        } else {
+            logger.fine(String.format("bad ack %s", packet.id));
+        }
     }
 
     private void onconnect() {
