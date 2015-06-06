@@ -1,3 +1,10 @@
+0.5.1 / 2015-06-06
+==================
+
+* bump `engine.io-client`.
+* fix timeout option
+* fix NullPointerException on ack
+
 0.5.0 / 2015-05-02
 ==================
 
