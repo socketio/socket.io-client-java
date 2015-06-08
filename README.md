@@ -9,7 +9,7 @@ See also:
 - [engine.io-client.java](https://github.com/nkzawa/engine.io-client.java)
 
 ## Installation
-The latest artifact is available on Maven Central. To install manually, please refer dependencies to [pom.xml](https://github.com/nkzawa/socket.io-client.java/blob/master/pom.xml).
+The latest artifact is available on Maven Central. You'll also need [dependencies](http://nkzawa.github.io/socket.io-client.java/dependencies.html) to install.
 
 ### Maven
 Add the following dependency to your `pom.xml`.
