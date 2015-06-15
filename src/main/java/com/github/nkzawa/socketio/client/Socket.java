@@ -55,7 +55,7 @@ public class Socket extends Emitter {
 
     public static final String EVENT_RECONNECTING = Manager.EVENT_RECONNECTING;
 
-    private static Map<String, Integer> events = new HashMap<String, Integer>() {{
+    protected static Map<String, Integer> events = new HashMap<String, Integer>() {{
         put(EVENT_CONNECT, 1);
         put(EVENT_CONNECT_ERROR, 1);
         put(EVENT_CONNECT_TIMEOUT, 1);
