@@ -248,7 +248,7 @@ public class Manager extends Emitter {
             @Override
             public void run() {
                 logger.fine(String.format("readyState %s", Manager.this.readyState));
-                if (Manager.this.readyState == ReadyState.OPEN) return;
+                if (Manager.this.readyState == ReadyState.OPEN || Manager.this.readyState == ReadyState.OPENING) return;
 
                 logger.fine(String.format("opening %s", Manager.this.uri));
                 Manager.this.engine = new Engine(Manager.this.uri, Manager.this.opts);
