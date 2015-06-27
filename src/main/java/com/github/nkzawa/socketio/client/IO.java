@@ -5,7 +5,6 @@ import com.github.nkzawa.socketio.parser.Parser;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -42,7 +41,7 @@ public class IO {
         return socket(new URI(uri), opts);
     }
 
-    public static Socket socket(URI uri) throws URISyntaxException {
+    public static Socket socket(URI uri) {
         return socket(uri, null);
     }
 
@@ -54,18 +53,18 @@ public class IO {
      * @return {@link Socket} instance.
      * @throws URISyntaxException
      */
-    public static Socket socket(URI uri, Options opts) throws URISyntaxException {
+    public static Socket socket(URI uri, Options opts) {
         if (opts == null) {
             opts = new Options();
         }
 
-        URL parsed;
+        URL parsed = Url.parse(uri);
+        URI source;
         try {
-            parsed = Url.parse(uri);
-        } catch (MalformedURLException e) {
-            throw new URISyntaxException(uri.toString(), e.getMessage());
+            source = parsed.toURI();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         }
-        URI source = parsed.toURI();
         Manager io;
 
         if (opts.forceNew || !opts.multiplex) {

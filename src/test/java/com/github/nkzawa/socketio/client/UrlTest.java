@@ -16,13 +16,13 @@ import static org.junit.Assert.assertThat;
 public class UrlTest {
 
     @Test
-    public void parse() throws MalformedURLException, URISyntaxException {
+    public void parse() throws URISyntaxException {
         assertThat(Url.parse("http://username:password@host:8080/directory/file?query#ref").toString(),
                 is("http://username:password@host:8080/directory/file?query#ref"));
     }
 
     @Test
-    public void parseRelativePath() throws MalformedURLException, URISyntaxException {
+    public void parseRelativePath() throws URISyntaxException {
         URL url = Url.parse("https://woot.com/test");
         assertThat(url.getProtocol(), is("https"));
         assertThat(url.getHost(), is("woot.com"));
@@ -30,7 +30,7 @@ public class UrlTest {
     }
 
     @Test
-    public void parseNoProtocol() throws MalformedURLException, URISyntaxException {
+    public void parseNoProtocol() throws URISyntaxException {
         URL url = Url.parse("//localhost:3000");
         assertThat(url.getProtocol(), is("https"));
         assertThat(url.getHost(), is("localhost"));
@@ -38,14 +38,14 @@ public class UrlTest {
     }
 
     @Test
-    public void parseNamespace() throws MalformedURLException, URISyntaxException {
+    public void parseNamespace() throws URISyntaxException {
         assertThat(Url.parse("http://woot.com/woot").getPath(), is("/woot"));
         assertThat(Url.parse("http://google.com").getPath(), is("/"));
         assertThat(Url.parse("http://google.com/").getPath(), is("/"));
     }
 
     @Test
-    public void parseDefaultPort() throws MalformedURLException, URISyntaxException {
+    public void parseDefaultPort() throws URISyntaxException {
         assertThat(Url.parse("http://google.com/").toString(), is("http://google.com:80/"));
         assertThat(Url.parse("https://google.com/").toString(), is("https://google.com:443/"));
     }

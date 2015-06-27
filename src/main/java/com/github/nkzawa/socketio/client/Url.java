@@ -13,11 +13,11 @@ public class Url {
 
     private Url() {}
 
-    public static URL parse(String uri) throws URISyntaxException, MalformedURLException {
+    public static URL parse(String uri) throws URISyntaxException {
         return parse(new URI(uri));
     }
 
-    public static URL parse(URI uri) throws MalformedURLException {
+    public static URL parse(URI uri) {
         String protocol = uri.getScheme();
         if (protocol == null || !protocol.matches("^https?|wss?$")) {
             protocol = "https";
@@ -40,13 +40,17 @@ public class Url {
         String userInfo = uri.getRawUserInfo();
         String query = uri.getRawQuery();
         String fragment = uri.getRawFragment();
-        return new URL(protocol + "://"
-                + (userInfo != null ? userInfo + "@" : "")
-                + uri.getHost()
-                + (port != -1 ? ":" + port : "")
-                + path
-                + (query != null ? "?" + query : "")
-                + (fragment != null ? "#" + fragment : ""));
+        try {
+            return new URL(protocol + "://"
+                    + (userInfo != null ? userInfo + "@" : "")
+                    + uri.getHost()
+                    + (port != -1 ? ":" + port : "")
+                    + path
+                    + (query != null ? "?" + query : "")
+                    + (fragment != null ? "#" + fragment : ""));
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static String extractId(String url) throws MalformedURLException {
