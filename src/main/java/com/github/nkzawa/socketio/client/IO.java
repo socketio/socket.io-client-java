@@ -51,7 +51,6 @@ public class IO {
      * @param uri uri to connect.
      * @param opts options for socket.
      * @return {@link Socket} instance.
-     * @throws URISyntaxException
      */
     public static Socket socket(URI uri, Options opts) {
         if (opts == null) {
