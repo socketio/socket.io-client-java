@@ -1,3 +1,10 @@
+0.5.2 / 2015-06-28
+==================
+
+* make Socket.events protected [icapurro]
+* fix readyState check on Manager#open
+* change IO.socket(URI) not to throw URISyntaxException
+
 0.5.1 / 2015-06-06
 ==================
 
