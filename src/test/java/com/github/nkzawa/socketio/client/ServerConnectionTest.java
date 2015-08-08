@@ -10,6 +10,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -282,16 +284,16 @@ public class ServerConnectionTest extends Connection {
                     @Override
                     public void call(Object... args) {
                         @SuppressWarnings("unchecked")
-                        Map<String, String> headers = (Map<String, String>)args[0];
-                        headers.put("X-SocketIO", "hi");
+                        Map<String, List<String>> headers = (Map<String, List<String>>)args[0];
+                        headers.put("X-SocketIO", Arrays.asList("hi"));
                     }
                 }).on(Transport.EVENT_RESPONSE_HEADERS, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         @SuppressWarnings("unchecked")
-                        Map<String, String> headers = (Map<String, String>)args[0];
-                        String value = headers.get("X-SocketIO");
-                        values.offer(value != null ? value : "");
+                        Map<String, List<String>> headers = (Map<String, List<String>>)args[0];
+                        List<String> value = headers.get("X-SocketIO");
+                        values.offer(value != null ? value.get(0) : "");
                     }
                 });
             }
@@ -317,16 +319,16 @@ public class ServerConnectionTest extends Connection {
                     @Override
                     public void call(Object... args) {
                         @SuppressWarnings("unchecked")
-                        Map<String, String> headers = (Map<String, String>)args[0];
-                        headers.put("X-SocketIO", "hi");
+                        Map<String, List<String>> headers = (Map<String, List<String>>)args[0];
+                        headers.put("X-SocketIO", Arrays.asList("hi"));
                     }
                 }).on(Transport.EVENT_RESPONSE_HEADERS, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         @SuppressWarnings("unchecked")
-                        Map<String, String> headers = (Map<String, String>)args[0];
-                        String value = headers.get("X-SocketIO");
-                        values.offer(value != null ? value : "");
+                        Map<String, List<String>> headers = (Map<String, List<String>>)args[0];
+                        List<String> value = headers.get("X-SocketIO");
+                        values.offer(value != null ? value.get(0) : "");
                     }
                 });
             }
