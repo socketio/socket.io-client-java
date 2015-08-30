@@ -1,15 +1,15 @@
-# Socket.IO-client.java
-[![Build Status](https://travis-ci.org/nkzawa/socket.io-client.java.png?branch=master)](https://travis-ci.org/nkzawa/socket.io-client.java)
+# Socket.IO-client Java
+[![Build Status](https://travis-ci.org/socketio/socket.io-client-java.png?branch=master)](https://travis-ci.org/socketio/socket.io-client-java)
 
-This is the Socket.IO v1.x Client Library for Java, which is simply ported from the [JavaScript client](https://github.com/Automattic/socket.io-client).
+This is the Socket.IO v1.x Client Library for Java, which is simply ported from the [JavaScript client](https://github.com/socketio/socket.io-client).
 
 See also:
 
 - [Android chat demo](https://github.com/nkzawa/socket.io-android-chat)
-- [engine.io-client.java](https://github.com/nkzawa/engine.io-client.java)
+- [engine.io-client-java](https://github.com/socketio/engine.io-client-java)
 
 ## Installation
-The latest artifact is available on Maven Central. You'll also need [dependencies](http://nkzawa.github.io/socket.io-client.java/dependencies.html) to install.
+The latest artifact is available on Maven Central. You'll also need [dependencies](http://socketio.github.io/socket.io-client-java/dependencies.html) to install.
 
 ### Maven
 Add the following dependency to your `pom.xml`.
@@ -17,7 +17,7 @@ Add the following dependency to your `pom.xml`.
 ```xml
 <dependencies>
   <dependency>
-    <groupId>com.github.nkzawa</groupId>
+    <groupId>io.socket</groupId>
     <artifactId>socket.io-client</artifactId>
     <version>0.6.0</version>
   </dependency>
@@ -28,11 +28,11 @@ Add the following dependency to your `pom.xml`.
 Add it as a gradle dependency for Android Studio, in `build.gradle`:
 
 ```groovy
-compile 'com.github.nkzawa:socket.io-client:0.6.0'
+compile 'io.socket:socket.io-client:0.6.0'
 ```
 
 ## Usage
-Socket.IO-client.java has almost the same api and features with the original JS client. You use `IO#socket` to initialize `Socket`:
+Socket.IO-client Java has almost the same api and features with the original JS client. You use `IO#socket` to initialize `Socket`:
 
 ```java
 socket = IO.socket("http://localhost");
@@ -131,7 +131,7 @@ socket = IO.socket("https://localhost", opts);
 
 See the Javadoc for more details.
 
-http://nkzawa.github.io/socket.io-client.java/apidocs/
+http://socketio.github.io/socket.io-client-java/apidocs/
 
 ## Features
 This library supports all of the features the JS client does, including events, options and upgrading transport. Android is fully supported.

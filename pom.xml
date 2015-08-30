@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.github.nkzawa</groupId>
+  <groupId>io.socket</groupId>
   <artifactId>socket.io-client</artifactId>
   <version>0.6.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>socket.io-client</name>
   <description>Socket.IO Client Library for Java</description>
-  <url>https://github.com/nkzawa/socket.io-client.java</url>
+  <url>https://github.com/socketio/socket.io-client-java</url>
 
   <parent>
     <groupId>org.sonatype.oss</groupId>
@@ -27,9 +27,9 @@
   </licenses>
 
   <scm>
-    <url>https://github.com/nkzawa/socket.io-client.java</url>
-    <connection>scm:git:git://github.com/nkzawa/socket.io-client.java.git</connection>
-    <developerConnection>scm:git:git@github.com:nkzawa/socket.io-client.java.git</developerConnection>
+    <url>https://github.com/socketio/socket.io-client-java</url>
+    <connection>scm:git:git://github.com/socketio/socket.io-client-java.git</connection>
+    <developerConnection>scm:git:git@github.com:socketio/socket.io-client-java.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
