@@ -1,6 +1,6 @@
 package io.socket.client;
 
-import com.github.nkzawa.emitter.Emitter;
+import io.socket.emitter.Emitter;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;

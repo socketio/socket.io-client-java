@@ -1,6 +1,6 @@
 package io.socket.client;
 
-import com.github.nkzawa.emitter.Emitter;
+import io.socket.emitter.Emitter;
 import io.socket.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;

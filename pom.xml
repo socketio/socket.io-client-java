@@ -56,9 +56,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.github.nkzawa</groupId>
+      <groupId>io.socket</groupId>
       <artifactId>engine.io-client</artifactId>
-      <version>0.6.0</version>
+      <version>0.6.1</version>
     </dependency>
     <dependency>
       <groupId>org.json</groupId>

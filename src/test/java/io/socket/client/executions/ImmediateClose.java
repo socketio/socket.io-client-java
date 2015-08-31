@@ -1,6 +1,6 @@
 package io.socket.client.executions;
 
-import com.github.nkzawa.emitter.Emitter;
+import io.socket.emitter.Emitter;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 

@@ -1,9 +1,9 @@
 package io.socket.client;
 
-import com.github.nkzawa.emitter.Emitter;
-import com.github.nkzawa.engineio.client.Transport;
-import com.github.nkzawa.engineio.client.transports.Polling;
-import com.github.nkzawa.engineio.client.transports.WebSocket;
+import io.socket.emitter.Emitter;
+import io.socket.engineio.client.Transport;
+import io.socket.engineio.client.transports.Polling;
+import io.socket.engineio.client.transports.WebSocket;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -195,7 +195,7 @@ public class ServerConnectionTest extends Connection {
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                socket.io().engine.on(com.github.nkzawa.engineio.client.Socket.EVENT_CLOSE, new Emitter.Listener() {
+                socket.io().engine.on(io.socket.engineio.client.Socket.EVENT_CLOSE, new Emitter.Listener() {
                     @Override
                     public void call(Object... objects) {
                         values.offer("done");

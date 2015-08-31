@@ -1,6 +1,6 @@
 package io.socket.parser;
 
-import com.github.nkzawa.emitter.Emitter;
+import io.socket.emitter.Emitter;
 import org.json.JSONException;
 import org.json.JSONTokener;
 

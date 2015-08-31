@@ -1,10 +1,10 @@
 package io.socket.client;
 
 import io.socket.backo.Backoff;
-import com.github.nkzawa.emitter.Emitter;
+import io.socket.emitter.Emitter;
 import io.socket.parser.Packet;
 import io.socket.parser.Parser;
-import com.github.nkzawa.thread.EventThread;
+import io.socket.thread.EventThread;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -13,7 +13,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 
 /**
  * Manager class represents a connection to a given Socket.IO server.
@@ -90,7 +89,7 @@ public class Manager extends Emitter {
     private List<Packet> packetBuffer;
     private Queue<On.Handle> subs;
     private Options opts;
-    /*package*/ com.github.nkzawa.engineio.client.Socket engine;
+    /*package*/ io.socket.engineio.client.Socket engine;
     private Parser.Encoder encoder;
     private Parser.Decoder decoder;
 
@@ -252,7 +251,7 @@ public class Manager extends Emitter {
 
                 logger.fine(String.format("opening %s", Manager.this.uri));
                 Manager.this.engine = new Engine(Manager.this.uri, Manager.this.opts);
-                final com.github.nkzawa.engineio.client.Socket socket = Manager.this.engine;
+                final io.socket.engineio.client.Socket socket = Manager.this.engine;
                 final Manager self = Manager.this;
                 Manager.this.readyState = ReadyState.OPENING;
                 Manager.this.skipReconnect = false;
@@ -338,7 +337,7 @@ public class Manager extends Emitter {
         this.readyState = ReadyState.OPEN;
         this.emit(EVENT_OPEN);
 
-        final com.github.nkzawa.engineio.client.Socket socket = this.engine;
+        final io.socket.engineio.client.Socket socket = this.engine;
         this.subs.add(On.on(socket, Engine.EVENT_DATA, new Listener() {
             @Override
             public void call(Object... objects) {
@@ -558,14 +557,14 @@ public class Manager extends Emitter {
     }
 
 
-    private static class Engine extends com.github.nkzawa.engineio.client.Socket {
+    private static class Engine extends io.socket.engineio.client.Socket {
 
         Engine(URI uri, Options opts) {
             super(uri, opts);
         }
     }
 
-    public static class Options extends com.github.nkzawa.engineio.client.Socket.Options {
+    public static class Options extends io.socket.engineio.client.Socket.Options {
 
         public boolean reconnection = true;
         public int reconnectionAttempts;

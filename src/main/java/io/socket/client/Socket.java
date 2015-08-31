@@ -1,10 +1,10 @@
 package io.socket.client;
 
-import com.github.nkzawa.emitter.Emitter;
+import io.socket.emitter.Emitter;
 import io.socket.hasbinary.HasBinary;
 import io.socket.parser.Packet;
 import io.socket.parser.Parser;
-import com.github.nkzawa.thread.EventThread;
+import io.socket.thread.EventThread;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
