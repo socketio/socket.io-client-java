@@ -463,6 +463,7 @@ public class Manager extends Emitter {
             this.cleanup();
         }
         this.skipReconnect = true;
+        this.reconnecting = false;
         this.backoff.reset();
         this.readyState = ReadyState.CLOSED;
         if (this.engine != null) {
