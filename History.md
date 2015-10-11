@@ -1,3 +1,10 @@
+0.6.2 / 2015-10-10
+==================
+
+* compatible with socket.io 1.3.7
+* bump `engine.io-client`
+* fix wrong reconnection state
+
 0.6.1 / 2015-08-31
 ==================
 
