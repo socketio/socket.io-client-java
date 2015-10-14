@@ -135,6 +135,39 @@ See the Javadoc for more details.
 
 http://socketio.github.io/socket.io-client-java/apidocs/
 
+### Transports and HTTP Headers
+You can access transports and their HTTP headers as follows.
+
+```java
+// Called upon transport creation.
+socket.io().on(Manager.EVENT_TRANSPORT, new new Emitter.listener() {
+  @Override
+  public void call(Object... args) {
+    Transport transport = (Transport)args[0];
+
+    transport.on(Transport.EVENT_REQUEST_HEADERS, new Emitter.Listener() {
+      @Override
+      public void call(Object... args) {
+        @SuppressWarnings("unchecked")
+        Map<String, List<String>> headers = (Map<String, List<String>>)args[0];
+        // modify request headers
+        headers.put("Cookie", Arrays.asList("foo=1;"));
+      }
+    });
+
+    transport.on(Transport.EVENT_RESPONSE_HEADERS, new Emitter.Listener() {
+      @Override
+      public void call(Object... args) {
+        @SuppressWarnings("unchecked")
+        Map<String, List<String>> headers = (Map<String, List<String>>)args[0];
+        // access response headers
+        String cookie = headers.get("Set-Cookie").get(0);
+      }
+    });
+  }
+});
+```
+
 ## Features
 This library supports all of the features the JS client does, including events, options and upgrading transport. Android is fully supported.
 
