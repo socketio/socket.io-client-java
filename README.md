@@ -11,6 +11,8 @@ See also:
 ## Installation
 The latest artifact is available on Maven Central. You'll also need [dependencies](http://socketio.github.io/socket.io-client-java/dependencies.html) to install.
 
+**WARNING: The package name was changed to "io.socket" on v0.6.1 or later. Please make sure to update your dependency settings.**
+
 ### Maven
 Add the following dependency to your `pom.xml`.
 
