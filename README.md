@@ -11,6 +11,8 @@ See also:
 ## Installation
 The latest artifact is available on Maven Central. You'll also need [dependencies](http://socketio.github.io/socket.io-client-java/dependencies.html) to install.
 
+**WARNING: The package name was changed to "io.socket" on v0.6.1 or later. Please make sure to update your dependency settings.**
+
 ### Maven
 Add the following dependency to your `pom.xml`.
 
@@ -19,7 +21,7 @@ Add the following dependency to your `pom.xml`.
   <dependency>
     <groupId>io.socket</groupId>
     <artifactId>socket.io-client</artifactId>
-    <version>0.6.1</version>
+    <version>0.6.2</version>
   </dependency>
 </dependencies>
 ```
@@ -28,7 +30,7 @@ Add the following dependency to your `pom.xml`.
 Add it as a gradle dependency for Android Studio, in `build.gradle`:
 
 ```groovy
-compile 'io.socket:socket.io-client:0.6.1'
+compile 'io.socket:socket.io-client:0.6.2'
 ```
 
 ## Usage
@@ -132,6 +134,39 @@ socket = IO.socket("https://localhost", opts);
 See the Javadoc for more details.
 
 http://socketio.github.io/socket.io-client-java/apidocs/
+
+### Transports and HTTP Headers
+You can access transports and their HTTP headers as follows.
+
+```java
+// Called upon transport creation.
+socket.io().on(Manager.EVENT_TRANSPORT, new new Emitter.listener() {
+  @Override
+  public void call(Object... args) {
+    Transport transport = (Transport)args[0];
+
+    transport.on(Transport.EVENT_REQUEST_HEADERS, new Emitter.Listener() {
+      @Override
+      public void call(Object... args) {
+        @SuppressWarnings("unchecked")
+        Map<String, List<String>> headers = (Map<String, List<String>>)args[0];
+        // modify request headers
+        headers.put("Cookie", Arrays.asList("foo=1;"));
+      }
+    });
+
+    transport.on(Transport.EVENT_RESPONSE_HEADERS, new Emitter.Listener() {
+      @Override
+      public void call(Object... args) {
+        @SuppressWarnings("unchecked")
+        Map<String, List<String>> headers = (Map<String, List<String>>)args[0];
+        // access response headers
+        String cookie = headers.get("Set-Cookie").get(0);
+      }
+    });
+  }
+});
+```
 
 ## Features
 This library supports all of the features the JS client does, including events, options and upgrading transport. Android is fully supported.
