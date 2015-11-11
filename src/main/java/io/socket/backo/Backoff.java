@@ -17,11 +17,7 @@ public class Backoff {
             int deviation = (int) Math.floor(rand * this.jitter * ms);
             ms = (((int) Math.floor(rand * 10)) & 1) == 0 ? ms - deviation : ms + deviation;
         }
-        if (ms < this.ms) {
-            // overflow happened
-            ms = Long.MAX_VALUE;
-        }
-        return Math.min(ms, this.max);
+        return ms;
     }
 
     public void reset() {
