@@ -18,10 +18,10 @@ public class Backoff {
         long ms = this.ms * (long) Math.pow(this.factor, this.attempts++);
         if (jitter != 0.0) {
             double rand = Math.random();
-            long deviation = 2.0 * ms * jitter * (rand - 0.5); // FIX simplified deviation as a negative or positive value, as mathematically defined
+            long deviation = (long) (2.0 * ms * jitter * (rand - 0.5)); // FIX simplified deviation as a negative or positive value, as mathematically defined
             ms = ms + deviation;
         }
-        ms = Math.min(Math.max(ms, min), max) // FIX changed this to keep ms between min and max
+        ms = Math.min(Math.max(ms, min), max); // FIX changed this to keep ms between min and max
         return ms;
     }
 
@@ -46,7 +46,7 @@ public class Backoff {
     }
 
     public Backoff setJitter(double jitter) {
-        jitter = Math.min(Math.max(jitter, jitterMin), jitterMax) // FIX optional, but we may want to ensure jitter stays within certain bounds, otherwise we'll get wild values for deviation
+        jitter = Math.min(Math.max(jitter, jitterMin), jitterMax); // FIX optional, but we may want to ensure jitter stays within certain bounds, otherwise we'll get wild values for deviation
         this.jitter = jitter;
         return this;
     }
