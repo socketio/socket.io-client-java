@@ -72,7 +72,7 @@ public class Manager extends Emitter {
     /*package*/ static SSLContext defaultSSLContext;
     /*package*/ static HostnameVerifier defaultHostnameVerifier;
 
-    /*package*/ ReadyState readyState = null;
+    /*package*/ ReadyState readyState;
 
     private boolean _reconnection;
     private boolean skipReconnect;
