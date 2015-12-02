@@ -180,7 +180,7 @@ public class Manager extends Emitter {
         return this;
     }
 
-    public long reconnectionDelay() {
+    public final long reconnectionDelay() {
         return this._reconnectionDelay;
     }
 
@@ -192,7 +192,7 @@ public class Manager extends Emitter {
         return this;
     }
 
-    public double randomizationFactor() {
+    public final double randomizationFactor() {
         return this._randomizationFactor;
     }
 
@@ -204,7 +204,7 @@ public class Manager extends Emitter {
         return this;
     }
 
-    public long reconnectionDelayMax() {
+    public final long reconnectionDelayMax() {
         return this._reconnectionDelayMax;
     }
 
