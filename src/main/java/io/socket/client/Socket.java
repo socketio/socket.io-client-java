@@ -454,7 +454,7 @@ public class Socket extends Emitter {
             } catch (JSONException e) {
                 v = null;
             }
-            data[i] = v == JSONObject.NULL ? null : v;
+            data[i] = JSONObject.NULL.equals(v) ? null : v;
         }
         return data;
     }
