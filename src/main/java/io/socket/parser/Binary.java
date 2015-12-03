@@ -7,13 +7,16 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Binary {
 
     private static final String KEY_PLACEHOLDER = "_placeholder";
 
     private static final String KEY_NUM = "num";
-
+    
+    private static final Logger logger = Logger.getLogger(Binary.class.getName());
 
     public static DeconstructedPacket deconstructPacket(Packet packet) {
         List<byte[]> buffers = new ArrayList<byte[]>();
@@ -36,6 +39,7 @@ public class Binary {
                 placeholder.put(KEY_PLACEHOLDER, true);
                 placeholder.put(KEY_NUM, buffers.size());
             } catch (JSONException e) {
+                logger.log(Level.WARNING, "An error occured while putting data to JSONObject", e);
                 return null;
             }
             buffers.add((byte[])data);
@@ -48,6 +52,7 @@ public class Binary {
                 try {
                     newData.put(i, _deconstructPacket(_data.get(i), buffers));
                 } catch (JSONException e) {
+                    logger.log(Level.WARNING, "An error occured while putting packet data to JSONObject", e);
                     return null;
                 }
             }
@@ -61,6 +66,7 @@ public class Binary {
                 try {
                     newData.put(key, _deconstructPacket(_data.get(key), buffers));
                 } catch (JSONException e) {
+                    logger.log(Level.WARNING, "An error occured while putting data to JSONObject", e);
                     return null;
                 }
             }
@@ -83,6 +89,7 @@ public class Binary {
                 try {
                     _data.put(i, _reconstructPacket(_data.get(i), buffers));
                 } catch (JSONException e) {
+                    logger.log(Level.WARNING, "An error occured while putting packet data to JSONObject", e);
                     return null;
                 }
             }
@@ -99,6 +106,7 @@ public class Binary {
                 try {
                     _data.put(key, _reconstructPacket(_data.get(key), buffers));
                 } catch (JSONException e) {
+                    logger.log(Level.WARNING, "An error occured while putting data to JSONObject", e);
                     return null;
                 }
             }
