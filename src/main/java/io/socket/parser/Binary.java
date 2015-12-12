@@ -15,6 +15,7 @@ public class Binary {
     private static final String KEY_NUM = "num";
 
 
+    @SuppressWarnings("unchecked")
     public static DeconstructedPacket deconstructPacket(Packet packet) {
         List<byte[]> buffers = new ArrayList<byte[]>();
 
@@ -69,6 +70,7 @@ public class Binary {
         return data;
     }
 
+    @SuppressWarnings("unchecked")
     public static Packet reconstructPacket(Packet packet, byte[][] buffers) {
         packet.data = _reconstructPacket(packet.data, buffers);
         packet.attachments = -1;

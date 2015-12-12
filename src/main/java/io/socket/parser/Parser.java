@@ -170,7 +170,7 @@ public class Parser {
         }
 
         private static Packet decodeString(String str) {
-            Packet p = new Packet();
+            Packet<Object> p = new Packet<Object>();
             int i = 0;
             int length = str.length();
 

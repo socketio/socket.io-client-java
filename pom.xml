@@ -105,6 +105,11 @@
         <configuration>
           <source>1.7</source>
           <target>1.7</target>
+          <compilerArgs>
+            <arg>-Xlint:unchecked</arg>
+          </compilerArgs>
+          <showWarnings>true</showWarnings>
+          <showDeprecation>true</showDeprecation>
         </configuration>
       </plugin>
       <plugin>

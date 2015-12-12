@@ -46,6 +46,7 @@ public class Helpers {
         decoder.add(errorMessage);
     }
 
+    @SuppressWarnings("unchecked")
     public static void testBin(final Packet obj) {
         final Object originalData = obj.data;
         encoder.encode(obj, new Parser.Encoder.Callback() {
