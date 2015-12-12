@@ -98,7 +98,7 @@ public class Socket extends Emitter {
             add(On.on(io, Manager.EVENT_PACKET, new Listener() {
                 @Override
                 public void call(Object... args) {
-                    Socket.this.onpacket((Packet) args[0]);
+                    Socket.this.onpacket((Packet<?>) args[0]);
                 }
             }));
             add(On.on(io, Manager.EVENT_CLOSE, new Listener() {
@@ -268,7 +268,7 @@ public class Socket extends Emitter {
         this.emit(EVENT_DISCONNECT, reason);
     }
 
-    private void onpacket(Packet packet) {
+    private void onpacket(Packet<?> packet) {
         if (!this.nsp.equals(packet.nsp)) return;
 
         switch (packet.type) {
@@ -276,21 +276,33 @@ public class Socket extends Emitter {
                 this.onconnect();
                 break;
 
-            case Parser.EVENT:
-                this.onevent(packet);
+            case Parser.EVENT: {
+                @SuppressWarnings("unchecked")
+                Packet<JSONArray> p = (Packet<JSONArray>) packet;
+                this.onevent(p);
                 break;
+            }
 
-            case Parser.BINARY_EVENT:
-                this.onevent(packet);
+            case Parser.BINARY_EVENT: {
+                @SuppressWarnings("unchecked")
+                Packet<JSONArray> p = (Packet<JSONArray>) packet;
+                this.onevent(p);
                 break;
+            }
 
-            case Parser.ACK:
-                this.onack(packet);
+            case Parser.ACK: {
+                @SuppressWarnings("unchecked")
+                Packet<JSONArray> p = (Packet<JSONArray>) packet;
+                this.onack(p);
                 break;
+            }
 
-            case Parser.BINARY_ACK:
-                this.onack(packet);
+            case Parser.BINARY_ACK: {
+                @SuppressWarnings("unchecked")
+                Packet<JSONArray> p = (Packet<JSONArray>) packet;
+                this.onack(p);
                 break;
+            }
 
             case Parser.DISCONNECT:
                 this.ondisconnect();
