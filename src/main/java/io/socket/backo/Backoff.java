@@ -1,5 +1,8 @@
 package io.socket.backo;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 public class Backoff {
 
     private long ms = 100;
@@ -11,17 +14,16 @@ public class Backoff {
     public Backoff() {}
 
     public long duration() {
-        long ms = this.ms * (long) Math.pow(this.factor, this.attempts++);
+        BigInteger ms = BigInteger.valueOf(this.ms)
+                .multiply(BigInteger.valueOf(this.factor).pow(this.attempts++));
         if (jitter != 0.0) {
             double rand = Math.random();
-            int deviation = (int) Math.floor(rand * this.jitter * ms);
-            ms = (((int) Math.floor(rand * 10)) & 1) == 0 ? ms - deviation : ms + deviation;
+            BigInteger deviation = BigDecimal.valueOf(rand)
+                    .multiply(BigDecimal.valueOf(jitter))
+                    .multiply(new BigDecimal(ms)).toBigInteger();
+            ms = (((int) Math.floor(rand * 10)) & 1) == 0 ? ms.subtract(deviation) : ms.add(deviation);
         }
-        if (ms < this.ms) {
-            // overflow happened
-            ms = Long.MAX_VALUE;
-        }
-        return Math.min(ms, this.max);
+        return ms.min(BigInteger.valueOf(this.max)).longValue();
     }
 
     public void reset() {
