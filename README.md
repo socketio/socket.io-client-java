@@ -127,10 +127,12 @@ Use custom SSL settings:
 ```java
 // default SSLContext for all sockets
 IO.setDefaultSSLContext(mySSLContext);
+IO.setDefaultHostnameVerifier(myHostnameVerifier);
 
 // set as an option
 opts = new IO.Options();
 opts.sslContext = mySSLContext;
+opts.hostnameVerifier = myHostnameVerifier;
 socket = IO.socket("https://localhost", opts);
 ```
 
