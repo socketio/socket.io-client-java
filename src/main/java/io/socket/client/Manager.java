@@ -72,7 +72,7 @@ public class Manager extends Emitter {
     /*package*/ static SSLContext defaultSSLContext;
     /*package*/ static HostnameVerifier defaultHostnameVerifier;
 
-    /*package*/ ReadyState readyState = null;
+    /*package*/ ReadyState readyState;
 
     private boolean _reconnection;
     private boolean skipReconnect;
@@ -180,7 +180,7 @@ public class Manager extends Emitter {
         return this;
     }
 
-    public long reconnectionDelay() {
+    public final long reconnectionDelay() {
         return this._reconnectionDelay;
     }
 
@@ -192,7 +192,7 @@ public class Manager extends Emitter {
         return this;
     }
 
-    public double randomizationFactor() {
+    public final double randomizationFactor() {
         return this._randomizationFactor;
     }
 
@@ -204,7 +204,7 @@ public class Manager extends Emitter {
         return this;
     }
 
-    public long reconnectionDelayMax() {
+    public final long reconnectionDelayMax() {
         return this._reconnectionDelayMax;
     }
 
@@ -416,7 +416,7 @@ public class Manager extends Emitter {
 
     /*package*/ void destroy(Socket socket) {
         this.connected.remove(socket);
-        if (this.connected.size() > 0) return;
+        if (!this.connected.isEmpty()) return;
 
         this.close();
     }
@@ -447,7 +447,7 @@ public class Manager extends Emitter {
     }
 
     private void processPacketQueue() {
-        if (this.packetBuffer.size() > 0 && !this.encoding) {
+        if (!this.packetBuffer.isEmpty() && !this.encoding) {
             Packet pack = this.packetBuffer.remove(0);
             this.packet(pack);
         }

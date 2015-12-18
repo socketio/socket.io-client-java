@@ -8,8 +8,8 @@ public class Backoff {
     private long ms = 100;
     private long max = 10000;
     private int factor = 2;
-    private double jitter = 0.0;
-    private int attempts = 0;
+    private double jitter;
+    private int attempts;
 
     public Backoff() {}
 
