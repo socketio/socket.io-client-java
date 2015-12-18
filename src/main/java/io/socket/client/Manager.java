@@ -416,7 +416,7 @@ public class Manager extends Emitter {
 
     /*package*/ void destroy(Socket socket) {
         this.connected.remove(socket);
-        if (this.connected.size() > 0) return;
+        if (!this.connected.isEmpty()) return;
 
         this.close();
     }
@@ -447,7 +447,7 @@ public class Manager extends Emitter {
     }
 
     private void processPacketQueue() {
-        if (this.packetBuffer.size() > 0 && !this.encoding) {
+        if (!this.packetBuffer.isEmpty() && !this.encoding) {
             Packet pack = this.packetBuffer.remove(0);
             this.packet(pack);
         }
