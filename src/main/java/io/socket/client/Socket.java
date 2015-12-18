@@ -468,7 +468,7 @@ public class Socket extends Emitter {
                 logger.log(Level.WARNING, "An error occured while retrieving data from JSONArray", e);
                 v = null;
             }
-            data[i] = v == JSONObject.NULL ? null : v;
+            data[i] = JSONObject.NULL.equals(v) ? null : v;
         }
         return data;
     }
