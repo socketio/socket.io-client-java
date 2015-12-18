@@ -3,11 +3,15 @@ package io.socket.hasbinary;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import java.util.Iterator;
 
 public class HasBinary {
-
+	
+    private static final Logger logger = Logger.getLogger(HasBinary.class.getName());
+	
     private HasBinary() {}
 
     public static boolean hasBinary(Object data) {
@@ -29,6 +33,7 @@ public class HasBinary {
                 try {
                     v = _obj.isNull(i) ? null : _obj.get(i);
                 } catch (JSONException e) {
+                    logger.log(Level.WARNING, "An error occured while retrieving data from JSONArray", e);
                     return false;
                 }
                 if (_hasBinary(v)) {
@@ -44,7 +49,8 @@ public class HasBinary {
                 try {
                     v = _obj.get(key);
                 } catch (JSONException e) {
-                    return false;
+                    logger.log(Level.WARNING, "An error occured while retrieving data from JSONObject", e);
+                    return false;       
                 }
                 if (_hasBinary(v)) {
                     return true;

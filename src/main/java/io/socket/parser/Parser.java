@@ -7,6 +7,7 @@ import org.json.JSONTokener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Parser {
@@ -227,6 +228,7 @@ public class Parser {
                     str.charAt(++i);
                     p.data = new JSONTokener(str.substring(i)).nextValue();
                 } catch (JSONException e) {
+                    logger.log(Level.WARNING, "An error occured while retrieving data from JSONTokener", e);
                     return error();
                 }
             }

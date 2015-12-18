@@ -10,6 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -464,6 +465,7 @@ public class Socket extends Emitter {
             try {
                 v = array.get(i);
             } catch (JSONException e) {
+                logger.log(Level.WARNING, "An error occured while retrieving data from JSONArray", e);
                 v = null;
             }
             data[i] = v == JSONObject.NULL ? null : v;
