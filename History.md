@@ -1,3 +1,10 @@
+0.6.3 / 2015-12-23
+==================
+
+* bump `engine.io-client`.
+* fix back-off calculation
+* code quality improvements [civanyp]
+
 0.6.2 / 2015-10-10
 ==================
 

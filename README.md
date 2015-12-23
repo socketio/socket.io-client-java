@@ -21,7 +21,7 @@ Add the following dependency to your `pom.xml`.
   <dependency>
     <groupId>io.socket</groupId>
     <artifactId>socket.io-client</artifactId>
-    <version>0.6.2</version>
+    <version>0.6.3</version>
   </dependency>
 </dependencies>
 ```
@@ -30,7 +30,7 @@ Add the following dependency to your `pom.xml`.
 Add it as a gradle dependency for Android Studio, in `build.gradle`:
 
 ```groovy
-compile ('io.socket:socket.io-client:0.6.2') {
+compile ('io.socket:socket.io-client:0.6.3') {
   // excluding org.json which is provided by Android
   exclude group: 'org.json', module: 'json'
 }
