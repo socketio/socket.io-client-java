@@ -346,7 +346,13 @@ public class Socket extends Emitter {
                         sent[0] = true;
                         logger.fine(String.format("sending ack %s", args.length != 0 ? args : null));
 
-                        int type = HasBinary.hasBinary(args) ? Parser.BINARY_ACK : Parser.ACK;
+                        JSONArray jsonArgs = new JSONArray();
+                        for (Object arg : args) {
+                            jsonArgs.put(arg);
+                        }
+
+                        int type = HasBinary.hasBinary(jsonArgs)
+                            ? Parser.BINARY_ACK : Parser.ACK;
                         Packet<JSONArray> packet = new Packet<JSONArray>(type, new JSONArray(Arrays.asList(args)));
                         packet.id = id;
                         self.packet(packet);
