@@ -57,6 +57,17 @@ io.of(nsp).on('connection', function(socket) {
     });
   });
 
+  socket.on('callAckBinary', function() {
+    socket.emit('ack', function(buf) {
+      socket.emit('ackBack', buf);
+    });
+  });
+
+  socket.on('getAckBinary', function(data, callback) {
+    var buf = new Buffer('huehue', 'utf8');
+    callback(buf);
+  });
+
   socket.on('getAckDate', function(data, callback) {
     callback(new Date());
   });

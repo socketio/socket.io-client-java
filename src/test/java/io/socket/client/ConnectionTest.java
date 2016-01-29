@@ -3,6 +3,7 @@ package io.socket.client;
 import io.socket.emitter.Emitter;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -90,6 +91,7 @@ public class ConnectionTest extends Connection {
     @Test(timeout = TIMEOUT)
     public void receiveDateWithAck() throws URISyntaxException, InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -108,6 +110,61 @@ public class ConnectionTest extends Connection {
         });
         socket.connect();
         assertThat(values.take(), instanceOf(String.class));
+        socket.close();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void sendBinaryAck() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final byte[] buf = "huehue".getBytes(Charset.forName("UTF-8"));
+
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                socket.emit("callAckBinary");
+                socket.on("ack", new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        Ack fn = (Ack) args[0];
+                        fn.call(buf);
+                    }
+                });
+
+                socket.on("ackBack", new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        byte[] data = (byte[])args[0];
+                        values.offer(data);
+                    }
+                });
+            }
+        });
+        socket.connect();
+        Assert.assertArrayEquals(buf, (byte[])values.take());
+        socket.close();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void receiveBinaryDataWithAck() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final byte[] buf = "huehue".getBytes(Charset.forName("UTF-8"));
+
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                socket.emit("getAckBinary", "", new Ack() {
+
+                    @Override
+                    public void call(Object... args) {
+                       values.offer(args[0]);
+                    }
+                });
+            }
+        });
+        socket.connect();
+        Assert.assertArrayEquals(buf, (byte[])values.take());
         socket.close();
     }
 
@@ -730,6 +787,7 @@ public class ConnectionTest extends Connection {
         assertThat(((JSONObject)data).get("date"), instanceOf(String.class));
         socket.close();
     }
+
 
     @Test(timeout = TIMEOUT)
     public void sendAndGetBinaryData() throws URISyntaxException, InterruptedException {
