@@ -353,7 +353,7 @@ public class Socket extends Emitter {
 
                         int type = HasBinary.hasBinary(jsonArgs)
                             ? Parser.BINARY_ACK : Parser.ACK;
-                        Packet<JSONArray> packet = new Packet<JSONArray>(type, new JSONArray(Arrays.asList(args)));
+                        Packet<JSONArray> packet = new Packet<JSONArray>(type, jsonArgs);
                         packet.id = id;
                         self.packet(packet);
                     }
