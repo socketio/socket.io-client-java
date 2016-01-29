@@ -122,10 +122,10 @@ socket.on("foo", new Emitter.Listener() {
 });
 ```
 
-Use custom SSL settings:
+SSL (HTTPS, WSS) settings:
 
 ```java
-// default SSLContext for all sockets
+// default settings for all sockets
 IO.setDefaultSSLContext(mySSLContext);
 IO.setDefaultHostnameVerifier(myHostnameVerifier);
 
