@@ -58,6 +58,10 @@ public class Socket extends Emitter {
 
     public static final String EVENT_RECONNECTING = Manager.EVENT_RECONNECTING;
 
+    public static final String EVENT_PING = Manager.EVENT_PING;
+
+    public static final String EVENT_PONG = Manager.EVENT_PONG;
+
     protected static Map<String, Integer> events = new HashMap<String, Integer>() {{
         put(EVENT_CONNECT, 1);
         put(EVENT_CONNECT_ERROR, 1);
@@ -70,6 +74,8 @@ public class Socket extends Emitter {
         put(EVENT_RECONNECT_FAILED, 1);
         put(EVENT_RECONNECT_ERROR, 1);
         put(EVENT_RECONNECTING, 1);
+        put(EVENT_PING, 1);
+        put(EVENT_PONG, 1);
     }};
 
     /*package*/ String id;

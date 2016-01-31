@@ -10,7 +10,7 @@ if (process.env.SSL) {
   server = require('http').createServer();
 }
 
-var io = require('socket.io')(server);
+var io = require('socket.io')(server, { pingInterval: 2000 });
 var port = process.env.PORT || 3000;
 var nsp = process.argv[2] || '/';
 var slice = Array.prototype.slice;

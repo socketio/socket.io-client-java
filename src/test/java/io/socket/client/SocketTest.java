@@ -11,6 +11,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JUnit4.class)
@@ -58,6 +59,43 @@ public class SocketTest extends Connection {
         @SuppressWarnings("unchecked")
         Optional<String> id = values.take();
         assertThat(id.isPresent(), is(false));
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void pingAndPongWithLatency() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                final boolean[] pinged = new boolean[] { false };
+                socket.once(Socket.EVENT_PING, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        pinged[0] = true;
+                    }
+                });
+                socket.once(Socket.EVENT_PONG, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        long ms = (long)args[0];
+                        values.offer(pinged[0]);
+                        values.offer(ms);
+                    }
+                });
+            }
+        });
+        socket.connect();
+
+        @SuppressWarnings("unchecked")
+        boolean pinged = (boolean)values.take();
+        assertThat(pinged, is(true));
+
+        @SuppressWarnings("unchecked")
+        long ms = (long)values.take();
+        assertThat(ms, greaterThan((long)0));
+
+        socket.disconnect();
     }
 
     @Test(timeout = TIMEOUT)

@@ -64,6 +64,10 @@ public class Manager extends Emitter {
 
     public static final String EVENT_RECONNECTING = "reconnecting";
 
+    public static final String EVENT_PING = "ping";
+
+    public static final String EVENT_PONG = "pong";
+
     /**
      * Called when a new transport is created. (experimental)
      */
@@ -85,6 +89,7 @@ public class Manager extends Emitter {
     private Backoff backoff;
     private long _timeout;
     private Set<Socket> connecting = new HashSet<Socket>();
+    private Date lastPing;
     private URI uri;
     private List<Packet> packetBuffer;
     private Queue<On.Handle> subs;
@@ -348,10 +353,16 @@ public class Manager extends Emitter {
                 }
             }
         }));
-        this.subs.add(On.on(this.decoder, Parser.Decoder.EVENT_DECODED, new Listener() {
+        this.subs.add(On.on(socket, Engine.EVENT_PING, new Listener() {
             @Override
             public void call(Object... objects) {
-                Manager.this.ondecoded((Packet) objects[0]);
+                Manager.this.onping();
+            }
+        }));
+        this.subs.add(On.on(socket, Engine.EVENT_PONG, new Listener() {
+            @Override
+            public void call(Object... objects) {
+                Manager.this.onpong();
             }
         }));
         this.subs.add(On.on(socket, Engine.EVENT_ERROR, new Listener() {
@@ -366,6 +377,22 @@ public class Manager extends Emitter {
                 Manager.this.onclose((String)objects[0]);
             }
         }));
+        this.subs.add(On.on(this.decoder, Parser.Decoder.EVENT_DECODED, new Listener() {
+            @Override
+            public void call(Object... objects) {
+                Manager.this.ondecoded((Packet) objects[0]);
+            }
+        }));
+    }
+
+    private void onping() {
+        this.lastPing = new Date();
+        this.emitAll(EVENT_PING);
+    }
+
+    private void onpong() {
+        this.emitAll(EVENT_PONG,
+                null != this.lastPing ? new Date().getTime() - this.lastPing.getTime() : 0);
     }
 
     private void ondata(String data) {
@@ -458,8 +485,12 @@ public class Manager extends Emitter {
     }
 
     private void cleanup() {
+        logger.fine("cleanup");
+
         On.Handle sub;
         while ((sub = this.subs.poll()) != null) sub.destroy();
+
+        this.lastPing = null;
     }
 
     /*package*/ void close() {
