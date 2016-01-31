@@ -19,6 +19,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JUnit4.class)
@@ -45,6 +47,26 @@ public class ConnectionTest extends Connection {
         socket.connect();
         values.take();
         socket.close();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void startTwoConnectionsWithSamePath() throws URISyntaxException, InterruptedException {
+        Socket s1 = client("/");
+        Socket s2 = client("/");
+
+        assertThat(s1.io(), not(equalTo(s2.io())));
+        s1.close();
+        s2.close();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void startTwoConnectionsWithSamePathAndDifferentQuerystrings() throws URISyntaxException, InterruptedException {
+        Socket s1 = client("/?woot");
+        Socket s2 = client("/");
+
+        assertThat(s1.io(), not(equalTo(s2.io())));
+        s1.close();
+        s2.close();
     }
 
     @Test(timeout = TIMEOUT)

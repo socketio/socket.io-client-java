@@ -81,8 +81,16 @@ public abstract class Connection {
         return client(createOptions());
     }
 
+    Socket client(String path) throws URISyntaxException {
+        return IO.socket(path, createOptions());
+    }
+
     Socket client(IO.Options opts) throws URISyntaxException {
-        return IO.socket(uri() + nsp(), opts);
+        return client(nsp(), opts);
+    }
+
+    Socket client(String path, IO.Options opts) throws URISyntaxException {
+        return IO.socket(uri() + path, opts);
     }
 
     String uri() {

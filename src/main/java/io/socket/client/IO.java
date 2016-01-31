@@ -64,13 +64,17 @@ public class IO {
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
+        String id = Url.extractId(parsed);
+        String path = parsed.getPath();
+        boolean sameNamespace = managers.containsKey(id)
+                && managers.get(id).nsps.containsKey(path);
+        boolean newConnection = opts.forceNew || !opts.multiplex || sameNamespace;
         Manager io;
 
-        if (opts.forceNew || !opts.multiplex) {
+        if (newConnection) {
             logger.fine(String.format("ignoring socket cache for %s", source));
             io = new Manager(source, opts);
         } else {
-            String id = Url.extractId(parsed);
             if (!managers.containsKey(id)) {
                 logger.fine(String.format("new io instance for %s", source));
                 managers.putIfAbsent(id, new Manager(source, opts));

@@ -96,7 +96,7 @@ public class Manager extends Emitter {
     /**
      * This HashMap can be accessed from outside of EventThread.
      */
-    private ConcurrentHashMap<String, Socket> nsps;
+    /*package*/ ConcurrentHashMap<String, Socket> nsps;
 
 
     public Manager() {
