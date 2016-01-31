@@ -490,15 +490,22 @@ public class Manager extends Emitter {
         On.Handle sub;
         while ((sub = this.subs.poll()) != null) sub.destroy();
 
+        this.packetBuffer.clear();
+        this.encoding = false;
         this.lastPing = null;
+
+        this.decoder.destroy();
     }
 
     /*package*/ void close() {
-        if (this.readyState != ReadyState.OPEN) {
-            this.cleanup();
-        }
+        logger.fine("disconnect");
         this.skipReconnect = true;
         this.reconnecting = false;
+        if (this.readyState != ReadyState.OPEN) {
+            // `onclose` will not fire because
+            // an open event never happened
+            this.cleanup();
+        }
         this.backoff.reset();
         this.readyState = ReadyState.CLOSED;
         if (this.engine != null) {
@@ -507,7 +514,7 @@ public class Manager extends Emitter {
     }
 
     private void onclose(String reason) {
-        logger.fine("close");
+        logger.fine("onclose");
         this.cleanup();
         this.backoff.reset();
         this.readyState = ReadyState.CLOSED;
