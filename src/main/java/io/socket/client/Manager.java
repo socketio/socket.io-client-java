@@ -84,7 +84,7 @@ public class Manager extends Emitter {
     private double _randomizationFactor;
     private Backoff backoff;
     private long _timeout;
-    private Set<Socket> connected;
+    private Set<Socket> connecting = new HashSet<Socket>();
     private URI uri;
     private List<Packet> packetBuffer;
     private Queue<On.Handle> subs;
@@ -139,7 +139,6 @@ public class Manager extends Emitter {
         this.timeout(opts.timeout);
         this.readyState = ReadyState.CLOSED;
         this.uri = uri;
-        this.connected = new HashSet<Socket>();
         this.encoding = false;
         this.packetBuffer = new ArrayList<Packet>();
         this.encoder = new Parser.Encoder();
@@ -402,11 +401,16 @@ public class Manager extends Emitter {
             } else {
                 final Manager self = this;
                 final Socket s = socket;
+                socket.on(Socket.EVENT_CONNECTING, new Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        self.connecting.add(s);
+                    }
+                });
                 socket.on(Socket.EVENT_CONNECT, new Listener() {
                     @Override
                     public void call(Object... objects) {
                         s.id = self.engine.id();
-                        self.connected.add(s);
                     }
                 });
             }
@@ -415,8 +419,8 @@ public class Manager extends Emitter {
     }
 
     /*package*/ void destroy(Socket socket) {
-        this.connected.remove(socket);
-        if (!this.connected.isEmpty()) return;
+        this.connecting.remove(socket);
+        if (!this.connecting.isEmpty()) return;
 
         this.close();
     }

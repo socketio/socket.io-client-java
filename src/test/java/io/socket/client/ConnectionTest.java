@@ -592,6 +592,33 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
+    public void connectWhileDisconnectingAnotherSocket() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+
+        final Manager manager = new Manager(new URI(uri()));
+        final Socket socket1 = manager.socket("/foo");
+        socket1.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                final Socket socket2 = manager.socket("/asd");
+                socket2.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        values.offer("done");
+                        socket2.disconnect();
+                    }
+                });
+                socket2.open();
+                socket1.disconnect();
+            }
+        });
+
+        socket1.open();
+        values.take();
+        manager.close();
+    }
+
+    @Test(timeout = TIMEOUT)
     public void tryToReconnectTwiceAndFailWithIncorrectAddress() throws URISyntaxException, InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         IO.Options opts = new IO.Options();

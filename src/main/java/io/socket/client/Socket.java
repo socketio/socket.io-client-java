@@ -25,6 +25,8 @@ public class Socket extends Emitter {
      */
     public static final String EVENT_CONNECT = "connect";
 
+    public static final String EVENT_CONNECTING = "connecting";
+
     /**
      * Called on a disconnection.
      */
@@ -60,6 +62,7 @@ public class Socket extends Emitter {
         put(EVENT_CONNECT, 1);
         put(EVENT_CONNECT_ERROR, 1);
         put(EVENT_CONNECT_TIMEOUT, 1);
+        put(EVENT_CONNECTING, 1);
         put(EVENT_DISCONNECT, 1);
         put(EVENT_ERROR, 1);
         put(EVENT_RECONNECT, 1);
@@ -123,6 +126,7 @@ public class Socket extends Emitter {
                 Socket.this.subEvents();
                 Socket.this.io.open(); // ensure open
                 if (Manager.ReadyState.OPEN == Socket.this.io.readyState) Socket.this.onopen();
+                Socket.this.emit(EVENT_CONNECTING);
             }
         });
         return this;
