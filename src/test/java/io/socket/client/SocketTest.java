@@ -7,10 +7,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.net.URISyntaxException;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 
@@ -59,6 +62,33 @@ public class SocketTest extends Connection {
         @SuppressWarnings("unchecked")
         Optional<String> id = values.take();
         assertThat(id.isPresent(), is(false));
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void doesNotFireConnectErrorIfWeForceDisconnectInOpeningState() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+        IO.Options opts = new IO.Options();
+        opts.timeout = 100;
+        socket = client(opts);
+        socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                values.offer(Optional.of(new Error("Unexpected")));
+            }
+        });
+        socket.connect();
+        socket.disconnect();
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                values.offer(Optional.empty());
+            }
+        }, 300);
+
+        @SuppressWarnings("unchecked")
+        Optional<Error> err = values.take();
+        if (err.isPresent()) throw err.get();
     }
 
     @Test(timeout = TIMEOUT)

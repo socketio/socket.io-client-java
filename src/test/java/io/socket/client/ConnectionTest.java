@@ -420,8 +420,8 @@ public class ConnectionTest extends Connection {
         IO.Options opts = createOptions();
         opts.reconnection = true;
         opts.timeout = 0;
-        opts.reconnectionAttempts = 5;
-        opts.reconnectionDelay = 10;
+        opts.reconnectionAttempts = 3;
+        opts.reconnectionDelay = 100;
         opts.randomizationFactor = 0.2;
         final Manager manager = new Manager(new URI(uri()), opts);
         socket = manager.socket("/timeout");
@@ -458,9 +458,8 @@ public class ConnectionTest extends Connection {
 
         socket.connect();
         values.take();
-        assertThat(reconnects[0], is(5));
-        // this fails sometimes
-        //assertThat(increasingDelay[0], is(true));
+        assertThat(reconnects[0], is(3));
+        assertThat(increasingDelay[0], is(true));
         socket.close();
         manager.close();
     }
@@ -543,6 +542,32 @@ public class ConnectionTest extends Connection {
         });
         socket.connect();
         assertThat((Boolean) values.take(), is(true));
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void reconnectAfterStoppingReconnection() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        IO.Options opts = createOptions();
+        opts.forceNew = true;
+        opts.timeout = 0;
+        opts.reconnectionDelay = 10;
+        socket = client("/invalid", opts);
+        socket.once(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                socket.once(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        values.offer("done");
+                    }
+                });
+                socket.disconnect();
+                socket.connect();
+            }
+        });
+        socket.connect();
+        values.take();
+        socket.disconnect();
     }
 
     @Test(timeout = TIMEOUT)

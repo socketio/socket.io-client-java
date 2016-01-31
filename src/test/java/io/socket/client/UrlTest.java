@@ -59,4 +59,14 @@ public class UrlTest {
         assertThat(id1, is(not(id3)));
         assertThat(id2, is(not(id3)));
     }
+
+    @Test
+    public void ipv6() throws URISyntaxException, MalformedURLException {
+        String url = "http://[::1]";
+        URL parsed = Url.parse(url);
+        assertThat(parsed.getProtocol(), is("http"));
+        assertThat(parsed.getHost(), is("[::1]"));
+        assertThat(parsed.getPort(), is(80));
+        assertThat(Url.extractId(url), is("http://[::1]:80"));
+    }
 }
