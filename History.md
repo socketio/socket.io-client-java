@@ -1,3 +1,14 @@
+0.7.0 / 2016-02-01
+==================
+
+* compatible with socket.io 1.4.5
+* bump `engine.io-client`
+* fix event type when emitting ack with binary data [cirocosta]
+* don't reuse same namespace connections
+* fix handling of disconnection while in `opening` state
+* add ping and pong events
+* improve cleanup on `Manager`
+
 0.6.3 / 2015-12-23
 ==================
 
