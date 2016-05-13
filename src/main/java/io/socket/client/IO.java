@@ -104,5 +104,21 @@ public class IO {
          * Whether to enable multiplexing. Default is true.
          */
         public boolean multiplex = true;
+
+        /**
+         * <p>
+         *   Retrieve new builder class that helps creating socket option as builder pattern.
+         *   This method returns exactly same result as :
+         * </p>
+         * <code>
+         * SocketOptionBuilder builder = SocketOptionBuilder.builder();
+         * </code>
+         *
+         * @return builder class that helps creating socket option as builder pattern.
+         * @see SocketOptionBuilder#builder()
+         */
+        public static SocketOptionBuilder builder() {
+            return SocketOptionBuilder.builder();
+        }
     }
 }
