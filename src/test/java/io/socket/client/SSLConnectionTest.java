@@ -58,7 +58,7 @@ public class SSLConnectionTest extends Connection {
         TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
         tmf.init(ks);
 
-        SSLContext sslContext = SSLContext.getInstance("TLS");
+        SSLContext sslContext = SSLContext.getInstance("TLSv1");
         sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
         return sslContext;
     }
