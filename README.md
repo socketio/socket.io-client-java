@@ -3,6 +3,9 @@
 
 This is the Socket.IO v1.x Client Library for Java, which is simply ported from the [JavaScript client](https://github.com/socketio/socket.io-client).
 
+## Fork remarks
+This fork uses [nv-websocket-client](https://github.com/TakahikoKawasaki/nv-websocket-client) instead of okhttp websocket implementation. nv-websocket-client implmentation is more mature and support websocket extensions like compresion.
+
 See also:
 
 - [Android chat demo](https://github.com/nkzawa/socket.io-android-chat)
