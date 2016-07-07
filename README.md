@@ -145,7 +145,7 @@ You can access transports and their HTTP headers as follows.
 
 ```java
 // Called upon transport creation.
-socket.io().on(Manager.EVENT_TRANSPORT, new Emitter.listener() {
+socket.io().on(Manager.EVENT_TRANSPORT, new Emitter.Listener() {
   @Override
   public void call(Object... args) {
     Transport transport = (Transport)args[0];
