@@ -1,6 +1,5 @@
 package io.socket.parser;
 
-import io.socket.emitter.Emitter;
 import org.json.JSONException;
 import org.json.JSONTokener;
 
@@ -54,28 +53,31 @@ public class Parser {
     /**
      * Packet types.
      */
-    public static String[] types = new String[] {
-        "CONNECT",
-        "DISCONNECT",
-        "EVENT",
-        "ACK",
-        "ERROR",
-        "BINARY_EVENT",
-        "BINARY_ACK"
+    public static String[] types = new String[]{
+            "CONNECT",
+            "DISCONNECT",
+            "EVENT",
+            "ACK",
+            "ERROR",
+            "BINARY_EVENT",
+            "BINARY_ACK"
     };
 
 
-    private Parser() {}
+    private Parser() {
+    }
 
     private static Packet<String> error() {
         return new Packet<String>(ERROR, "parser error");
     }
 
 
-    public static class Encoder {
+    public static class DefaultEncoder extends Encoder {
 
-        public Encoder() {}
+        public DefaultEncoder() {
+        }
 
+        @Override
         public void encode(Packet obj, Callback callback) {
             logger.fine(String.format("encoding packet %s", obj));
 
@@ -83,7 +85,7 @@ public class Parser {
                 encodeAsBinary(obj, callback);
             } else {
                 String encoding = encodeAsString(obj);
-                callback.call(new String[] {encoding});
+                callback.call(new String[]{encoding});
             }
         }
 
@@ -129,19 +131,13 @@ public class Parser {
             callback.call(buffers.toArray());
         }
 
-        public interface Callback {
-
-            public void call(Object[] data);
-        }
     }
 
-    public static class Decoder extends Emitter {
-
-        public static String EVENT_DECODED = "decoded";
+    public static class DefaultDecoder extends Decoder{
 
         /*package*/ BinaryReconstructor reconstructor;
 
-        public Decoder() {
+        public DefaultDecoder() {
             this.reconstructor = null;
         }
 
@@ -201,7 +197,7 @@ public class Parser {
                 p.nsp = "/";
             }
 
-            if (length > i + 1){
+            if (length > i + 1) {
                 Character next = str.charAt(i + 1);
                 if (Character.getNumericValue(next) > -1) {
                     StringBuilder id = new StringBuilder();
@@ -217,13 +213,13 @@ public class Parser {
                     }
                     try {
                         p.id = Integer.parseInt(id.toString());
-                    } catch (NumberFormatException e){
+                    } catch (NumberFormatException e) {
                         return error();
                     }
                 }
             }
 
-            if (length > i + 1){
+            if (length > i + 1) {
                 try {
                     str.charAt(++i);
                     p.data = new JSONTokener(str.substring(i)).nextValue();
@@ -267,7 +263,7 @@ public class Parser {
             return null;
         }
 
-        public void finishReconstruction () {
+        public void finishReconstruction() {
             this.reconPack = null;
             this.buffers = new ArrayList<byte[]>();
         }

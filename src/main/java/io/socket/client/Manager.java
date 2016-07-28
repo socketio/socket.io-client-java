@@ -2,6 +2,8 @@ package io.socket.client;
 
 import io.socket.backo.Backoff;
 import io.socket.emitter.Emitter;
+import io.socket.parser.Decoder;
+import io.socket.parser.Encoder;
 import io.socket.parser.Packet;
 import io.socket.parser.Parser;
 import io.socket.thread.EventThread;
@@ -95,8 +97,8 @@ public class Manager extends Emitter {
     private Queue<On.Handle> subs;
     private Options opts;
     /*package*/ io.socket.engineio.client.Socket engine;
-    private Parser.Encoder encoder;
-    private Parser.Decoder decoder;
+    private Decoder decoder;
+    private Encoder encoder;
 
     /**
      * This HashMap can be accessed from outside of EventThread.
@@ -129,6 +131,16 @@ public class Manager extends Emitter {
         if (opts.hostnameVerifier == null) {
             opts.hostnameVerifier = defaultHostnameVerifier;
         }
+        if (opts.decoder != null) {
+            this.decoder = opts.decoder;
+        } else {
+            this.decoder = new Parser.DefaultDecoder();
+        }
+        if (opts.encoder != null) {
+            this.encoder = opts.encoder;
+        } else {
+            this.encoder = new Parser.DefaultEncoder();
+        }
         this.opts = opts;
         this.nsps = new ConcurrentHashMap<String, Socket>();
         this.subs = new LinkedList<On.Handle>();
@@ -146,8 +158,6 @@ public class Manager extends Emitter {
         this.uri = uri;
         this.encoding = false;
         this.packetBuffer = new ArrayList<Packet>();
-        this.encoder = new Parser.Encoder();
-        this.decoder = new Parser.Decoder();
     }
 
     private void emitAll(String event, Object... args) {
@@ -236,7 +246,7 @@ public class Manager extends Emitter {
         }
     }
 
-    public Manager open(){
+    public Manager open() {
         return open(null);
     }
 
@@ -347,9 +357,9 @@ public class Manager extends Emitter {
             public void call(Object... objects) {
                 Object data = objects[0];
                 if (data instanceof String) {
-                    Manager.this.ondata((String)data);
+                    Manager.this.ondata((String) data);
                 } else if (data instanceof byte[]) {
-                    Manager.this.ondata((byte[])data);
+                    Manager.this.ondata((byte[]) data);
                 }
             }
         }));
@@ -368,16 +378,16 @@ public class Manager extends Emitter {
         this.subs.add(On.on(socket, Engine.EVENT_ERROR, new Listener() {
             @Override
             public void call(Object... objects) {
-                Manager.this.onerror((Exception)objects[0]);
+                Manager.this.onerror((Exception) objects[0]);
             }
         }));
         this.subs.add(On.on(socket, Engine.EVENT_CLOSE, new Listener() {
             @Override
             public void call(Object... objects) {
-                Manager.this.onclose((String)objects[0]);
+                Manager.this.onclose((String) objects[0]);
             }
         }));
-        this.subs.add(On.on(this.decoder, Parser.Decoder.EVENT_DECODED, new Listener() {
+        this.subs.add(On.on(this.decoder, Decoder.EVENT_DECODED, new Listener() {
             @Override
             public void call(Object... objects) {
                 Manager.this.ondecoded((Packet) objects[0]);
@@ -458,14 +468,14 @@ public class Manager extends Emitter {
 
         if (!self.encoding) {
             self.encoding = true;
-            this.encoder.encode(packet, new Parser.Encoder.Callback() {
+            this.encoder.encode(packet, new Encoder.Callback() {
                 @Override
                 public void call(Object[] encodedPackets) {
                     for (Object packet : encodedPackets) {
                         if (packet instanceof String) {
-                            self.engine.write((String)packet);
+                            self.engine.write((String) packet);
                         } else if (packet instanceof byte[]) {
-                            self.engine.write((byte[])packet);
+                            self.engine.write((byte[]) packet);
                         }
                     }
                     self.encoding = false;
@@ -614,6 +624,8 @@ public class Manager extends Emitter {
         public long reconnectionDelay;
         public long reconnectionDelayMax;
         public double randomizationFactor;
+        public Encoder encoder;
+        public Decoder decoder;
 
         /**
          * Connection timeout (ms). Set -1 to disable.
