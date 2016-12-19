@@ -6,6 +6,7 @@ import java.math.BigInteger;
 public class Backoff {
 
     private long ms = 100;
+    private long firstMin = 100;
     private long max = 10000;
     private int factor = 2;
     private double jitter;
@@ -28,10 +29,12 @@ public class Backoff {
 
     public void reset() {
         this.attempts = 0;
+	this.ms = firstMin;
     }
 
     public Backoff setMin(long min) {
         this.ms = min;
+	this.firstMin = min;
         return this;
     }
 
