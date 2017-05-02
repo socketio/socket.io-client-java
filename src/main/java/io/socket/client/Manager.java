@@ -1,18 +1,25 @@
 package io.socket.client;
 
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import io.socket.backo.Backoff;
 import io.socket.emitter.Emitter;
 import io.socket.parser.Packet;
 import io.socket.parser.Parser;
 import io.socket.thread.EventThread;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import java.net.URI;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import okhttp3.OkHttpClient;
 
 /**
  * Manager class represents a connection to a given Socket.IO server.
@@ -73,8 +80,9 @@ public class Manager extends Emitter {
      */
     public static final String EVENT_TRANSPORT = Engine.EVENT_TRANSPORT;
 
-    /*package*/ static SSLContext defaultSSLContext;
-    /*package*/ static HostnameVerifier defaultHostnameVerifier;
+    /*package*/ static okhttp3.WebSocket.Factory defaultWebSocketFactory;
+    /*package*/ static okhttp3.Call.Factory defaultCallFactory;
+    private static OkHttpClient defaultOkHttpClient;
 
     /*package*/ ReadyState readyState;
 
@@ -123,11 +131,23 @@ public class Manager extends Emitter {
         if (opts.path == null) {
             opts.path = "/socket.io";
         }
-        if (opts.sslContext == null) {
-            opts.sslContext = defaultSSLContext;
+        if (opts.callFactory == null) {
+            opts.callFactory = defaultCallFactory;
         }
-        if (opts.hostnameVerifier == null) {
-            opts.hostnameVerifier = defaultHostnameVerifier;
+        if (opts.webSocketFactory == null) {
+            opts.webSocketFactory = defaultWebSocketFactory;
+        }
+        if (opts.callFactory == null) {
+            if (defaultOkHttpClient == null) {
+                defaultOkHttpClient = new OkHttpClient();
+            }
+            opts.callFactory = defaultOkHttpClient;
+        }
+        if (opts.webSocketFactory == null) {
+            if (defaultOkHttpClient == null) {
+                defaultOkHttpClient = new OkHttpClient();
+            }
+            opts.webSocketFactory = defaultOkHttpClient;
         }
         this.opts = opts;
         this.nsps = new ConcurrentHashMap<String, Socket>();
