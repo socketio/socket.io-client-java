@@ -1,15 +1,13 @@
 package io.socket.client;
 
 
-import io.socket.parser.Parser;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+
+import io.socket.parser.Parser;
 
 
 public class IO {
@@ -23,12 +21,12 @@ public class IO {
      */
     public static int protocol = Parser.protocol;
 
-    public static void setDefaultSSLContext(SSLContext sslContext) {
-        Manager.defaultSSLContext = sslContext;
+    public static void setDefaultOkHttpWebSocketFactory(okhttp3.WebSocket.Factory factory) {
+        Manager.defaultWebSocketFactory = factory;
     }
 
-    public static void setDefaultHostnameVerifier(HostnameVerifier hostnameVerifier) {
-        Manager.defaultHostnameVerifier = hostnameVerifier;
+    public static void setDefaultOkHttpCallFactory(okhttp3.Call.Factory factory) {
+        Manager.defaultCallFactory = factory;
     }
 
     private IO() {}
