@@ -3,6 +3,7 @@ package io.socket.client;
 
 import io.socket.parser.Parser;
 
+import java.util.logging.Level;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import java.net.URI;
@@ -72,11 +73,15 @@ public class IO {
         Manager io;
 
         if (newConnection) {
-            logger.fine(String.format("ignoring socket cache for %s", source));
+            if (logger.isLoggable(Level.FINE)) {
+                logger.fine(String.format("ignoring socket cache for %s", source));
+            }
             io = new Manager(source, opts);
         } else {
             if (!managers.containsKey(id)) {
-                logger.fine(String.format("new io instance for %s", source));
+                if (logger.isLoggable(Level.FINE)) {
+                    logger.fine(String.format("new io instance for %s", source));
+                }
                 managers.putIfAbsent(id, new Manager(source, opts));
             }
             io = managers.get(id);
