@@ -418,12 +418,13 @@ public class Manager extends Emitter {
      * Initializes {@link Socket} instances for each namespaces.
      *
      * @param nsp namespace.
+     * @param opts options.
      * @return a socket instance for the namespace.
      */
-    public Socket socket(String nsp) {
+    public Socket socket(String nsp, Options opts) {
         Socket socket = this.nsps.get(nsp);
         if (socket == null) {
-            socket = new Socket(this, nsp);
+            socket = new Socket(this, nsp, opts);
             Socket _socket = this.nsps.putIfAbsent(nsp, socket);
             if (_socket != null) {
                 socket = _socket;
@@ -447,6 +448,10 @@ public class Manager extends Emitter {
         return socket;
     }
 
+    public Socket socket(String nsp) {
+        return socket(nsp, null);
+    }
+
     /*package*/ void destroy(Socket socket) {
         this.connecting.remove(socket);
         if (!this.connecting.isEmpty()) return;
@@ -457,6 +462,10 @@ public class Manager extends Emitter {
     /*package*/ void packet(Packet packet) {
         logger.fine(String.format("writing packet %s", packet));
         final Manager self = this;
+
+        if (packet.query != null && !packet.query.isEmpty() && packet.type == Parser.CONNECT) {
+            packet.nsp += "?" + packet.query;
+        }
 
         if (!self.encoding) {
             self.encoding = true;

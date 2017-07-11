@@ -168,4 +168,21 @@ public class SocketTest extends Connection {
 
         socket.disconnect();
     }
+
+    @Test(timeout = TIMEOUT)
+    public void shouldStoreQueryStringAsAProperty() throws URISyntaxException, InterruptedException {
+        IO.Options opts = new IO.Options();
+        opts.query = "a=b";
+        Socket socket = IO.socket(this.uri() + "/abc", opts);
+
+        Socket socket2 = IO.socket(this.uri() + "/abc?b=c&d=e");
+
+        IO.Options opts3 = new IO.Options();
+        opts.query = "%26a=%26%3D%3Fa";
+        Socket socket3 = IO.socket(this.uri() + "/abc", opts);
+
+        assertThat(socket.query, is("a=b"));
+        assertThat(socket2.query, is("b=c&d=e"));
+        assertThat(socket3.query, is("%26a=%26%3D%3Fa"));
+    }
 }

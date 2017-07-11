@@ -85,7 +85,12 @@ public class IO {
             io = managers.get(id);
         }
 
-        return io.socket(parsed.getPath());
+        String query = parsed.getQuery();
+        if (query != null && (opts.query == null || opts.query.isEmpty())) {
+            opts.query = query;
+        }
+
+        return io.socket(parsed.getPath(), opts);
     }
 
 

@@ -79,6 +79,7 @@ public class Socket extends Emitter {
     }};
 
     /*package*/ String id;
+    /*package*/ String query;
 
     private volatile boolean connected;
     private int ids;
@@ -89,9 +90,12 @@ public class Socket extends Emitter {
     private final Queue<List<Object>> receiveBuffer = new LinkedList<List<Object>>();
     private final Queue<Packet<JSONArray>> sendBuffer = new LinkedList<Packet<JSONArray>>();
 
-    public Socket(Manager io, String nsp) {
+    public Socket(Manager io, String nsp, Manager.Options opts) {
         this.io = io;
         this.nsp = nsp;
+        if (opts != null) {
+            this.query = opts.query;
+        }
     }
 
     private void subEvents() {
@@ -268,7 +272,13 @@ public class Socket extends Emitter {
         logger.fine("transport is open - connecting");
 
         if (!"/".equals(this.nsp)) {
-            this.packet(new Packet(Parser.CONNECT));
+            if (this.query != null && !this.query.isEmpty()) {
+                Packet packet = new Packet(Parser.CONNECT);
+                packet.query = this.query;
+                this.packet(packet);
+            } else {
+                this.packet(new Packet(Parser.CONNECT));
+            }
         }
     }
 
