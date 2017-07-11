@@ -377,7 +377,7 @@ public class ConnectionTest extends Connection {
         values.take();
     }
 
-    @Test(timeout = TIMEOUT)
+    @Test(timeout = 14000)
     public void attemptReconnectsAfterAFailedReconnect() throws URISyntaxException, InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         IO.Options opts = createOptions();
