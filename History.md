@@ -1,4 +1,11 @@
 
+0.9.0 / 2017-07-11
+==================
+
+* compatible with socket.io 1.7.4
+* bump engine.io-client
+* send query on connect
+
 0.8.3 / 2016-12-12
 ==================
 
