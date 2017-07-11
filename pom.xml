@@ -62,7 +62,7 @@
     <dependency>
       <groupId>io.socket</groupId>
       <artifactId>engine.io-client</artifactId>
-      <version>0.8.3</version>
+      <version>0.8.4-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.json</groupId>

@@ -17,7 +17,7 @@ public class ExecutionTest extends Connection {
 
     private static final Logger logger = Logger.getLogger(ExecutionTest.class.getName());
 
-    final static int TIMEOUT = 60 * 1000;
+    final static int TIMEOUT = 100 * 1000;
 
     @Test(timeout = TIMEOUT)
     public void execConnection() throws InterruptedException, IOException {

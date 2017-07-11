@@ -5,6 +5,8 @@ import io.socket.emitter.Emitter;
 import io.socket.parser.Packet;
 import io.socket.parser.Parser;
 import io.socket.thread.EventThread;
+import okhttp3.Call;
+import okhttp3.WebSocket;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -73,8 +75,8 @@ public class Manager extends Emitter {
      */
     public static final String EVENT_TRANSPORT = Engine.EVENT_TRANSPORT;
 
-    /*package*/ static SSLContext defaultSSLContext;
-    /*package*/ static HostnameVerifier defaultHostnameVerifier;
+    /*package*/ static WebSocket.Factory defaultWebSocketFactory;
+    /*package*/ static Call.Factory defaultCallFactory;
 
     /*package*/ ReadyState readyState;
 
@@ -123,11 +125,11 @@ public class Manager extends Emitter {
         if (opts.path == null) {
             opts.path = "/socket.io";
         }
-        if (opts.sslContext == null) {
-            opts.sslContext = defaultSSLContext;
+        if (opts.webSocketFactory == null) {
+            opts.webSocketFactory = defaultWebSocketFactory;
         }
-        if (opts.hostnameVerifier == null) {
-            opts.hostnameVerifier = defaultHostnameVerifier;
+        if (opts.callFactory == null) {
+            opts.callFactory = defaultCallFactory;
         }
         this.opts = opts;
         this.nsps = new ConcurrentHashMap<String, Socket>();
