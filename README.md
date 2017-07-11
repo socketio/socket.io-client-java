@@ -125,14 +125,19 @@ socket.on("foo", new Emitter.Listener() {
 SSL (HTTPS, WSS) settings:
 
 ```java
+OkHttpClient okHttpClient = new OkHttpClient.Builder()
+  .hostnameVerifier(myHostnameVerifier)
+  .sslSocketFactory(mySSLContext.getSocketFactory(), myX509TrustManager)
+  .build();
+
 // default settings for all sockets
-IO.setDefaultSSLContext(mySSLContext);
-IO.setDefaultHostnameVerifier(myHostnameVerifier);
+Socket.setDefaultOkHttpWebSocketFactory(okHttpClient);
+Socket.setDefaultOkHttpCallFactory(okHttpClient);
 
 // set as an option
 opts = new IO.Options();
-opts.sslContext = mySSLContext;
-opts.hostnameVerifier = myHostnameVerifier;
+opts.callFactory = okHttpClient;
+opts.webSocketFactory = okHttpClient;
 socket = IO.socket("https://localhost", opts);
 ```
 

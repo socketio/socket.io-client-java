@@ -5,6 +5,8 @@ import io.socket.emitter.Emitter;
 import io.socket.parser.Packet;
 import io.socket.parser.Parser;
 import io.socket.thread.EventThread;
+import okhttp3.Call;
+import okhttp3.WebSocket;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -73,8 +75,8 @@ public class Manager extends Emitter {
      */
     public static final String EVENT_TRANSPORT = Engine.EVENT_TRANSPORT;
 
-    /*package*/ static SSLContext defaultSSLContext;
-    /*package*/ static HostnameVerifier defaultHostnameVerifier;
+    /*package*/ static WebSocket.Factory defaultWebSocketFactory;
+    /*package*/ static Call.Factory defaultCallFactory;
 
     /*package*/ ReadyState readyState;
 
@@ -123,11 +125,11 @@ public class Manager extends Emitter {
         if (opts.path == null) {
             opts.path = "/socket.io";
         }
-        if (opts.sslContext == null) {
-            opts.sslContext = defaultSSLContext;
+        if (opts.webSocketFactory == null) {
+            opts.webSocketFactory = defaultWebSocketFactory;
         }
-        if (opts.hostnameVerifier == null) {
-            opts.hostnameVerifier = defaultHostnameVerifier;
+        if (opts.callFactory == null) {
+            opts.callFactory = defaultCallFactory;
         }
         this.opts = opts;
         this.nsps = new ConcurrentHashMap<String, Socket>();
@@ -416,12 +418,13 @@ public class Manager extends Emitter {
      * Initializes {@link Socket} instances for each namespaces.
      *
      * @param nsp namespace.
+     * @param opts options.
      * @return a socket instance for the namespace.
      */
-    public Socket socket(String nsp) {
+    public Socket socket(String nsp, Options opts) {
         Socket socket = this.nsps.get(nsp);
         if (socket == null) {
-            socket = new Socket(this, nsp);
+            socket = new Socket(this, nsp, opts);
             Socket _socket = this.nsps.putIfAbsent(nsp, socket);
             if (_socket != null) {
                 socket = _socket;
@@ -445,6 +448,10 @@ public class Manager extends Emitter {
         return socket;
     }
 
+    public Socket socket(String nsp) {
+        return socket(nsp, null);
+    }
+
     /*package*/ void destroy(Socket socket) {
         this.connecting.remove(socket);
         if (!this.connecting.isEmpty()) return;
@@ -455,6 +462,10 @@ public class Manager extends Emitter {
     /*package*/ void packet(Packet packet) {
         logger.fine(String.format("writing packet %s", packet));
         final Manager self = this;
+
+        if (packet.query != null && !packet.query.isEmpty() && packet.type == Parser.CONNECT) {
+            packet.nsp += "?" + packet.query;
+        }
 
         if (!self.encoding) {
             self.encoding = true;

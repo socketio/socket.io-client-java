@@ -2,6 +2,9 @@ package io.socket.client;
 
 
 import io.socket.parser.Parser;
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
+import okhttp3.WebSocket;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -23,12 +26,12 @@ public class IO {
      */
     public static int protocol = Parser.protocol;
 
-    public static void setDefaultSSLContext(SSLContext sslContext) {
-        Manager.defaultSSLContext = sslContext;
+    public static void setDefaultOkHttpWebSocketFactory(WebSocket.Factory factory) {
+        Manager.defaultWebSocketFactory = factory;
     }
 
-    public static void setDefaultHostnameVerifier(HostnameVerifier hostnameVerifier) {
-        Manager.defaultHostnameVerifier = hostnameVerifier;
+    public static void setDefaultOkHttpCallFactory(Call.Factory factory) {
+        Manager.defaultCallFactory = factory;
     }
 
     private IO() {}
@@ -82,7 +85,12 @@ public class IO {
             io = managers.get(id);
         }
 
-        return io.socket(parsed.getPath());
+        String query = parsed.getQuery();
+        if (query != null && (opts.query == null || opts.query.isEmpty())) {
+            opts.query = query;
+        }
+
+        return io.socket(parsed.getPath(), opts);
     }
 
 
