@@ -21,7 +21,7 @@ Add the following dependency to your `pom.xml`.
   <dependency>
     <groupId>io.socket</groupId>
     <artifactId>socket.io-client</artifactId>
-    <version>0.8.3</version>
+    <version>0.9.0</version>
   </dependency>
 </dependencies>
 ```
@@ -30,7 +30,7 @@ Add the following dependency to your `pom.xml`.
 Add it as a gradle dependency for Android Studio, in `build.gradle`:
 
 ```groovy
-compile ('io.socket:socket.io-client:0.8.3') {
+compile ('io.socket:socket.io-client:0.9.0') {
   // excluding org.json which is provided by Android
   exclude group: 'org.json', module: 'json'
 }
@@ -131,8 +131,8 @@ OkHttpClient okHttpClient = new OkHttpClient.Builder()
   .build();
 
 // default settings for all sockets
-Socket.setDefaultOkHttpWebSocketFactory(okHttpClient);
-Socket.setDefaultOkHttpCallFactory(okHttpClient);
+IO.setDefaultOkHttpWebSocketFactory(okHttpClient);
+IO.setDefaultOkHttpCallFactory(okHttpClient);
 
 // set as an option
 opts = new IO.Options();
