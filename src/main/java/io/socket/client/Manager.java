@@ -163,9 +163,15 @@ public class Manager extends Emitter {
      * Update `socket.id` of all sockets
      */
     private void updateSocketIds() {
-        for (Socket socket : this.nsps.values()) {
-            socket.id = this.engine.id();
+        for (Map.Entry<String, Socket> entry : this.nsps.entrySet()) {
+            String nsp = entry.getKey();
+            Socket socket = entry.getValue();
+            socket.id = this.generateId(nsp);
         }
+    }
+
+    private String generateId(String nsp) {
+        return ("/".equals(nsp) ? "" : (nsp + "#")) + this.engine.id();
     }
 
     public boolean reconnection() {
@@ -421,7 +427,7 @@ public class Manager extends Emitter {
      * @param opts options.
      * @return a socket instance for the namespace.
      */
-    public Socket socket(String nsp, Options opts) {
+    public Socket socket(final String nsp, Options opts) {
         Socket socket = this.nsps.get(nsp);
         if (socket == null) {
             socket = new Socket(this, nsp, opts);
@@ -440,7 +446,7 @@ public class Manager extends Emitter {
                 socket.on(Socket.EVENT_CONNECT, new Listener() {
                     @Override
                     public void call(Object... objects) {
-                        s.id = self.engine.id();
+                        s.id = self.generateId(nsp);
                     }
                 });
             }
