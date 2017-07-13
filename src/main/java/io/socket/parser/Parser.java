@@ -1,6 +1,7 @@
 package io.socket.parser;
 
 import io.socket.emitter.Emitter;
+import io.socket.hasbinary.HasBinary;
 import org.json.JSONException;
 import org.json.JSONTokener;
 
@@ -77,6 +78,10 @@ public class Parser {
         public Encoder() {}
 
         public void encode(Packet obj, Callback callback) {
+            if ((obj.type == EVENT || obj.type == ACK) && HasBinary.hasBinary(obj.data)) {
+                obj.type = obj.type == EVENT ? BINARY_EVENT : BINARY_ACK;
+            }
+
             logger.fine(String.format("encoding packet %s", obj));
 
             if (BINARY_EVENT == obj.type || BINARY_ACK == obj.type) {
@@ -88,10 +93,7 @@ public class Parser {
         }
 
         private String encodeAsString(Packet obj) {
-            StringBuilder str = new StringBuilder();
-            boolean nsp = false;
-
-            str.append(obj.type);
+            StringBuilder str = new StringBuilder("" + obj.type);
 
             if (BINARY_EVENT == obj.type || BINARY_ACK == obj.type) {
                 str.append(obj.attachments);
@@ -99,20 +101,15 @@ public class Parser {
             }
 
             if (obj.nsp != null && obj.nsp.length() != 0 && !"/".equals(obj.nsp)) {
-                nsp = true;
                 str.append(obj.nsp);
+                str.append(",");
             }
 
             if (obj.id >= 0) {
-                if (nsp) {
-                    str.append(",");
-                    nsp = false;
-                }
                 str.append(obj.id);
             }
 
             if (obj.data != null) {
-                if (nsp) str.append(",");
                 str.append(obj.data);
             }
 
@@ -171,11 +168,11 @@ public class Parser {
         }
 
         private static Packet decodeString(String str) {
-            Packet<Object> p = new Packet<Object>();
             int i = 0;
             int length = str.length();
 
-            p.type = Character.getNumericValue(str.charAt(0));
+            Packet<Object> p = new Packet<Object>(Character.getNumericValue(str.charAt(0)));
+
             if (p.type < 0 || p.type > types.length - 1) return error();
 
             if (BINARY_EVENT == p.type || BINARY_ACK == p.type) {
