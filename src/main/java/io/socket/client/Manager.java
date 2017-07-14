@@ -507,6 +507,7 @@ public class Manager extends Emitter {
 
         On.Handle sub;
         while ((sub = this.subs.poll()) != null) sub.destroy();
+        this.decoder.onDecoded(null);
 
         this.packetBuffer.clear();
         this.encoding = false;
