@@ -2,6 +2,8 @@ package io.socket.client;
 
 import io.socket.emitter.Emitter;
 import io.socket.util.Optional;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -23,7 +25,7 @@ public class SocketTest extends Connection {
     private Socket socket;
 
     @Test(timeout = TIMEOUT)
-    public void shouldHaveAnAccessibleSocketIdEqualToTheEngineIOSocketId() throws URISyntaxException, InterruptedException {
+    public void shouldHaveAnAccessibleSocketIdEqualToServerSideSocketId() throws URISyntaxException, InterruptedException {
         final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -38,6 +40,25 @@ public class SocketTest extends Connection {
         Optional<String> id = values.take();
         assertThat(id.isPresent(), is(true));
         assertThat(id.get(), is(socket.io().engine.id()));
+        socket.disconnect();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void shouldHaveAnAccessibleSocketIdEqualToServerSideSocketIdOnCustomNamespace() throws URISyntaxException, InterruptedException {
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+        socket = client("/foo");
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                values.offer(Optional.ofNullable(socket.id()));
+            }
+        });
+        socket.connect();
+
+        @SuppressWarnings("unchecked")
+        Optional<String> id = values.take();
+        assertThat(id.isPresent(), is(true));
+        assertThat(id.get(), is("/foo#" + socket.io().engine.id()));
         socket.disconnect();
     }
 
@@ -170,19 +191,46 @@ public class SocketTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void shouldStoreQueryStringAsAProperty() throws URISyntaxException, InterruptedException {
-        IO.Options opts = new IO.Options();
-        opts.query = "a=b";
-        Socket socket = IO.socket(this.uri() + "/abc", opts);
+    public void shouldAcceptAQueryStringOnDefaultNamespace() throws URISyntaxException, InterruptedException, JSONException {
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
 
-        Socket socket2 = IO.socket(this.uri() + "/abc?b=c&d=e");
+        socket = client("/?c=d");
+        socket.emit("getHandshake", new Ack() {
+            @Override
+            public void call(Object... args) {
+                JSONObject handshake = (JSONObject)args[0];
+                values.offer(Optional.ofNullable(handshake));
+            }
+        });
+        socket.connect();
 
-        IO.Options opts3 = new IO.Options();
-        opts.query = "%26a=%26%3D%3Fa";
-        Socket socket3 = IO.socket(this.uri() + "/abc", opts);
+        @SuppressWarnings("unchecked")
+        Optional<JSONObject> handshake = values.take();
+        assertThat(handshake.get().getJSONObject("query").getString("c"), is("d"));
 
-        assertThat(socket.query, is("a=b"));
-        assertThat(socket2.query, is("b=c&d=e"));
-        assertThat(socket3.query, is("%26a=%26%3D%3Fa"));
+        socket.disconnect();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void shouldAcceptAQueryString() throws URISyntaxException, InterruptedException, JSONException {
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+
+        socket = client("/abc?b=c&d=e");
+        socket.on("handshake", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                JSONObject handshake = (JSONObject)args[0];
+                values.offer(Optional.ofNullable(handshake));
+            }
+        });
+        socket.connect();
+
+        @SuppressWarnings("unchecked")
+        Optional<JSONObject> handshake = values.take();
+        JSONObject query = handshake.get().getJSONObject("query");
+        assertThat(query.getString("b"), is("c"));
+        assertThat(query.getString("d"), is("e"));
+
+        socket.disconnect();
     }
 }

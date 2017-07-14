@@ -34,6 +34,10 @@ io.of('/asd').on('connection', function() {
   // register namespace
 });
 
+io.of('/abc').on('connection', function(socket) {
+  socket.emit('handshake', socket.handshake);
+});
+
 io.of(nsp).on('connection', function(socket) {
   socket.send('hello client');
 
@@ -95,6 +99,10 @@ io.of(nsp).on('connection', function(socket) {
 
   socket.on('error', function() {
     console.log('error: ', arguments);
+  });
+
+  socket.on('getHandshake', function(cb) {
+    cb(socket.handshake);
   });
 });
 

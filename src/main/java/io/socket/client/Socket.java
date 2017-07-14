@@ -79,12 +79,12 @@ public class Socket extends Emitter {
     }};
 
     /*package*/ String id;
-    /*package*/ String query;
 
     private volatile boolean connected;
     private int ids;
     private String nsp;
     private Manager io;
+    private String query;
     private Map<Integer, Ack> acks = new HashMap<Integer, Ack>();
     private Queue<On.Handle> subs;
     private final Queue<List<Object>> receiveBuffer = new LinkedList<List<Object>>();

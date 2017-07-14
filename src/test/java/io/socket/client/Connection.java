@@ -82,7 +82,7 @@ public abstract class Connection {
     }
 
     Socket client(String path) throws URISyntaxException {
-        return IO.socket(path, createOptions());
+        return client(path, createOptions());
     }
 
     Socket client(IO.Options opts) throws URISyntaxException {
