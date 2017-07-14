@@ -16,7 +16,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(JUnit4.class)
 public class ByteArrayTest {
 
-    private static Parser.Encoder encoder = new Parser.Encoder();
+    private static Parser.DefaultEncoder defaultEncoder = new Parser.DefaultEncoder();
 
     @Test
     public void encodeByteArray() {
@@ -84,21 +84,21 @@ public class ByteArrayTest {
         packet.id = 0;
         packet.nsp = "/";
 
-        encoder.encode(packet, new Parser.Encoder.Callback() {
+        defaultEncoder.encode(packet, new Encoder.Callback() {
             @Override
             public void call(final Object[] encodedPackets) {
-                final Parser.Decoder decoder = new Parser.Decoder();
-                decoder.on(Parser.Decoder.EVENT_DECODED, new Emitter.Listener() {
+                final Parser.DefaultDecoder defaultDecoder = new Parser.DefaultDecoder();
+                defaultDecoder.on(Decoder.EVENT_DECODED, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         throw new RuntimeException("received a packet when not all binary data was sent.");
                     }
                 });
 
-                decoder.add((String)encodedPackets[0]);
-                decoder.add((byte[]) encodedPackets[1]);
-                decoder.destroy();
-                assertThat(decoder.reconstructor.buffers.size(), is(0));
+                defaultDecoder.add((String)encodedPackets[0]);
+                defaultDecoder.add((byte[]) encodedPackets[1]);
+                defaultDecoder.destroy();
+                assertThat(defaultDecoder.reconstructor.buffers.size(), is(0));
             }
         });
     }

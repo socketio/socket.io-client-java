@@ -9,7 +9,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class ParserTest {
 
-    private static Parser.Encoder encoder = new Parser.Encoder();
+    private static Parser.DefaultEncoder defaultEncoder = new Parser.DefaultEncoder();
 
     @Test
     public void encodeConnection() {

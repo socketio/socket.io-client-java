@@ -14,46 +14,46 @@ import static org.junit.Assert.assertThat;
 @RunWith(JUnit4.class)
 public class Helpers {
 
-    private static Parser.Encoder encoder = new Parser.Encoder();
+    private static Parser.DefaultEncoder defaultEncoder = new Parser.DefaultEncoder();
     private static Packet<String> errorPacket = new Packet<String>(Parser.ERROR, "parser error");
 
     public static void test(final Packet obj) {
-        encoder.encode(obj, new Parser.Encoder.Callback() {
+        defaultEncoder.encode(obj, new Encoder.Callback() {
             @Override
             public void call(Object[] encodedPackets) {
-                Parser.Decoder decoder = new Parser.Decoder();
-                decoder.on(Parser.Decoder.EVENT_DECODED, new Emitter.Listener() {
+                Parser.DefaultDecoder defaultDecoder = new Parser.DefaultDecoder();
+                defaultDecoder.on(Decoder.EVENT_DECODED, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         Packet packet = (Packet)args[0];
                         assertPacket(packet, obj);
                     }
                 });
-                decoder.add((String)encodedPackets[0]);
+                defaultDecoder.add((String)encodedPackets[0]);
             }
         });
     }
 
     public static void testDecodeError(final String errorMessage) {
-        Parser.Decoder decoder = new Parser.Decoder();
-        decoder.on(Parser.Decoder.EVENT_DECODED, new Emitter.Listener() {
+        Parser.DefaultDecoder defaultDecoder = new Parser.DefaultDecoder();
+        defaultDecoder.on(Decoder.EVENT_DECODED, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 Packet packet = (Packet)args[0];
                 assertPacket(errorPacket, packet);
             }
         });
-        decoder.add(errorMessage);
+        defaultDecoder.add(errorMessage);
     }
 
     @SuppressWarnings("unchecked")
     public static void testBin(final Packet obj) {
         final Object originalData = obj.data;
-        encoder.encode(obj, new Parser.Encoder.Callback() {
+        defaultEncoder.encode(obj, new Encoder.Callback() {
             @Override
             public void call(Object[] encodedPackets) {
-                Parser.Decoder decoder = new Parser.Decoder();
-                decoder.on(Parser.Decoder.EVENT_DECODED, new Emitter.Listener() {
+                Parser.DefaultDecoder defaultDecoder = new Parser.DefaultDecoder();
+                defaultDecoder.on(Decoder.EVENT_DECODED, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         Packet packet = (Packet)args[0];
@@ -65,9 +65,9 @@ public class Helpers {
 
                 for (Object packet : encodedPackets) {
                     if (packet instanceof String) {
-                        decoder.add((String)packet);
+                        defaultDecoder.add((String)packet);
                     } else if (packet instanceof byte[]) {
-                        decoder.add((byte[])packet);
+                        defaultDecoder.add((byte[])packet);
                     }
                 }
             }
