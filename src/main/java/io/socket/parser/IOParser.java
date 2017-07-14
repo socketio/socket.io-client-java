@@ -1,5 +1,6 @@
 package io.socket.parser;
 
+import io.socket.client.IO;
 import io.socket.hasbinary.HasBinary;
 import org.json.JSONException;
 import org.json.JSONTokener;
@@ -18,17 +19,7 @@ final public class IOParser implements Parser {
         return new Packet<String>(ERROR, "parser error");
     }
 
-    public IOParser() {}
-
-    @Override
-    public Parser.Encoder getEncoder () {
-        return new Encoder();
-    }
-
-    @Override
-    public Parser.Decoder getDecoder () {
-        return new Decoder();
-    }
+    private IOParser() {}
 
     final public static class Encoder implements Parser.Encoder {
 

@@ -149,10 +149,8 @@ public class Manager extends Emitter {
         this.uri = uri;
         this.encoding = false;
         this.packetBuffer = new ArrayList<Packet>();
-
-        Parser parser = opts.parser != null ? opts.parser : new IOParser();
-        this.encoder = parser.getEncoder();
-        this.decoder = parser.getDecoder();
+        this.encoder = opts.encoder != null ? opts.encoder : new IOParser.Encoder();
+        this.decoder = opts.decoder != null ? opts.decoder : new IOParser.Decoder();
     }
 
     private void emitAll(String event, Object... args) {
@@ -634,7 +632,8 @@ public class Manager extends Emitter {
         public long reconnectionDelay;
         public long reconnectionDelayMax;
         public double randomizationFactor;
-        public Parser parser;
+        public Parser.Encoder encoder;
+        public Parser.Decoder decoder;
 
         /**
          * Connection timeout (ms). Set -1 to disable.

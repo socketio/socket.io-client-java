@@ -63,10 +63,6 @@ public interface Parser {
         "BINARY_ACK"
     };
 
-    public Encoder getEncoder();
-
-    public Decoder getDecoder();
-
     public static interface Encoder {
 
         public void encode(Packet obj, Callback callback);
