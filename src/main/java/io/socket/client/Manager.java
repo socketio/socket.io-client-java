@@ -2,6 +2,7 @@ package io.socket.client;
 
 import io.socket.backo.Backoff;
 import io.socket.emitter.Emitter;
+import io.socket.parser.IOParser;
 import io.socket.parser.Packet;
 import io.socket.parser.Parser;
 import io.socket.thread.EventThread;
@@ -148,8 +149,10 @@ public class Manager extends Emitter {
         this.uri = uri;
         this.encoding = false;
         this.packetBuffer = new ArrayList<Packet>();
-        this.encoder = new Parser.Encoder();
-        this.decoder = new Parser.Decoder();
+
+        Parser parser = opts.parser != null ? opts.parser : new IOParser();
+        this.encoder = parser.getEncoder();
+        this.decoder = parser.getDecoder();
     }
 
     private void emitAll(String event, Object... args) {
@@ -385,12 +388,12 @@ public class Manager extends Emitter {
                 Manager.this.onclose((String)objects[0]);
             }
         }));
-        this.subs.add(On.on(this.decoder, Parser.Decoder.EVENT_DECODED, new Listener() {
+        this.decoder.onDecoded(new Parser.Decoder.Callback() {
             @Override
-            public void call(Object... objects) {
-                Manager.this.ondecoded((Packet) objects[0]);
+            public void call (Packet packet) {
+                Manager.this.ondecoded(packet);
             }
-        }));
+        });
     }
 
     private void onping() {
@@ -631,6 +634,7 @@ public class Manager extends Emitter {
         public long reconnectionDelay;
         public long reconnectionDelayMax;
         public double randomizationFactor;
+        public Parser parser;
 
         /**
          * Connection timeout (ms). Set -1 to disable.
