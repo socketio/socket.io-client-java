@@ -1,16 +1,5 @@
 package io.socket.parser;
 
-import io.socket.emitter.Emitter;
-import io.socket.hasbinary.HasBinary;
-import org.json.JSONException;
-import org.json.JSONTokener;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 public interface Parser {
 
     /**

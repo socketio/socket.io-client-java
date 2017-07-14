@@ -1,6 +1,5 @@
 package io.socket.parser;
 
-import io.socket.client.IO;
 import io.socket.hasbinary.HasBinary;
 import org.json.JSONException;
 import org.json.JSONTokener;
@@ -31,7 +30,9 @@ final public class IOParser implements Parser {
                 obj.type = obj.type == EVENT ? BINARY_EVENT : BINARY_ACK;
             }
 
-            logger.fine(String.format("encoding packet %s", obj));
+            if (logger.isLoggable(Level.FINE)) {
+                logger.fine(String.format("encoding packet %s", obj));
+            }
 
             if (BINARY_EVENT == obj.type || BINARY_ACK == obj.type) {
                 encodeAsBinary(obj, callback);
@@ -62,7 +63,9 @@ final public class IOParser implements Parser {
                 str.append(obj.data);
             }
 
-            logger.fine(String.format("encoded %s as %s", obj, str));
+            if (logger.isLoggable(Level.FINE)) {
+                logger.fine(String.format("encoded %s as %s", obj, str));
+            }
             return str.toString();
         }
 
@@ -182,7 +185,9 @@ final public class IOParser implements Parser {
                 }
             }
 
-            logger.fine(String.format("decoded %s as %s", str, p));
+            if (logger.isLoggable(Level.FINE)) {
+                logger.fine(String.format("decoded %s as %s", str, p));
+            }
             return p;
         }
 
