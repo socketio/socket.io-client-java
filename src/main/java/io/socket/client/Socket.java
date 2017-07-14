@@ -283,7 +283,9 @@ public class Socket extends Emitter {
     }
 
     private void onclose(String reason) {
-        logger.fine(String.format("close (%s)", reason));
+        if (logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("close (%s)", reason));
+        }
         this.connected = false;
         this.id = null;
         this.emit(EVENT_DISCONNECT, reason);
@@ -337,7 +339,9 @@ public class Socket extends Emitter {
 
     private void onevent(Packet<JSONArray> packet) {
         List<Object> args = new ArrayList<Object>(Arrays.asList(toArray(packet.data)));
-        logger.fine(String.format("emitting event %s", args));
+        if (logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("emitting event %s", args));
+        }
 
         if (packet.id >= 0) {
             logger.fine("attaching ack callback to event");
@@ -364,7 +368,9 @@ public class Socket extends Emitter {
                     public void run() {
                         if (sent[0]) return;
                         sent[0] = true;
-                        logger.fine(String.format("sending ack %s", args.length != 0 ? args : null));
+                        if (logger.isLoggable(Level.FINE)) {
+                            logger.fine(String.format("sending ack %s", args.length != 0 ? args : null));
+                        }
 
                         JSONArray jsonArgs = new JSONArray();
                         for (Object arg : args) {
@@ -385,10 +391,14 @@ public class Socket extends Emitter {
     private void onack(Packet<JSONArray> packet) {
         Ack fn = this.acks.remove(packet.id);
         if (fn != null) {
-            logger.fine(String.format("calling ack %s with %s", packet.id, packet.data));
+            if (logger.isLoggable(Level.FINE)) {
+                logger.fine(String.format("calling ack %s with %s", packet.id, packet.data));
+            }
             fn.call(toArray(packet.data));
         } else {
-            logger.fine(String.format("bad ack %s", packet.id));
+            if (logger.isLoggable(Level.FINE)) {
+                logger.fine(String.format("bad ack %s", packet.id));
+            }
         }
     }
 
@@ -414,7 +424,9 @@ public class Socket extends Emitter {
     }
 
     private void ondisconnect() {
-        logger.fine(String.format("server disconnect (%s)", this.nsp));
+        if (logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("server disconnect (%s)", this.nsp));
+        }
         this.destroy();
         this.onclose("io server disconnect");
     }
@@ -441,7 +453,9 @@ public class Socket extends Emitter {
             @Override
             public void run() {
                 if (Socket.this.connected) {
-                    logger.fine(String.format("performing disconnect (%s)", Socket.this.nsp));
+                    if (logger.isLoggable(Level.FINE)) {
+                        logger.fine(String.format("performing disconnect (%s)", Socket.this.nsp));
+                    }
                     Socket.this.packet(new Packet(Parser.DISCONNECT));
                 }
 

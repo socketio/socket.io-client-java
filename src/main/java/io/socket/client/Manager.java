@@ -252,10 +252,14 @@ public class Manager extends Emitter {
         EventThread.exec(new Runnable() {
             @Override
             public void run() {
-                logger.fine(String.format("readyState %s", Manager.this.readyState));
+                if (logger.isLoggable(Level.FINE)) {
+                    logger.fine(String.format("readyState %s", Manager.this.readyState));
+                }
                 if (Manager.this.readyState == ReadyState.OPEN || Manager.this.readyState == ReadyState.OPENING) return;
 
-                logger.fine(String.format("opening %s", Manager.this.uri));
+                if (logger.isLoggable(Level.FINE)) {
+                    logger.fine(String.format("opening %s", Manager.this.uri));
+                }
                 Manager.this.engine = new Engine(Manager.this.uri, Manager.this.opts);
                 final io.socket.engineio.client.Socket socket = Manager.this.engine;
                 final Manager self = Manager.this;
@@ -460,7 +464,9 @@ public class Manager extends Emitter {
     }
 
     /*package*/ void packet(Packet packet) {
-        logger.fine(String.format("writing packet %s", packet));
+        if (logger.isLoggable(Level.FINE)) {
+            logger.fine(String.format("writing packet %s", packet));
+        }
         final Manager self = this;
 
         if (packet.query != null && !packet.query.isEmpty() && packet.type == Parser.CONNECT) {

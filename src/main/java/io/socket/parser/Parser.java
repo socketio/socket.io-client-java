@@ -77,7 +77,9 @@ public class Parser {
         public Encoder() {}
 
         public void encode(Packet obj, Callback callback) {
-            logger.fine(String.format("encoding packet %s", obj));
+            if (logger.isLoggable(Level.FINE)) {
+                logger.fine(String.format("encoding packet %s", obj));
+            }
 
             if (BINARY_EVENT == obj.type || BINARY_ACK == obj.type) {
                 encodeAsBinary(obj, callback);
@@ -116,7 +118,9 @@ public class Parser {
                 str.append(obj.data);
             }
 
-            logger.fine(String.format("encoded %s as %s", obj, str));
+            if (logger.isLoggable(Level.FINE)) {
+                logger.fine(String.format("encoded %s as %s", obj, str));
+            }
             return str.toString();
         }
 
@@ -233,7 +237,9 @@ public class Parser {
                 }
             }
 
-            logger.fine(String.format("decoded %s as %s", str, p));
+            if (logger.isLoggable(Level.FINE)) {
+                logger.fine(String.format("decoded %s as %s", str, p));
+            }
             return p;
         }
 
