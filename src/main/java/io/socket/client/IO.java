@@ -3,16 +3,13 @@ package io.socket.client;
 
 import io.socket.parser.Parser;
 import okhttp3.Call;
-import okhttp3.OkHttpClient;
 import okhttp3.WebSocket;
 
-import java.util.logging.Level;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
