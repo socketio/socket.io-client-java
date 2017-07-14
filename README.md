@@ -21,7 +21,7 @@ Add the following dependency to your `pom.xml`.
   <dependency>
     <groupId>io.socket</groupId>
     <artifactId>socket.io-client</artifactId>
-    <version>0.9.0</version>
+    <version>1.0.0</version>
   </dependency>
 </dependencies>
 ```
@@ -30,11 +30,16 @@ Add the following dependency to your `pom.xml`.
 Add it as a gradle dependency for Android Studio, in `build.gradle`:
 
 ```groovy
-compile ('io.socket:socket.io-client:0.9.0') {
+compile ('io.socket:socket.io-client:1.0.0') {
   // excluding org.json which is provided by Android
   exclude group: 'org.json', module: 'json'
 }
 ```
+
+#### Socket.IO Server 1.x suppport
+
+The current version of socket.io-client-java doesn't support socket.io server 1.x.
+Please use socket.io-client-java 0.9.x for that instead.
 
 ## Usage
 Socket.IO-client Java has almost the same api and features with the original JS client. You use `IO#socket` to initialize `Socket`:

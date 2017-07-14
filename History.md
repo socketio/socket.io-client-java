@@ -1,4 +1,12 @@
 
+1.0.0 / 2017-07-14
+==================
+
+* compatible with socket.io 2.0.x
+* update engine.io-client
+* custom encoder/decoder support
+* fix socket id
+
 0.9.0 / 2017-07-11
 ==================
 
