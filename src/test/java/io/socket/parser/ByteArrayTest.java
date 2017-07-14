@@ -16,7 +16,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(JUnit4.class)
 public class ByteArrayTest {
 
-    private static Parser.Encoder encoder = new Parser.Encoder();
+    private static Parser.Encoder encoder = new IOParser.Encoder();
 
     @Test
     public void encodeByteArray() {
@@ -87,10 +87,10 @@ public class ByteArrayTest {
         encoder.encode(packet, new Parser.Encoder.Callback() {
             @Override
             public void call(final Object[] encodedPackets) {
-                final Parser.Decoder decoder = new Parser.Decoder();
-                decoder.on(Parser.Decoder.EVENT_DECODED, new Emitter.Listener() {
+                final IOParser.Decoder decoder = new IOParser.Decoder();
+                decoder.onDecoded(new Parser.Decoder.Callback() {
                     @Override
-                    public void call(Object... args) {
+                    public void call(Packet packet) {
                         throw new RuntimeException("received a packet when not all binary data was sent.");
                     }
                 });

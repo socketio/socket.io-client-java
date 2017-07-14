@@ -2,16 +2,24 @@ package io.socket.client;
 
 import io.socket.backo.Backoff;
 import io.socket.emitter.Emitter;
+import io.socket.parser.IOParser;
 import io.socket.parser.Packet;
 import io.socket.parser.Parser;
 import io.socket.thread.EventThread;
 import okhttp3.Call;
 import okhttp3.WebSocket;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -148,8 +156,8 @@ public class Manager extends Emitter {
         this.uri = uri;
         this.encoding = false;
         this.packetBuffer = new ArrayList<Packet>();
-        this.encoder = new Parser.Encoder();
-        this.decoder = new Parser.Decoder();
+        this.encoder = opts.encoder != null ? opts.encoder : new IOParser.Encoder();
+        this.decoder = opts.decoder != null ? opts.decoder : new IOParser.Decoder();
     }
 
     private void emitAll(String event, Object... args) {
@@ -163,9 +171,15 @@ public class Manager extends Emitter {
      * Update `socket.id` of all sockets
      */
     private void updateSocketIds() {
-        for (Socket socket : this.nsps.values()) {
-            socket.id = this.engine.id();
+        for (Map.Entry<String, Socket> entry : this.nsps.entrySet()) {
+            String nsp = entry.getKey();
+            Socket socket = entry.getValue();
+            socket.id = this.generateId(nsp);
         }
+    }
+
+    private String generateId(String nsp) {
+        return ("/".equals(nsp) ? "" : (nsp + "#")) + this.engine.id();
     }
 
     public boolean reconnection() {
@@ -383,12 +397,12 @@ public class Manager extends Emitter {
                 Manager.this.onclose((String)objects[0]);
             }
         }));
-        this.subs.add(On.on(this.decoder, Parser.Decoder.EVENT_DECODED, new Listener() {
+        this.decoder.onDecoded(new Parser.Decoder.Callback() {
             @Override
-            public void call(Object... objects) {
-                Manager.this.ondecoded((Packet) objects[0]);
+            public void call (Packet packet) {
+                Manager.this.ondecoded(packet);
             }
-        }));
+        });
     }
 
     private void onping() {
@@ -425,7 +439,7 @@ public class Manager extends Emitter {
      * @param opts options.
      * @return a socket instance for the namespace.
      */
-    public Socket socket(String nsp, Options opts) {
+    public Socket socket(final String nsp, Options opts) {
         Socket socket = this.nsps.get(nsp);
         if (socket == null) {
             socket = new Socket(this, nsp, opts);
@@ -444,7 +458,7 @@ public class Manager extends Emitter {
                 socket.on(Socket.EVENT_CONNECT, new Listener() {
                     @Override
                     public void call(Object... objects) {
-                        s.id = self.engine.id();
+                        s.id = self.generateId(nsp);
                     }
                 });
             }
@@ -506,6 +520,7 @@ public class Manager extends Emitter {
 
         On.Handle sub;
         while ((sub = this.subs.poll()) != null) sub.destroy();
+        this.decoder.onDecoded(null);
 
         this.packetBuffer.clear();
         this.encoding = false;
@@ -631,6 +646,8 @@ public class Manager extends Emitter {
         public long reconnectionDelay;
         public long reconnectionDelayMax;
         public double randomizationFactor;
+        public Parser.Encoder encoder;
+        public Parser.Decoder decoder;
 
         /**
          * Connection timeout (ms). Set -1 to disable.
