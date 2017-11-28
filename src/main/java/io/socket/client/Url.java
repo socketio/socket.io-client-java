@@ -12,6 +12,8 @@ public class Url {
     private static Pattern PATTERN_HTTPS = Pattern.compile("^(http|ws)s$");
 
     private Url() {}
+    
+    private String _host;
 
     public static URL parse(String uri) throws URISyntaxException {
         return parse(new URI(uri));
@@ -40,10 +42,15 @@ public class Url {
         String userInfo = uri.getRawUserInfo();
         String query = uri.getRawQuery();
         String fragment = uri.getRawFragment();
+        // this is because of unsupported uri.getHost() on some of Samsung Devices such as S4.
+        _host = uri.getHost();
+		if (_host == null) {
+			_host = extractHostFromAuthorityPart(uri.getRawAuthority());
+		}
         try {
             return new URL(protocol + "://"
                     + (userInfo != null ? userInfo + "@" : "")
-                    + uri.getHost()
+                    + _host
                     + (port != -1 ? ":" + port : "")
                     + path
                     + (query != null ? "?" + query : "")
@@ -67,7 +74,11 @@ public class Url {
                 port = 443;
             }
         }
-        return protocol + "://" + url.getHost() + ":" + port;
+        _host = uri.getHost();
+		if (_host == null) {
+			_host = extractHostFromAuthorityPart(uri.getRawAuthority());
+		}
+        return protocol + "://" + _host + ":" + port;
     }
 
 }
