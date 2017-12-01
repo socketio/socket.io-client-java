@@ -5,6 +5,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Url {
 
@@ -40,10 +42,16 @@ public class Url {
         String userInfo = uri.getRawUserInfo();
         String query = uri.getRawQuery();
         String fragment = uri.getRawFragment();
+        String _host;
+ // this is because of unsupported uri.getHost() on some of Samsung Devices such as S4.
+        _host = uri.getHost();
+ 		if (_host == null) {
+ 			_host = extractHostFromAuthorityPart(uri.getRawAuthority());
+ 		}
         try {
             return new URL(protocol + "://"
                     + (userInfo != null ? userInfo + "@" : "")
-                    + uri.getHost()
+                    + _host
                     + (port != -1 ? ":" + port : "")
                     + path
                     + (query != null ? "?" + query : "")
@@ -59,7 +67,12 @@ public class Url {
 
     public static String extractId(URL url) {
         String protocol = url.getProtocol();
+        String _host;
         int port = url.getPort();
+        _host = url.getHost();
+ 		if (_host == null) {
+ 			_host = extractHostFromAuthorityPart(url.getRawAuthority());
+ 		}
         if (port == -1) {
             if (PATTERN_HTTP.matcher(protocol).matches()) {
                 port = 80;
@@ -67,7 +80,30 @@ public class Url {
                 port = 443;
             }
         }
-        return protocol + "://" + url.getHost() + ":" + port;
+        return protocol + "://" + _host + ":" + port;
+    }
+    
+    static String extractHostFromAuthorityPart(String authority)
+    {
+        // If the authority part is not available.
+        if (authority == null)
+        {
+            // Hmm... This should not happen.
+            return null;
+        }
+
+        // Parse the authority part. The expected format is "[id:password@]host[:port]".
+        Matcher matcher = Pattern.compile("^(.*@)?([^:]+)(:\\d+)?$").matcher(authority);
+
+        // If the authority part does not match the expected format.
+        if (matcher == null || matcher.matches() == false)
+        {
+            // Hmm... This should not happen.
+            return null;
+        }
+
+        // Return the host part.
+        return matcher.group(2);
     }
 
 }
