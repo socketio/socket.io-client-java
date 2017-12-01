@@ -40,10 +40,16 @@ public class Url {
         String userInfo = uri.getRawUserInfo();
         String query = uri.getRawQuery();
         String fragment = uri.getRawFragment();
+        String _host;
+ // this is because of unsupported uri.getHost() on some of Samsung Devices such as S4.
+        _host = uri.getHost();
+ 		if (_host == null) {
+ 			_host = extractHostFromAuthorityPart(uri.getRawAuthority());
+ 		}
         try {
             return new URL(protocol + "://"
                     + (userInfo != null ? userInfo + "@" : "")
-                    + uri.getHost()
+                    + _host
                     + (port != -1 ? ":" + port : "")
                     + path
                     + (query != null ? "?" + query : "")
@@ -59,7 +65,12 @@ public class Url {
 
     public static String extractId(URL url) {
         String protocol = url.getProtocol();
+        String _host;
         int port = url.getPort();
+        _host = url.getHost();
+ 		if (_host == null) {
+ 			_host = extractHostFromAuthorityPart(url.getRawAuthority());
+ 		}
         if (port == -1) {
             if (PATTERN_HTTP.matcher(protocol).matches()) {
                 port = 80;
@@ -67,7 +78,7 @@ public class Url {
                 port = 443;
             }
         }
-        return protocol + "://" + url.getHost() + ":" + port;
+        return protocol + "://" + _host + ":" + port;
     }
 
 }
