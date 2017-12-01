@@ -5,11 +5,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class Url {
 
     private static Pattern PATTERN_HTTP = Pattern.compile("^http|ws$");
     private static Pattern PATTERN_HTTPS = Pattern.compile("^(http|ws)s$");
+    /**
+     * Expected format: "[id:password@]host[:port]"
+     */
+    private static Pattern PATTERN_AUTHORITY = Pattern.compile("^(.*@)?([^:]+)(:\\d+)?$");
 
     private Url() {}
 
@@ -40,10 +45,15 @@ public class Url {
         String userInfo = uri.getRawUserInfo();
         String query = uri.getRawQuery();
         String fragment = uri.getRawFragment();
+        String _host = uri.getHost();
+        if (_host == null) {
+            // might happen on some of Samsung Devices such as S4.
+            _host = extractHostFromAuthorityPart(uri.getRawAuthority());
+        }
         try {
             return new URL(protocol + "://"
                     + (userInfo != null ? userInfo + "@" : "")
-                    + uri.getHost()
+                    + _host
                     + (port != -1 ? ":" + port : "")
                     + path
                     + (query != null ? "?" + query : "")
@@ -68,6 +78,23 @@ public class Url {
             }
         }
         return protocol + "://" + url.getHost() + ":" + port;
+    }
+
+    private static String extractHostFromAuthorityPart(String authority)
+    {
+        if (authority == null) {
+            throw new RuntimeException("unable to parse the host from the authority");
+        }
+
+        Matcher matcher = PATTERN_AUTHORITY.matcher(authority);
+
+        // If the authority part does not match the expected format.
+        if (!matcher.matches()) {
+            throw new RuntimeException("unable to parse the host from the authority");
+        }
+
+        // Return the host part.
+        return matcher.group(2);
     }
 
 }
