@@ -42,7 +42,7 @@ public class Socket extends Emitter {
      *
      * <p>Parameters:</p>
      * <ul>
-     *   <li>(Exception) error data.</li>
+     * <li>(Exception) error data.</li>
      * </ul>
      */
     public static final String EVENT_ERROR = "error";
@@ -174,7 +174,7 @@ public class Socket extends Emitter {
      * Emits an event. When you pass {@link Ack} at the last argument, then the acknowledge is done.
      *
      * @param event an event name.
-     * @param args data to send.
+     * @param args  data to send.
      * @return a reference to this object.
      */
     @Override
@@ -212,8 +212,8 @@ public class Socket extends Emitter {
      * Emits an event with an acknowledge.
      *
      * @param event an event name
-     * @param args data to send.
-     * @param ack the acknowledgement to be called
+     * @param args  data to send.
+     * @param ack   the acknowledgement to be called
      * @return a reference to this object.
      */
     public Emitter emit(final String event, final Object[] args, final Ack ack) {
@@ -283,13 +283,7 @@ public class Socket extends Emitter {
                 this.onconnect();
                 break;
 
-            case Parser.EVENT: {
-                @SuppressWarnings("unchecked")
-                Packet<JSONArray> p = (Packet<JSONArray>) packet;
-                this.onevent(p);
-                break;
-            }
-
+            case Parser.EVENT:
             case Parser.BINARY_EVENT: {
                 @SuppressWarnings("unchecked")
                 Packet<JSONArray> p = (Packet<JSONArray>) packet;
@@ -297,13 +291,7 @@ public class Socket extends Emitter {
                 break;
             }
 
-            case Parser.ACK: {
-                @SuppressWarnings("unchecked")
-                Packet<JSONArray> p = (Packet<JSONArray>) packet;
-                this.onack(p);
-                break;
-            }
-
+            case Parser.ACK:
             case Parser.BINARY_ACK: {
                 @SuppressWarnings("unchecked")
                 Packet<JSONArray> p = (Packet<JSONArray>) packet;
@@ -343,7 +331,7 @@ public class Socket extends Emitter {
 
     private Ack ack(final int id) {
         final Socket self = this;
-        final boolean[] sent = new boolean[] {false};
+        final boolean[] sent = new boolean[]{false};
         return new Ack() {
             @Override
             public void call(final Object... args) {
@@ -393,7 +381,7 @@ public class Socket extends Emitter {
     private void emitBuffered() {
         List<Object> data;
         while ((data = this.receiveBuffer.poll()) != null) {
-            String event = (String)data.get(0);
+            String event = (String) data.get(0);
             super.emit(event, data.toArray());
         }
         this.receiveBuffer.clear();
@@ -470,7 +458,7 @@ public class Socket extends Emitter {
 
     /**
      * A property on the socket instance that is equal to the underlying engine.io socket id.
-     *
+     * <p>
      * The value is present once the socket has connected, is removed when the socket disconnects and is updated if the socket reconnects.
      *
      * @return a socket id
