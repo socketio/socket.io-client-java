@@ -10,14 +10,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(JUnit4.class)
 public class ServerConnectionTest extends Connection {
@@ -128,6 +127,114 @@ public class ServerConnectionTest extends Connection {
         assertThat(args[0].toString(), is(obj.toString()));
         assertThat((String)args[1], is("bar"));
         socket.disconnect();
+    }
+
+    /**
+     * TestCase:
+     * -> Server has not implemented the `ackNotImplemented`
+     * -> server will never answer to client
+     * -> client decides that the callback for him is useful if received in 2 seconds
+     * -> client will receive NoAck as response after 2 seconds, because server did not respond
+     */
+    @Test(timeout = TIMEOUT)
+    public void noack() throws Exception {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+
+        final JSONObject obj = new JSONObject();
+        obj.put("foo", 1);
+
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+
+                socket.emit("ackNotImplemented", new Object[]{obj, "bar"}, new Ack(2000) {
+                    @Override
+                    public void call(Object... args) {
+                        values.offer(args);
+                    }
+                });
+
+            }
+        });
+
+        socket.connect();
+
+        Object[] args = (Object[]) values.take();
+        assertTrue(args[0] instanceof NoAck);
+        socket.disconnect();
+    }
+
+    /**
+     * TestCase:
+     * -> Server has not implemented the `ackNotImplemented`
+     * -> server will never answer to client
+     * -> client decides that the callback for him is useful if received in 1 second
+     * -> Client got disconnected, because of a network issue
+     * -> keeps sending emits, which will be put in the buffer to be sent after the reconnection
+     * -> onReconnection he expects the results of all his emits otherwise a NoAck after 1 second
+     * <p>
+     * NOTE:
+     * If we don't have the ack timeout, this test and all other emit-tests which expect a callback will fail for TIMEOUT
+     */
+    @Test(timeout = TIMEOUT)
+    public void noackWithReconnect() throws Exception {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+
+        // disconnect after 2 seconds
+        simulateReconnection(2000);
+
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+
+                // make 4 emits delayed one from the other, and each will have a timeout of 1 second
+                for (int i = 0; i < 4; i++) {
+
+                    final Timer emitTimer = new Timer();
+                    final int pos = i;
+                    emitTimer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            socket.emit("ackNotImplemented", "emit number " + pos, new Ack(1000) {
+                                @Override
+                                public void call(Object... args) {
+                                    values.offer(args);
+                                }
+                            });
+                        }
+                    }, i * 1000);
+
+                }
+            }
+
+        });
+
+        socket.connect();
+        // make sure we have received 4 NoAcks
+        assertTrue(((Object[]) values.take())[0] instanceof NoAck);
+        assertTrue(((Object[]) values.take())[0] instanceof NoAck);
+        assertTrue(((Object[]) values.take())[0] instanceof NoAck);
+        assertTrue(((Object[]) values.take())[0] instanceof NoAck);
+
+        socket.disconnect();
+    }
+
+    /**
+     * Simulate the socket reconnection
+     *
+     * @param after milliseconds, when to start the reconnection
+     */
+    private void simulateReconnection(long after) {
+        final Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // simulate reconnect...
+                socket.io().engine.close();
+            }
+        }, after);
     }
 
     @Test(timeout = TIMEOUT)

@@ -240,6 +240,8 @@ public class Socket extends Emitter {
                 if (Socket.this.connected) {
                     Socket.this.packet(packet);
                 } else {
+                    if (ack != null)
+                        ack.cancelTimer();
                     Socket.this.sendBuffer.add(packet);
                 }
             }
@@ -364,7 +366,7 @@ public class Socket extends Emitter {
             if (logger.isLoggable(Level.FINE)) {
                 logger.fine(String.format("calling ack %s with %s", packet.id, packet.data));
             }
-            fn.call(toArray(packet.data));
+            fn.callback(toArray(packet.data));
         } else {
             if (logger.isLoggable(Level.FINE)) {
                 logger.fine(String.format("bad ack %s", packet.id));
@@ -388,6 +390,9 @@ public class Socket extends Emitter {
 
         Packet<JSONArray> packet;
         while ((packet = this.sendBuffer.poll()) != null) {
+            Ack ack = acks.get(packet.id);
+            if (ack != null)
+                ack.resetTimer();
             this.packet(packet);
         }
         this.sendBuffer.clear();
@@ -408,6 +413,10 @@ public class Socket extends Emitter {
                 sub.destroy();
             }
             this.subs = null;
+        }
+
+        for(Ack ack : acks.values()){
+            ack.cancelTimer();
         }
 
         this.io.destroy(this);
