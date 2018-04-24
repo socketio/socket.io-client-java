@@ -148,7 +148,7 @@ public class ServerConnectionTest extends Connection {
             @Override
             public void call(Object... objects) {
 
-                socket.emit("ackNotImplemented", new Object[]{obj, "bar"}, new Ack(2000) {
+                socket.emit("ackNotImplemented", new Object[]{obj, "bar"}, new AckWithTimeOut(2000) {
                     @Override
                     public void call(Object... args) {
                         values.offer(args);
@@ -197,7 +197,7 @@ public class ServerConnectionTest extends Connection {
                     emitTimer.schedule(new TimerTask() {
                         @Override
                         public void run() {
-                            socket.emit("ackNotImplemented", "emit number " + pos, new Ack(1000) {
+                            socket.emit("ackNotImplemented", "emit number " + pos, new AckWithTimeOut(1000) {
                                 @Override
                                 public void call(Object... args) {
                                     values.offer(args);
