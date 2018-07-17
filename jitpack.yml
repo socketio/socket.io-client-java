@@ -1,0 +1,7 @@
+jdk:
+  - openjdk7
+before_install:
+  - sudo npm install npm -g
+  - npm config set strict-ssl false
+install:
+  - mvn clean install -DskipTests
