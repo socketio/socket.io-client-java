@@ -376,7 +376,10 @@ public class Socket extends Emitter {
             if (logger.isLoggable(Level.FINE)) {
                 logger.fine(String.format("calling ack %s with %s", packet.id, packet.data));
             }
-            fn.call(toArray(packet.data));
+            if (fn instanceof AckWithTimeOut)
+                ((AckWithTimeOut) fn).callback(toArray(packet.data));
+            else
+                fn.call(toArray(packet.data));
         } else {
             if (logger.isLoggable(Level.FINE)) {
                 logger.fine(String.format("bad ack %s", packet.id));
@@ -400,9 +403,20 @@ public class Socket extends Emitter {
 
         Packet<JSONArray> packet;
         while ((packet = this.sendBuffer.poll()) != null) {
-            this.packet(packet);
+            if (!isTimeOuted(packet)) {
+                this.packet(packet);
+            }
         }
         this.sendBuffer.clear();
+    }
+
+    private boolean isTimeOuted(Packet<JSONArray> packet) {
+        if (acks.get(packet.id) != null && acks.get(packet.id) instanceof AckWithTimeOut) {
+            AckWithTimeOut timeOutAck = (AckWithTimeOut) acks.get(packet.id);
+            return timeOutAck.isTimeOuted();
+        } else {
+            return false;
+        }
     }
 
     private void ondisconnect() {
@@ -421,7 +435,10 @@ public class Socket extends Emitter {
             }
             this.subs = null;
         }
-
+        for (Ack ack : acks.values()) {
+            if (ack instanceof AckWithTimeOut)
+                ((AckWithTimeOut) ack).cancelTimer();
+        }
         this.io.destroy(this);
     }
 
