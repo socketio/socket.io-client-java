@@ -3,5 +3,7 @@ jdk:
 before_install:
   - sudo npm install npm -g
   - npm config set strict-ssl false
+  - gpg --full-generate-key
+  - gpg --list-secret-keys --keyid-format LONG
 install:
   - mvn clean install -DskipTests
