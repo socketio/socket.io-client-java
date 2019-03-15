@@ -66,7 +66,7 @@ socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
 socket.connect();
 ```
 
-This Library uses [org.json](http://www.json.org/java/) to parse and compose JSON strings:
+This Library uses [org.json](https://github.com/stleary/JSON-java) to parse and compose JSON strings:
 
 ```java
 // Sending an object
