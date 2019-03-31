@@ -136,7 +136,7 @@ public class Socket extends Emitter {
         EventThread.exec(new Runnable() {
             @Override
             public void run() {
-                if (Socket.this.connected) return;
+                if (Socket.this.connected || Socket.this.io.isReconnecting()) return;
 
                 Socket.this.subEvents();
                 Socket.this.io.open(); // ensure open
