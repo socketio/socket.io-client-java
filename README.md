@@ -43,7 +43,11 @@ Please use socket.io-client-java 0.9.x for that instead.
 Socket.IO-client Java has almost the same api and features with the original JS client. You use `IO#socket` to initialize `Socket`:
 
 ```java
-socket = IO.socket("http://localhost");
+import io.socket.client.IO;
+import io.socket.client.Socket;
+...
+
+Socket socket = IO.socket("http://localhost");
 socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
 
   @Override
