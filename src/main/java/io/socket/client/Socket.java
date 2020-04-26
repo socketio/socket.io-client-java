@@ -1,6 +1,7 @@
 package io.socket.client;
 
 import io.socket.emitter.Emitter;
+import io.socket.engineio.client.Transport;
 import io.socket.parser.Packet;
 import io.socket.parser.Parser;
 import io.socket.thread.EventThread;
@@ -94,6 +95,7 @@ public class Socket extends Emitter {
     private Queue<On.Handle> subs;
     private final Queue<List<Object>> receiveBuffer = new LinkedList<List<Object>>();
     private final Queue<Packet<JSONArray>> sendBuffer = new LinkedList<Packet<JSONArray>>();
+    private Map<String, String> reqHeaders;
 
     public Socket(Manager io, String nsp, Manager.Options opts) {
         this.io = io;
@@ -124,6 +126,25 @@ public class Socket extends Emitter {
                 @Override
                 public void call(Object... args) {
                     Socket.this.onclose(args.length > 0 ? (String) args[0] : null);
+                }
+            }));
+            add(On.on(io, Manager.EVENT_TRANSPORT, new Listener() {
+                @Override
+                public void call(Object... args) {
+                    Transport transport = (Transport) args[0];
+
+                    transport.on(Transport.EVENT_REQUEST_HEADERS, new Emitter.Listener() {
+                        @Override
+                        public void call(Object... args) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, List<String>> headers = (Map<String, List<String>>) args[0];
+                            // modify request headers
+                            if (reqHeaders != null)
+                                for (Map.Entry<String, String> header : reqHeaders.entrySet()) {
+                                    headers.put(header.getKey(), Arrays.asList(header.getValue()));
+                                }
+                        }
+                    });
                 }
             }));
         }};
@@ -466,6 +487,18 @@ public class Socket extends Emitter {
 
     public boolean connected() {
         return this.connected;
+    }
+
+    /**
+     * Add header to socket pocket
+     * @param key Name of header
+     * @param value Value of header
+     */
+    public void addHeader(String key, String value) {
+        if (reqHeaders == null)
+            reqHeaders = new HashMap<>();
+
+        reqHeaders.put(key, value);
     }
 
     /**
