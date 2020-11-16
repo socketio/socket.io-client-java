@@ -39,6 +39,11 @@ compile ('io.socket:socket.io-client:1.0.0') {
 The current version of socket.io-client-java doesn't support socket.io server 1.x.
 Please use socket.io-client-java 0.9.x for that instead.
 
+#### Socket.IO Server 3.x not suppported
+
+The current version of socket.io-client-java doesn't support socket.io server 3.x.
+Please use the lastest version of socket.io 2.x: [socket.io 2.3.0](https://www.npmjs.com/package/socket.io/v/2.3.0)
+
 ## Usage
 Socket.IO-client Java has almost the same api and features with the original JS client. You use `IO#socket` to initialize `Socket`:
 
