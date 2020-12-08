@@ -1,7 +1,8 @@
 # Socket.IO-client Java
 [![Build Status](https://travis-ci.org/socketio/socket.io-client-java.png?branch=master)](https://travis-ci.org/socketio/socket.io-client-java)
 
-This is the Socket.IO v1.x Client Library for Java, which is simply ported from the [JavaScript client](https://github.com/socketio/socket.io-client). 
+This is the Socket.IO v1.x and v2.x Client Library for Java, which is simply ported from the [JavaScript client](https://github.com/socketio/socket.io-client).
+
 **Does not yet support Socket:IO v3.x, use v2.x instead!**
 
 See also:
@@ -39,6 +40,11 @@ compile ('io.socket:socket.io-client:1.0.0') {
 
 The current version of socket.io-client-java doesn't support socket.io server 1.x.
 Please use socket.io-client-java 0.9.x for that instead.
+
+#### Socket.IO Server 3.x not suppported
+
+The current version of socket.io-client-java doesn't support socket.io server 3.x.
+Please use the lastest version of socket.io 2.x: [socket.io 2.3.0](https://www.npmjs.com/package/socket.io/v/2.3.0)
 
 ## Usage
 Socket.IO-client Java has almost the same api and features with the original JS client. You use `IO#socket` to initialize `Socket`:
@@ -188,4 +194,3 @@ This library supports all of the features the JS client does, including events, 
 ## License
 
 MIT
-
