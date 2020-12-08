@@ -3,6 +3,8 @@
 
 This is the Socket.IO v1.x and v2.x Client Library for Java, which is simply ported from the [JavaScript client](https://github.com/socketio/socket.io-client).
 
+**Does not yet support Socket:IO v3.x, use v2.x instead!**
+
 See also:
 
 - [Android chat demo](https://github.com/nkzawa/socket.io-android-chat)
