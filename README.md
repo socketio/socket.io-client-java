@@ -11,8 +11,26 @@ See also:
 - [Android chat demo](https://github.com/nkzawa/socket.io-android-chat)
 - [engine.io-client-java](https://github.com/socketio/engine.io-client-java)
 
+## Table of content
+
+- [Compatibility](#compatibility)
+- [Installation](#installation)
+  - [Maven](#maven)
+  - [Gradle](#gradle)
+- [Usage](#usage)
+- [Features](#features)
+- [License](#license)
+
+## Compatibility
+
+| Client version | Socket.IO server |
+| -------------- | ---------------- |
+| 0.9.x  | 1.x |
+| 1.x    | 2.x |
+| WIP    | 3.x |
+
 ## Installation
-The latest artifact is available on Maven Central. You'll also need [dependencies](http://socketio.github.io/socket.io-client-java/dependencies.html) to install.
+The latest artifact is available on Maven Central.
 
 ### Maven
 Add the following dependency to your `pom.xml`.
@@ -22,7 +40,7 @@ Add the following dependency to your `pom.xml`.
   <dependency>
     <groupId>io.socket</groupId>
     <artifactId>socket.io-client</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1/version>
   </dependency>
 </dependencies>
 ```
@@ -31,21 +49,11 @@ Add the following dependency to your `pom.xml`.
 Add it as a gradle dependency for Android Studio, in `build.gradle`:
 
 ```groovy
-compile ('io.socket:socket.io-client:1.0.0') {
+compile ('io.socket:socket.io-client:1.0.1') {
   // excluding org.json which is provided by Android
   exclude group: 'org.json', module: 'json'
 }
 ```
-
-#### Socket.IO Server 1.x suppport
-
-The current version of socket.io-client-java doesn't support socket.io server 1.x.
-Please use socket.io-client-java 0.9.x for that instead.
-
-#### Socket.IO Server 3.x not suppported
-
-The current version of socket.io-client-java doesn't support socket.io server 3.x.
-Please use the lastest version of socket.io 2.x: [socket.io 2.3.0](https://www.npmjs.com/package/socket.io/v/2.3.0)
 
 ## Usage
 Socket.IO-client Java has almost the same api and features with the original JS client. You use `IO#socket` to initialize `Socket`:

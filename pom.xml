@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.socket</groupId>
   <artifactId>socket.io-client</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.0.1</version>
   <packaging>jar</packaging>
   <name>socket.io-client</name>
   <description>Socket.IO Client Library for Java</description>
@@ -30,7 +30,7 @@
     <url>https://github.com/socketio/socket.io-client-java</url>
     <connection>scm:git:https://github.com/socketio/socket.io-client-java.git</connection>
     <developerConnection>scm:git:https://github.com/socketio/socket.io-client-java.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>socket.io-client-1.0.1</tag>
   </scm>
 
   <developers>
