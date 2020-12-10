@@ -16,7 +16,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertThat;
 
 @RunWith(JUnit4.class)
@@ -144,7 +144,7 @@ public class SocketTest extends Connection {
 
         @SuppressWarnings("unchecked")
         long ms = (long)values.take();
-        assertThat(ms, greaterThan((long)0));
+        assertThat(ms, greaterThanOrEqualTo(0L));
 
         socket.disconnect();
     }
