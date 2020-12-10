@@ -191,6 +191,10 @@ public class Manager extends Emitter {
         return this;
     }
 
+    public boolean isReconnecting() {
+        return reconnecting;
+    }
+
     public int reconnectionAttempts() {
         return this._reconnectionAttempts;
     }
