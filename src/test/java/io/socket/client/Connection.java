@@ -104,6 +104,7 @@ public abstract class Connection {
     IO.Options createOptions() {
         IO.Options opts = new IO.Options();
         opts.forceNew = true;
+        opts.reconnection = true;
         return opts;
     }
 
