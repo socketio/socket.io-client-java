@@ -18,8 +18,12 @@ var port = process.env.PORT || 3000;
 var nsp = process.argv[2] || '/';
 var slice = Array.prototype.slice;
 
-io.of('/foo').on('connection', function() {
-  // register namespace
+const fooNsp = io.of('/foo');
+
+fooNsp.on('connection', (socket) => {
+  socket.on('room', (...args) => {
+    fooNsp.to(socket.id).emit.apply(fooNsp, ['roomBack'].concat(args));
+  });
 });
 
 io.of('/timeout_socket').on('connection', function() {
@@ -84,9 +88,8 @@ io.of(nsp).on('connection', function(socket) {
     socket.broadcast.emit.apply(socket, ['broadcastBack'].concat(args));
   });
 
-  socket.on('room', function() {
-    var args = slice.call(arguments);
-    io.to(socket.id).emit.apply(socket, ['roomBack'].concat(args));
+  socket.on('room', (...args) => {
+    io.to(socket.id).emit.apply(io.sockets, ['roomBack'].concat(args));
   });
 
   socket.on('requestDisconnect', function() {
