@@ -1,5 +1,6 @@
 # Socket.IO-client Java
-[![Build Status](https://travis-ci.org/socketio/socket.io-client-java.png?branch=master)](https://travis-ci.org/socketio/socket.io-client-java)
+
+[![Build Status](https://github.com/socketio/socket.io-client-java/workflows/CI/badge.svg)](https://github.com/socketio/socket.io-client-java/actions)
 
 This is the Socket.IO v1.x and v2.x Client Library for Java, which is simply ported from the [JavaScript client](https://github.com/socketio/socket.io-client).
 
