@@ -1,4 +1,13 @@
 
+2.0.0 / 2020-12-15
+==================
+
+### Features
+
+* add options builder ([#304](https://github.com/socketio/socket.io-client-java/issues/304)) ([49068d3](https://github.com/socketio/socket.io-client-java/commit/49068d3cc504c9b83e29a8d5cb4350360c6ef8ea))
+* add support for Socket.IO v3 ([79cb27f](https://github.com/socketio/socket.io-client-java/commit/79cb27fc979ecf1eec9dc2dd4a72c8081149d1e2))
+
+
 1.0.1 / 2020-12-10
 ==================
 
