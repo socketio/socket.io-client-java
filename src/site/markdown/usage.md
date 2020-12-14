@@ -1,60 +1,3 @@
-# Socket.IO-client Java
-
-[![Build Status](https://github.com/socketio/socket.io-client-java/workflows/CI/badge.svg)](https://github.com/socketio/socket.io-client-java/actions)
-
-This is the Socket.IO v1.x and v2.x Client Library for Java, which is simply ported from the [JavaScript client](https://github.com/socketio/socket.io-client).
-
-**Does not yet support Socket:IO v3.x, use v2.x instead!**
-
-See also:
-
-- [Android chat demo](https://github.com/nkzawa/socket.io-android-chat)
-- [engine.io-client-java](https://github.com/socketio/engine.io-client-java)
-
-## Table of content
-
-- [Compatibility](#compatibility)
-- [Installation](#installation)
-  - [Maven](#maven)
-  - [Gradle](#gradle)
-- [Usage](#usage)
-- [Features](#features)
-- [License](#license)
-
-## Compatibility
-
-| Client version | Socket.IO server |
-| -------------- | ---------------- |
-| 0.9.x  | 1.x |
-| 1.x    | 2.x |
-| WIP    | 3.x |
-
-## Installation
-The latest artifact is available on Maven Central.
-
-### Maven
-Add the following dependency to your `pom.xml`.
-
-```xml
-<dependencies>
-  <dependency>
-    <groupId>io.socket</groupId>
-    <artifactId>socket.io-client</artifactId>
-    <version>1.0.1</version>
-  </dependency>
-</dependencies>
-```
-
-### Gradle
-Add it as a gradle dependency for Android Studio, in `build.gradle`:
-
-```groovy
-compile ('io.socket:socket.io-client:1.0.1') {
-  // excluding org.json which is provided by Android
-  exclude group: 'org.json', module: 'json'
-}
-```
-
 ## Usage
 Socket.IO-client Java has almost the same api and features with the original JS client. You use `IO#socket` to initialize `Socket`:
 
@@ -203,7 +146,3 @@ socket.io().on(Manager.EVENT_TRANSPORT, new Emitter.Listener() {
 
 ## Features
 This library supports all of the features the JS client does, including events, options and upgrading transport. Android is fully supported.
-
-## License
-
-MIT
