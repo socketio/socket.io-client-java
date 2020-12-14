@@ -42,6 +42,12 @@ io.of('/abc').on('connection', function(socket) {
   socket.emit('handshake', socket.handshake);
 });
 
+io.of("/no").use((socket, next) => {
+  const err = new Error("auth failed");
+  err.data = { a: "b", c: 3 };
+  next(err);
+});
+
 io.of(nsp).on('connection', function(socket) {
   socket.send('hello client');
 
@@ -88,8 +94,8 @@ io.of(nsp).on('connection', function(socket) {
     socket.broadcast.emit.apply(socket, ['broadcastBack'].concat(args));
   });
 
-  socket.on('room', (...args) => {
-    io.to(socket.id).emit.apply(io.sockets, ['roomBack'].concat(args));
+  socket.on('room', (arg) => {
+    io.to(socket.id).emit("roomBack", arg);
   });
 
   socket.on('requestDisconnect', function() {

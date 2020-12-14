@@ -1,6 +1,5 @@
 package io.socket.parser;
 
-import io.socket.emitter.Emitter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -10,12 +9,12 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JUnit4.class)
 public class Helpers {
 
     private static Parser.Encoder encoder = new IOParser.Encoder();
-    private static Packet<String> errorPacket = new Packet<String>(Parser.ERROR, "parser error");
 
     public static void test(final Packet obj) {
         encoder.encode(obj, new Parser.Encoder.Callback() {
@@ -35,13 +34,10 @@ public class Helpers {
 
     public static void testDecodeError(final String errorMessage) {
         Parser.Decoder decoder = new IOParser.Decoder();
-        decoder.onDecoded(new IOParser.Decoder.Callback() {
-            @Override
-            public void call(Packet packet) {
-                assertPacket(errorPacket, packet);
-            }
-        });
-        decoder.add(errorMessage);
+        try {
+            decoder.add(errorMessage);
+            fail();
+        } catch (DecodingException e) {}
     }
 
     @SuppressWarnings("unchecked")

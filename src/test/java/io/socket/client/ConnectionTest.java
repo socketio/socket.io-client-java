@@ -357,7 +357,7 @@ public class ConnectionTest extends Connection {
         }).once(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                socket.on(Socket.EVENT_RECONNECT, new Emitter.Listener() {
+                socket.io().on(Manager.EVENT_RECONNECT, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         socket.disconnect();
@@ -387,7 +387,7 @@ public class ConnectionTest extends Connection {
         opts.reconnectionDelay = 10;
         final Manager manager = new Manager(new URI(uri()), opts);
         socket = manager.socket("/timeout");
-        socket.once(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
+        manager.once(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 final int[] reconnects = new int[] {0};
@@ -431,13 +431,13 @@ public class ConnectionTest extends Connection {
         final long[] startTime = new long[] {0};
         final long[] prevDelay = new long[] {0};
 
-        socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+        manager.on(Manager.EVENT_ERROR, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 startTime[0] = new Date().getTime();
             }
         });
-        socket.on(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+        manager.on(Manager.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 reconnects[0]++;
@@ -449,7 +449,7 @@ public class ConnectionTest extends Connection {
                 prevDelay[0] = delay;
             }
         });
-        socket.on(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
+        manager.on(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 values.offer(true);
@@ -465,37 +465,16 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void reconnectEventFireInSocket() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
-        socket = client();
-        socket.on(Socket.EVENT_RECONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... objects) {
-                values.offer("done");
-            }
-        });
-        socket.open();
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                socket.io().engine.close();
-            }
-        }, 500);
-        values.take();
-        socket.close();
-    }
-
-    @Test(timeout = TIMEOUT)
     public void notReconnectWhenForceClosed() throws URISyntaxException, InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
         IO.Options opts = createOptions();
         opts.timeout = 0;
         opts.reconnectionDelay = 10;
         socket = IO.socket(uri() + "/invalid", opts);
-        socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+        socket.io().on(Manager.EVENT_ERROR, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                socket.on(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+                socket.io().on(Manager.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         values.offer(false);
@@ -521,10 +500,10 @@ public class ConnectionTest extends Connection {
         opts.timeout = 0;
         opts.reconnectionDelay = 10;
         socket = IO.socket(uri() + "/invalid", opts);
-        socket.once(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+        socket.io().once(Manager.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                socket.on(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+                socket.io().on(Manager.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         values.offer(false);
@@ -552,10 +531,10 @@ public class ConnectionTest extends Connection {
         opts.timeout = 0;
         opts.reconnectionDelay = 10;
         socket = client("/invalid", opts);
-        socket.once(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+        socket.io().once(Manager.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                socket.once(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+                socket.io().once(Manager.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         values.offer("done");
@@ -722,7 +701,7 @@ public class ConnectionTest extends Connection {
             }
         };
         manager.on(Manager.EVENT_RECONNECT_ATTEMPT, cb);
-        manager.on(Manager.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+        manager.on(Manager.EVENT_ERROR, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
                 Timer timer = new Timer();
@@ -763,8 +742,8 @@ public class ConnectionTest extends Connection {
             }
         };
 
-        socket.on(Socket.EVENT_RECONNECT_ATTEMPT, reconnectCb);
-        socket.on(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
+        manager.on(Manager.EVENT_RECONNECT_ATTEMPT, reconnectCb);
+        manager.on(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
                 socket.close();
@@ -798,8 +777,8 @@ public class ConnectionTest extends Connection {
             }
         };
 
-        socket.on(Socket.EVENT_RECONNECTING, reconnectCb);
-        socket.on(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
+        manager.on(Manager.EVENT_RECONNECT_ATTEMPT, reconnectCb);
+        manager.on(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
                 socket.close();

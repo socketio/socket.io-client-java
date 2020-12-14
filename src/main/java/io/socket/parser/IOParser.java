@@ -14,10 +14,6 @@ final public class IOParser implements Parser {
 
     private static final Logger logger = Logger.getLogger(IOParser.class.getName());
 
-    private static Packet<String> error() {
-        return new Packet<String>(ERROR, "parser error");
-    }
-
     private IOParser() {}
 
     final public static class Encoder implements Parser.Encoder {
@@ -128,10 +124,14 @@ final public class IOParser implements Parser {
 
             Packet<Object> p = new Packet<Object>(Character.getNumericValue(str.charAt(0)));
 
-            if (p.type < 0 || p.type > types.length - 1) return error();
+            if (p.type < 0 || p.type > types.length - 1) {
+                throw new DecodingException("unknown packet type " + p.type);
+            }
 
             if (BINARY_EVENT == p.type || BINARY_ACK == p.type) {
-                if (!str.contains("-") || length <= i + 1) return error();
+                if (!str.contains("-") || length <= i + 1) {
+                    throw new DecodingException("illegal attachments");
+                }
                 StringBuilder attachments = new StringBuilder();
                 while (str.charAt(++i) != '-') {
                     attachments.append(str.charAt(i));
@@ -170,7 +170,7 @@ final public class IOParser implements Parser {
                     try {
                         p.id = Integer.parseInt(id.toString());
                     } catch (NumberFormatException e){
-                        return error();
+                        throw new DecodingException("invalid payload");
                     }
                 }
             }
@@ -181,7 +181,7 @@ final public class IOParser implements Parser {
                     p.data = new JSONTokener(str.substring(i)).nextValue();
                 } catch (JSONException e) {
                     logger.log(Level.WARNING, "An error occured while retrieving data from JSONTokener", e);
-                    return error();
+                    throw new DecodingException("invalid payload");
                 }
             }
 

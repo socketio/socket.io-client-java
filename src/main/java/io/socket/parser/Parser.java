@@ -25,7 +25,7 @@ public interface Parser {
     /**
      * Packet type `error`.
      */
-    public static final int ERROR = 4;
+    public static final int CONNECT_ERROR = 4;
 
     /**
      * Packet type `binary event`.
@@ -37,7 +37,7 @@ public interface Parser {
      */
     public static final int BINARY_ACK = 6;
 
-    public static int protocol = 4;
+    public static int protocol = 5;
 
     /**
      * Packet types.

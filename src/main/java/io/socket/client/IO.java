@@ -72,6 +72,11 @@ public class IO {
         boolean newConnection = opts.forceNew || !opts.multiplex || sameNamespace;
         Manager io;
 
+        String query = parsed.getQuery();
+        if (query != null && (opts.query == null || opts.query.isEmpty())) {
+            opts.query = query;
+        }
+
         if (newConnection) {
             if (logger.isLoggable(Level.FINE)) {
                 logger.fine(String.format("ignoring socket cache for %s", source));
@@ -85,11 +90,6 @@ public class IO {
                 managers.putIfAbsent(id, new Manager(source, opts));
             }
             io = managers.get(id);
-        }
-
-        String query = parsed.getQuery();
-        if (query != null && (opts.query == null || opts.query.isEmpty())) {
-            opts.query = query;
         }
 
         return io.socket(parsed.getPath(), opts);

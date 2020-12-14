@@ -14,10 +14,11 @@ import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import static java.util.Collections.singletonMap;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JUnit4.class)
 public class SocketTest extends Connection {
@@ -39,7 +40,7 @@ public class SocketTest extends Connection {
         @SuppressWarnings("unchecked")
         Optional<String> id = values.take();
         assertThat(id.isPresent(), is(true));
-        assertThat(id.get(), is(socket.io().engine.id()));
+        assertThat(id.get(), not(socket.io().engine.id())); // distinct ID since Socket.IO v3
         socket.disconnect();
     }
 
@@ -58,7 +59,7 @@ public class SocketTest extends Connection {
         @SuppressWarnings("unchecked")
         Optional<String> id = values.take();
         assertThat(id.isPresent(), is(true));
-        assertThat(id.get(), is("/foo#" + socket.io().engine.id()));
+        assertThat(id.get(), is(not(socket.io().engine.id()))); // distinct ID since Socket.IO v3
         socket.disconnect();
     }
 
@@ -113,59 +114,22 @@ public class SocketTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void pingAndPongWithLatency() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
-        socket = client();
-        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... objects) {
-                final boolean[] pinged = new boolean[] { false };
-                socket.once(Socket.EVENT_PING, new Emitter.Listener() {
-                    @Override
-                    public void call(Object... args) {
-                        pinged[0] = true;
-                    }
-                });
-                socket.once(Socket.EVENT_PONG, new Emitter.Listener() {
-                    @Override
-                    public void call(Object... args) {
-                        long ms = (long)args[0];
-                        values.offer(pinged[0]);
-                        values.offer(ms);
-                    }
-                });
-            }
-        });
-        socket.connect();
-
-        @SuppressWarnings("unchecked")
-        boolean pinged = (boolean)values.take();
-        assertThat(pinged, is(true));
-
-        @SuppressWarnings("unchecked")
-        long ms = (long)values.take();
-        assertThat(ms, greaterThanOrEqualTo(0L));
-
-        socket.disconnect();
-    }
-
-    @Test(timeout = TIMEOUT)
     public void shouldChangeSocketIdUponReconnection() throws URISyntaxException, InterruptedException {
         final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
         socket = client();
-        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+        socket.once(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
                 values.offer(Optional.ofNullable(socket.id()));
 
-                socket.on(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+                socket.io().on(Manager.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
                     @Override
                     public void call(Object... objects) {
                         values.offer(Optional.ofNullable(socket.id()));
                     }
                 });
 
-                socket.on(Socket.EVENT_RECONNECT, new Emitter.Listener() {
+                socket.once(Socket.EVENT_CONNECT, new Emitter.Listener() {
                     @Override
                     public void call(Object... objects) {
                         values.offer(Optional.ofNullable(socket.id()));
@@ -230,6 +194,67 @@ public class SocketTest extends Connection {
         JSONObject query = handshake.get().getJSONObject("query");
         assertThat(query.getString("b"), is("c"));
         assertThat(query.getString("d"), is("e"));
+
+        socket.disconnect();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void shouldAcceptAnAuthOption() throws URISyntaxException, InterruptedException, JSONException {
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+
+        IO.Options opts = new IO.Options();
+        opts.auth = singletonMap("token", "abcd");
+        socket = client("/abc", opts);
+        socket.on("handshake", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                JSONObject handshake = (JSONObject)args[0];
+                values.offer(Optional.ofNullable(handshake));
+            }
+        });
+        socket.connect();
+
+        @SuppressWarnings("unchecked")
+        Optional<JSONObject> handshake = values.take();
+        JSONObject query = handshake.get().getJSONObject("auth");
+        assertThat(query.getString("token"), is("abcd"));
+
+        socket.disconnect();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void shouldFireAnErrorEventOnMiddlewareFailure() throws URISyntaxException, InterruptedException, JSONException {
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+
+        socket = client("/no");
+        socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                values.offer(Optional.ofNullable(args[0]));
+            }
+        });
+        socket.connect();
+
+        @SuppressWarnings("unchecked")
+        JSONObject error = ((Optional<JSONObject>) values.take()).get();
+        assertThat(error.getString("message"), is("auth failed"));
+        assertThat(error.getJSONObject("data").getString("a"), is("b"));
+        assertThat(error.getJSONObject("data").getInt("c"), is(3));
+
+        socket.disconnect();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void shouldThrowOnReservedEvent() throws URISyntaxException, InterruptedException, JSONException {
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+
+        socket = client("/no");
+        try {
+            socket.emit("disconnecting", "goodbye");
+            fail();
+        } catch (RuntimeException e) {
+            assertThat(e.getMessage(), is("'disconnecting' is a reserved event name"));
+        }
 
         socket.disconnect();
     }
