@@ -2,9 +2,7 @@
 
 [![Build Status](https://github.com/socketio/socket.io-client-java/workflows/CI/badge.svg)](https://github.com/socketio/socket.io-client-java/actions)
 
-This is the Socket.IO v1.x and v2.x Client Library for Java, which is simply ported from the [JavaScript client](https://github.com/socketio/socket.io-client).
-
-**Does not yet support Socket:IO v3.x, use v2.x instead!**
+This is the Socket.IO Client Library for Java, which is simply ported from the [JavaScript client](https://github.com/socketio/socket.io-client).
 
 See also:
 
