@@ -8,6 +8,10 @@
         <version>1.9</version>
     </skin>
 
+    <bannerLeft>
+        <name>Socket.IO Java client</name>
+    </bannerLeft>
+
     <custom>
         <fluidoSkin>
             <gitHub>
@@ -22,6 +26,11 @@
         <menu name="Overview">
             <item name="Installation" href="./installation.html"/>
             <item name="Usage" href="./usage.html"/>
+            <item name="Migrating from 1.x" href="./migrating_from_1_x.html"/>
+        </menu>
+
+        <menu name="Miscellaneous">
+            <item name="Changelog" href="./changelog.html"/>
             <item name="Javadoc" href="./apidocs/index.html"/>
         </menu>
 
