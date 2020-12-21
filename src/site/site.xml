@@ -25,9 +25,10 @@
     <body>
         <menu name="Overview">
             <item name="Installation" href="./installation.html"/>
-            <item name="Usage" href="./usage.html"/>
+            <item name="Initialization" href="./initialization.html"/>
             <item name="Emitting events" href="./emitting_events.html"/>
             <item name="Listening to events" href="./listening_to_events.html"/>
+            <item name="The Socket instance" href="./socket_instance.html"/>
             <item name="Migrating from 1.x" href="./migrating_from_1_x.html"/>
         </menu>
 
