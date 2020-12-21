@@ -186,32 +186,31 @@ Socket socket = IO.socket(&quot;https://example.com&quot;, options);
 </thead><tbody>
 
 <tr class="b">
-<td> open </td>
+<td> <code>Manager.EVENT_OPEN</code> </td>
 <td> successful (re)connection </td>
 <td> - </td></tr>
 <tr class="a">
-<td> error </td>
+<td> <code>Manager.EVENT_ERROR</code> </td>
 <td> (re)connection failure or error after a successful connection </td>
-<td> connect_error </td></tr>
+<td> <code>Manager.EVENT_CONNECT_ERROR</code> &amp; <code>Manager.EVENT_CONNECT_TIMEOUT</code> </td></tr>
 <tr class="b">
-<td> close </td>
+<td> <code>Manager.EVENT_CLOSE</code> </td>
 <td> disconnection </td>
 <td> - </td></tr>
 <tr class="a">
-<td> reconnect_attempt </td>
+<td> <code>Manager.EVENT_RECONNECT_ATTEMPT</code> </td>
 <td> reconnection attempt </td>
-<td> reconnect_attempt &amp; reconnecting </td>
-<td> - </td></tr>
+<td> <code>Manager.EVENT_RECONNECT_ATTEMPT</code> &amp; <code>Manager.EVENT_RECONNECTING</code> (duplicate) </td></tr>
 <tr class="b">
-<td> reconnect </td>
+<td> <code>Manager.EVENT_RECONNECT</code> </td>
 <td> successful reconnection </td>
 <td> - </td></tr>
 <tr class="a">
-<td> reconnect_error </td>
+<td> <code>Manager.EVENT_RECONNECT_ERROR</code> </td>
 <td> reconnection failure </td>
 <td> - </td></tr>
 <tr class="b">
-<td> reconnect_failed </td>
+<td> <code>Manager.EVENT_RECONNECT_FAILED</code> </td>
 <td> reconnection failure after all attempts </td>
 <td> - </td></tr>
 </tbody>
@@ -227,15 +226,15 @@ Socket socket = IO.socket(&quot;https://example.com&quot;, options);
 </thead><tbody>
 
 <tr class="b">
-<td> connect </td>
+<td> <code>Socket.EVENT_CONNECT</code> </td>
 <td> successful connection to a Namespace </td>
 <td> - </td></tr>
 <tr class="a">
-<td> connect_error </td>
+<td> <code>Socket.EVENT_CONNECT_ERROR</code> </td>
 <td> connection failure </td>
-<td> error </td></tr>
+<td> <code>Socket.EVENT_ERROR</code> </td></tr>
 <tr class="b">
-<td> disconnect </td>
+<td> <code>Socket.EVENT_DISCONNECT</code> </td>
 <td> disconnection </td>
 <td> - </td></tr>
 </tbody>
