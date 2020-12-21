@@ -106,21 +106,21 @@ Here is the updated list of events emitted by the Manager:
 
 | Name | Description | Previously (if different) |
 | ---- | ----------- | ------------------------- |
-| open | successful (re)connection | - |
-| error | (re)connection failure or error after a successful connection | connect_error |
-| close | disconnection | - |
-| reconnect_attempt | reconnection attempt | reconnect_attempt & reconnecting | - |
-| reconnect | successful reconnection | - |
-| reconnect_error | reconnection failure | - |
-| reconnect_failed | reconnection failure after all attempts | - |
+| `Manager.EVENT_OPEN` | successful (re)connection | - |
+| `Manager.EVENT_ERROR` | (re)connection failure or error after a successful connection | `Manager.EVENT_CONNECT_ERROR` & `Manager.EVENT_CONNECT_TIMEOUT` |
+| `Manager.EVENT_CLOSE` | disconnection | - |
+| `Manager.EVENT_RECONNECT_ATTEMPT` | reconnection attempt | `Manager.EVENT_RECONNECT_ATTEMPT` & `Manager.EVENT_RECONNECTING` (duplicate) |
+| `Manager.EVENT_RECONNECT` | successful reconnection | - |
+| `Manager.EVENT_RECONNECT_ERROR` | reconnection failure | - |
+| `Manager.EVENT_RECONNECT_FAILED` | reconnection failure after all attempts | - |
 
 Here is the updated list of events emitted by the Socket:
 
 | Name | Description | Previously (if different) |
 | ---- | ----------- | ------------------------- |
-| connect | successful connection to a Namespace | - |
-| connect_error | connection failure | error |
-| disconnect | disconnection | - |
+| `Socket.EVENT_CONNECT` | successful connection to a Namespace | - |
+| `Socket.EVENT_CONNECT_ERROR` | connection failure | `Socket.EVENT_ERROR` |
+| `Socket.EVENT_DISCONNECT` | disconnection | - |
 
 
 And finally, here's the updated list of reserved events that you cannot use in your application:
