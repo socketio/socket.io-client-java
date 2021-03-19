@@ -7,8 +7,8 @@ Here is the compatibility table:
 | Java client version | Socket.IO server |
 | -------------- | ---------------- |
 | 0.9.x  | 1.x |
-| 1.x    | 2.x |
-| 2.x    | 3.x |
+| 1.x    | 2.x (or 3.1.x / 4.x with [`allowEIO3: true`](https://socket.io/docs/v4/server-initialization/#allowEIO3)) |
+| 2.x    | 3.x / 4.x |
 
 **Important note:** due to the backward incompatible changes to the Socket.IO protocol, a 2.x Java client will not be able to reach a 2.x server, and vice-versa
 
