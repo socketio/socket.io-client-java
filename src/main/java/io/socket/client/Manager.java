@@ -271,23 +271,28 @@ public class Manager extends Emitter {
                     }
                 });
 
-                if (Manager.this._timeout >= 0) {
-                    final long timeout = Manager.this._timeout;
+                final long timeout = Manager.this._timeout;
+                final Runnable onTimeout = new Runnable() {
+                    @Override
+                    public void run() {
+                        logger.fine(String.format("connect attempt timed out after %d", timeout));
+                        openSub.destroy();
+                        socket.close();
+                        socket.emit(Engine.EVENT_ERROR, new SocketIOException("timeout"));
+                    }
+                };
+
+                if (timeout == 0) {
+                    EventThread.exec(onTimeout);
+                    return;
+                } else if (Manager.this._timeout > 0) {
                     logger.fine(String.format("connection attempt will timeout after %d", timeout));
 
                     final Timer timer = new Timer();
                     timer.schedule(new TimerTask() {
                         @Override
                         public void run() {
-                            EventThread.exec(new Runnable() {
-                                @Override
-                                public void run() {
-                                    logger.fine(String.format("connect attempt timed out after %d", timeout));
-                                    openSub.destroy();
-                                    socket.close();
-                                    socket.emit(Engine.EVENT_ERROR, new SocketIOException("timeout"));
-                                }
-                            });
+                            EventThread.exec(onTimeout);
                         }
                     }, timeout);
 
