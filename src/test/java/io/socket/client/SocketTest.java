@@ -257,4 +257,34 @@ public class SocketTest extends Connection {
 
         socket.disconnect();
     }
+
+    @Test(timeout = TIMEOUT)
+    public void shouldEmitEventsInOrder() throws InterruptedException {
+        final BlockingQueue<String> values = new LinkedBlockingQueue<>();
+
+        socket = client();
+
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                socket.emit("ack", "second", new Ack() {
+                    @Override
+                    public void call(Object... args) {
+                        values.offer((String) args[0]);
+                    }
+                });
+            }
+        });
+
+        socket.emit("ack", "first", new Ack() {
+            @Override
+            public void call(Object... args) {
+                values.offer((String) args[0]);
+            }
+        });
+
+        socket.connect();
+        assertThat(values.take(), is("first"));
+        assertThat(values.take(), is("second"));
+    }
 }

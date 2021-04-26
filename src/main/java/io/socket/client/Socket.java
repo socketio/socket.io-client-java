@@ -367,8 +367,8 @@ public class Socket extends Emitter {
     private void onconnect(String id) {
         this.connected = true;
         this.id = id;
-        super.emit(EVENT_CONNECT);
         this.emitBuffered();
+        super.emit(EVENT_CONNECT);
     }
 
     private void emitBuffered() {
