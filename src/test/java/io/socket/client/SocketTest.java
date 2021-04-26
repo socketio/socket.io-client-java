@@ -26,7 +26,7 @@ public class SocketTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void shouldHaveAnAccessibleSocketIdEqualToServerSideSocketId() throws InterruptedException {
-        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -45,7 +45,7 @@ public class SocketTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void shouldHaveAnAccessibleSocketIdEqualToServerSideSocketIdOnCustomNamespace() throws InterruptedException {
-        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<>();
         socket = client("/foo");
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -64,7 +64,7 @@ public class SocketTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void clearsSocketIdUponDisconnection() throws InterruptedException {
-        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -87,7 +87,7 @@ public class SocketTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void doesNotFireConnectErrorIfWeForceDisconnectInOpeningState() throws InterruptedException {
-        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<>();
         IO.Options opts = new IO.Options();
         opts.timeout = 100;
         socket = client(opts);
@@ -114,7 +114,7 @@ public class SocketTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void shouldChangeSocketIdUponReconnection() throws InterruptedException {
-        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.once(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -155,7 +155,7 @@ public class SocketTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void shouldAcceptAQueryStringOnDefaultNamespace() throws InterruptedException, JSONException {
-        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<>();
 
         socket = client("/?c=d");
         socket.emit("getHandshake", new Ack() {
@@ -176,7 +176,7 @@ public class SocketTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void shouldAcceptAQueryString() throws InterruptedException, JSONException {
-        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<>();
 
         socket = client("/abc?b=c&d=e");
         socket.on("handshake", new Emitter.Listener() {
@@ -199,7 +199,7 @@ public class SocketTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void shouldAcceptAnAuthOption() throws InterruptedException, JSONException {
-        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<>();
 
         IO.Options opts = new IO.Options();
         opts.auth = singletonMap("token", "abcd");
@@ -223,7 +223,7 @@ public class SocketTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void shouldFireAnErrorEventOnMiddlewareFailure() throws InterruptedException, JSONException {
-        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<>();
 
         socket = client("/no");
         socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
@@ -245,7 +245,7 @@ public class SocketTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void shouldThrowOnReservedEvent() {
-        final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<>();
 
         socket = client("/no");
         try {

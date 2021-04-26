@@ -89,7 +89,7 @@ public class SSLConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void connect() throws Exception {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = createOptions();
         opts.callFactory = sOkHttpClient;
         opts.webSocketFactory = sOkHttpClient;
@@ -113,7 +113,7 @@ public class SSLConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void defaultSSLContext() throws Exception {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.setDefaultOkHttpWebSocketFactory(sOkHttpClient);
         IO.setDefaultOkHttpCallFactory(sOkHttpClient);
         socket = client();

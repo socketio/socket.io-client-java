@@ -108,7 +108,7 @@ public abstract class Connection {
     }
 
     String[] createEnv() {
-        Map<String, String> env = new HashMap<String, String>(System.getenv());
+        Map<String, String> env = new HashMap<>(System.getenv());
         env.put("DEBUG", "socket.io:*");
         env.put("PORT", String.valueOf(PORT));
         String[] _env = new String[env.size()];

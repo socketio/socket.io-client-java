@@ -122,7 +122,7 @@ final public class IOParser implements Parser {
             int i = 0;
             int length = str.length();
 
-            Packet<Object> p = new Packet<Object>(Character.getNumericValue(str.charAt(0)));
+            Packet<Object> p = new Packet<>(Character.getNumericValue(str.charAt(0)));
 
             if (p.type < 0 || p.type > types.length - 1) {
                 throw new DecodingException("unknown packet type " + p.type);
@@ -214,7 +214,7 @@ final public class IOParser implements Parser {
 
         BinaryReconstructor(Packet packet) {
             this.reconPack = packet;
-            this.buffers = new ArrayList<byte[]>();
+            this.buffers = new ArrayList<>();
         }
 
         public Packet takeBinaryData(byte[] binData) {
@@ -230,7 +230,7 @@ final public class IOParser implements Parser {
 
         public void finishReconstruction () {
             this.reconPack = null;
-            this.buffers = new ArrayList<byte[]>();
+            this.buffers = new ArrayList<>();
         }
     }
 }

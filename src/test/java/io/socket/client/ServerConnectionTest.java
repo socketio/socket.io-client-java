@@ -26,7 +26,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void openAndClose() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -51,7 +51,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void message() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -74,7 +74,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void event() throws Exception {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         final JSONObject obj = new JSONObject();
         obj.put("foo", 1);
@@ -103,7 +103,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void ack() throws Exception {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         final JSONObject obj = new JSONObject();
         obj.put("foo", 1);
@@ -131,7 +131,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void ackWithoutArgs() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -153,7 +153,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void ackWithoutArgsFromClient() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -188,7 +188,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void closeEngineConnection() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -209,7 +209,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void broadcast() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -242,7 +242,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void room() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -266,7 +266,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void pollingHeaders() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         IO.Options opts = createOptions();
         opts.transports = new String[] {Polling.NAME};
@@ -301,7 +301,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void websocketHandshakeHeaders() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         IO.Options opts = createOptions();
         opts.transports = new String[] {WebSocket.NAME};
@@ -336,7 +336,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void disconnectFromServer() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {

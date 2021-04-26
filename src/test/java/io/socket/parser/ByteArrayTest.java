@@ -20,7 +20,7 @@ public class ByteArrayTest {
 
     @Test
     public void encodeByteArray() {
-        Packet<byte[]> packet = new Packet<byte[]>(Parser.BINARY_EVENT);
+        Packet<byte[]> packet = new Packet<>(Parser.BINARY_EVENT);
         packet.data = "abc".getBytes(Charset.forName("UTF-8"));
         packet.id = 23;
         packet.nsp = "/cool";
@@ -29,7 +29,7 @@ public class ByteArrayTest {
 
     @Test
     public void encodeByteArray2() {
-        Packet<byte[]> packet = new Packet<byte[]>(Parser.BINARY_EVENT);
+        Packet<byte[]> packet = new Packet<>(Parser.BINARY_EVENT);
         packet.data = new byte[2];
         packet.id = 0;
         packet.nsp = "/";
@@ -42,7 +42,7 @@ public class ByteArrayTest {
         data.getJSONObject("b").put("why", new byte[3]);
         data.getJSONObject("c").getJSONObject("b").put("a", new byte[6]);
 
-        Packet<JSONObject> packet = new Packet<JSONObject>(Parser.BINARY_EVENT);
+        Packet<JSONObject> packet = new Packet<>(Parser.BINARY_EVENT);
         packet.data = data;
         packet.id = 999;
         packet.nsp = "/deep";
@@ -54,7 +54,7 @@ public class ByteArrayTest {
         JSONObject data = new JSONObject("{a: \"b\", c: 4, e: {g: null}, h: null}");
         data.put("h", new byte[9]);
 
-        Packet<JSONObject> packet = new Packet<JSONObject>(Parser.BINARY_EVENT);
+        Packet<JSONObject> packet = new Packet<>(Parser.BINARY_EVENT);
         packet.data = data;
         packet.nsp = "/";
         packet.id = 600;
@@ -66,7 +66,7 @@ public class ByteArrayTest {
         JSONArray data = new JSONArray("[a, null, {}]");
         data.put(1, "xxx".getBytes(Charset.forName("UTF-8")));
 
-        Packet<JSONArray> packet = new Packet<JSONArray>(Parser.BINARY_ACK);
+        Packet<JSONArray> packet = new Packet<>(Parser.BINARY_ACK);
         packet.data = data;
         packet.id = 127;
         packet.nsp = "/back";
@@ -79,7 +79,7 @@ public class ByteArrayTest {
         data.put(new byte[2]);
         data.put(new byte[3]);
 
-        Packet<JSONArray> packet = new Packet<JSONArray>(Parser.BINARY_EVENT);
+        Packet<JSONArray> packet = new Packet<>(Parser.BINARY_EVENT);
         packet.data = data;
         packet.id = 0;
         packet.nsp = "/";

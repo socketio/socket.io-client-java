@@ -114,8 +114,8 @@ public class Manager extends Emitter {
             opts.callFactory = defaultCallFactory;
         }
         this.opts = opts;
-        this.nsps = new ConcurrentHashMap<String, Socket>();
-        this.subs = new LinkedList<On.Handle>();
+        this.nsps = new ConcurrentHashMap<>();
+        this.subs = new LinkedList<>();
         this.reconnection(opts.reconnection);
         this.reconnectionAttempts(opts.reconnectionAttempts != 0 ? opts.reconnectionAttempts : Integer.MAX_VALUE);
         this.reconnectionDelay(opts.reconnectionDelay != 0 ? opts.reconnectionDelay : 1000);
@@ -129,7 +129,7 @@ public class Manager extends Emitter {
         this.readyState = ReadyState.CLOSED;
         this.uri = uri;
         this.encoding = false;
-        this.packetBuffer = new ArrayList<Packet>();
+        this.packetBuffer = new ArrayList<>();
         this.encoder = opts.encoder != null ? opts.encoder : new IOParser.Encoder();
         this.decoder = opts.decoder != null ? opts.decoder : new IOParser.Decoder();
     }
@@ -555,9 +555,9 @@ public class Manager extends Emitter {
     }
 
 
-    public static interface OpenCallback {
+    public interface OpenCallback {
 
-        public void call(Exception err);
+        void call(Exception err);
     }
 
 

@@ -58,10 +58,10 @@ public class Socket extends Emitter {
     private String nsp;
     private Manager io;
     private Map<String, String> auth;
-    private Map<Integer, Ack> acks = new HashMap<Integer, Ack>();
+    private Map<Integer, Ack> acks = new HashMap<>();
     private Queue<On.Handle> subs;
-    private final Queue<List<Object>> receiveBuffer = new LinkedList<List<Object>>();
-    private final Queue<Packet<JSONArray>> sendBuffer = new LinkedList<Packet<JSONArray>>();
+    private final Queue<List<Object>> receiveBuffer = new LinkedList<>();
+    private final Queue<Packet<JSONArray>> sendBuffer = new LinkedList<>();
 
     public Socket(Manager io, String nsp, Manager.Options opts) {
         this.io = io;
@@ -205,7 +205,7 @@ public class Socket extends Emitter {
                     }
                 }
 
-                Packet<JSONArray> packet = new Packet<JSONArray>(Parser.EVENT, jsonArgs);
+                Packet<JSONArray> packet = new Packet<>(Parser.EVENT, jsonArgs);
 
                 if (ack != null) {
                     logger.fine(String.format("emitting packet with ack id %d", ids));
@@ -302,7 +302,7 @@ public class Socket extends Emitter {
     }
 
     private void onevent(Packet<JSONArray> packet) {
-        List<Object> args = new ArrayList<Object>(Arrays.asList(toArray(packet.data)));
+        List<Object> args = new ArrayList<>(Arrays.asList(toArray(packet.data)));
         if (logger.isLoggable(Level.FINE)) {
             logger.fine(String.format("emitting event %s", args));
         }
@@ -341,7 +341,7 @@ public class Socket extends Emitter {
                             jsonArgs.put(arg);
                         }
 
-                        Packet<JSONArray> packet = new Packet<JSONArray>(Parser.ACK, jsonArgs);
+                        Packet<JSONArray> packet = new Packet<>(Parser.ACK, jsonArgs);
                         packet.id = id;
                         self.packet(packet);
                     }

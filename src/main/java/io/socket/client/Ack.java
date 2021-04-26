@@ -5,7 +5,7 @@ package io.socket.client;
  */
 public interface Ack {
 
-    public void call(Object... args);
+    void call(Object... args);
 
 }
 

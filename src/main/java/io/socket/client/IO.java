@@ -16,7 +16,7 @@ public class IO {
 
     private static final Logger logger = Logger.getLogger(IO.class.getName());
 
-    private static final ConcurrentHashMap<String, Manager> managers = new ConcurrentHashMap<String, Manager>();
+    private static final ConcurrentHashMap<String, Manager> managers = new ConcurrentHashMap<>();
 
     /**
      * Protocol version.

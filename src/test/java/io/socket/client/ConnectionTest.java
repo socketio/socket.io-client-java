@@ -30,7 +30,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void connectToLocalhost() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -71,7 +71,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void workWithAcks() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -112,7 +112,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void receiveDateWithAck() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -137,7 +137,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void sendBinaryAck() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         final byte[] buf = "huehue".getBytes(Charset.forName("UTF-8"));
 
         socket = client();
@@ -169,7 +169,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void receiveBinaryDataWithAck() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         final byte[] buf = "huehue".getBytes(Charset.forName("UTF-8"));
 
         socket = client();
@@ -192,7 +192,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void workWithFalse() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -213,7 +213,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void receiveUTF8MultibyteCharacters() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         final String[] correct = new String[] {
             "てすと",
             "Я Б Г Д Ж Й",
@@ -246,7 +246,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void connectToNamespaceAfterConnectionEstablished() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         final Manager manager = new Manager(uri());
         socket = manager.socket("/");
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -271,7 +271,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void connectToNamespaceAfterConnectionGetsClosed() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         final Manager manager = new Manager(uri());
         socket = manager.socket("/");
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -300,7 +300,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void reconnectByDefault() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.io().on(Manager.EVENT_RECONNECT, new Emitter.Listener() {
             @Override
@@ -321,7 +321,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void reconnectManually() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.once(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -347,7 +347,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void reconnectAutomaticallyAfterReconnectingManually() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.once(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -379,7 +379,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = 14000)
     public void attemptReconnectsAfterAFailedReconnect() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = createOptions();
         opts.reconnection = true;
         opts.timeout = 0;
@@ -416,7 +416,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void reconnectDelayShouldIncreaseEveryTime() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = createOptions();
         opts.reconnection = true;
         opts.timeout = 0;
@@ -466,7 +466,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void notReconnectWhenForceClosed() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = createOptions();
         opts.timeout = 0;
         opts.reconnectionDelay = 10;
@@ -495,7 +495,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void stopReconnectingWhenForceClosed() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = createOptions();
         opts.timeout = 0;
         opts.reconnectionDelay = 10;
@@ -525,7 +525,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void reconnectAfterStoppingReconnection() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = createOptions();
         opts.forceNew = true;
         opts.timeout = 0;
@@ -551,7 +551,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void stopReconnectingOnASocketAndKeepToReconnectOnAnother() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         final Manager manager = new Manager(uri());
         final Socket socket1 = manager.socket("/");
         final Socket socket2 = manager.socket("/asd");
@@ -597,7 +597,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void connectWhileDisconnectingAnotherSocket() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         final Manager manager = new Manager(uri());
         final Socket socket1 = manager.socket("/foo");
@@ -624,7 +624,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void tryToReconnectTwiceAndFailWithIncorrectAddress() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = new IO.Options();
         opts.reconnection = true;
         opts.reconnectionAttempts = 2;
@@ -656,7 +656,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void tryToReconnectTwiceAndFailWithImmediateTimeout() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = new IO.Options();
         opts.reconnection = true;
         opts.timeout = 0;
@@ -689,7 +689,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void notTryToReconnectWithIncorrectPortWhenReconnectionDisabled() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = new IO.Options();
         opts.reconnection = false;
         final Manager manager = new Manager(URI.create("http://localhost:9823"), opts);
@@ -723,7 +723,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void fireReconnectEventsOnSocket() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         Manager.Options opts = new Manager.Options();
         opts.reconnection = true;
@@ -758,7 +758,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void fireReconnectingWithAttemptsNumberWhenReconnectingTwice() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         Manager.Options opts = new Manager.Options();
         opts.reconnection = true;
@@ -793,7 +793,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void emitDateAsString() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -814,7 +814,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void emitDateInObject() throws InterruptedException, JSONException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -844,7 +844,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void sendAndGetBinaryData() throws InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         final byte[] buf = "asdfasdf".getBytes(Charset.forName("UTF-8"));
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -866,7 +866,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void sendBinaryDataMixedWithJson() throws InterruptedException, JSONException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         final byte[] buf = "howdy".getBytes(Charset.forName("UTF-8"));
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -899,7 +899,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void sendEventsWithByteArraysInTheCorrectOrder() throws Exception {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         final byte[] buf = "abuff1".getBytes(Charset.forName("UTF-8"));
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
