@@ -63,5 +63,8 @@ public class ParserTest {
         Helpers.testDecodeError(Parser.EVENT + "2sd");
         // event with invalid json data
         Helpers.testDecodeError(Parser.EVENT + "2[\"a\",1,{asdf}]");
+        Helpers.testDecodeError(Parser.EVENT + "2{}");
+        Helpers.testDecodeError(Parser.EVENT + "2[]");
+        Helpers.testDecodeError(Parser.EVENT + "2[null]");
     }
 }

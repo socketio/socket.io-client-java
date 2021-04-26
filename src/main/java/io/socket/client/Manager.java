@@ -326,10 +326,14 @@ public class Manager extends Emitter {
             @Override
             public void call(Object... objects) {
                 Object data = objects[0];
-                if (data instanceof String) {
-                    Manager.this.ondata((String)data);
-                } else if (data instanceof byte[]) {
-                    Manager.this.ondata((byte[])data);
+                try {
+                    if (data instanceof String) {
+                        Manager.this.decoder.add((String) data);
+                    } else if (data instanceof byte[]) {
+                        Manager.this.decoder.add((byte[]) data);
+                    }
+                } catch (DecodingException e) {
+                    logger.fine("error while decoding the packet: " + e.getMessage());
                 }
             }
         }));
@@ -351,22 +355,6 @@ public class Manager extends Emitter {
                 Manager.this.ondecoded(packet);
             }
         });
-    }
-
-    private void ondata(String data) {
-        try {
-            this.decoder.add(data);
-        } catch (DecodingException e) {
-            this.onerror(e);
-        }
-    }
-
-    private void ondata(byte[] data) {
-        try {
-            this.decoder.add(data);
-        } catch (DecodingException e) {
-            this.onerror(e);
-        }
     }
 
     private void ondecoded(Packet packet) {

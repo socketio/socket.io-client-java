@@ -1,7 +1,9 @@
 package io.socket.parser;
 
 import io.socket.hasbinary.HasBinary;
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.util.ArrayList;
@@ -183,12 +185,35 @@ final public class IOParser implements Parser {
                     logger.log(Level.WARNING, "An error occured while retrieving data from JSONTokener", e);
                     throw new DecodingException("invalid payload");
                 }
+                if (!isPayloadValid(p.type, p.data)) {
+                    throw new DecodingException("invalid payload");
+                }
             }
 
             if (logger.isLoggable(Level.FINE)) {
                 logger.fine(String.format("decoded %s as %s", str, p));
             }
             return p;
+        }
+
+        private static boolean isPayloadValid(int type, Object payload) {
+            switch (type) {
+                case Parser.CONNECT:
+                case Parser.CONNECT_ERROR:
+                    return payload instanceof JSONObject;
+                case Parser.DISCONNECT:
+                    return payload == null;
+                case Parser.EVENT:
+                case Parser.BINARY_EVENT:
+                    return payload instanceof JSONArray
+                            && ((JSONArray) payload).length() > 0
+                            && !((JSONArray) payload).isNull(0);
+                case Parser.ACK:
+                case Parser.BINARY_ACK:
+                    return payload instanceof JSONArray;
+                default:
+                    return false;
+            }
         }
 
         @Override
