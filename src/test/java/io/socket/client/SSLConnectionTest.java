@@ -16,6 +16,7 @@ import javax.net.ssl.X509TrustManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.util.concurrent.BlockingQueue;
@@ -39,8 +40,8 @@ public class SSLConnectionTest extends Connection {
     }
 
     @Override
-    String uri() {
-        return "https://localhost:" + PORT;
+    URI uri() {
+        return URI.create("https://localhost:" + PORT);
     }
 
     @Override

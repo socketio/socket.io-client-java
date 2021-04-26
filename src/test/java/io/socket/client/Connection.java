@@ -6,7 +6,7 @@ import org.junit.Before;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URISyntaxException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -77,24 +77,24 @@ public abstract class Connection {
         serverService.awaitTermination(3000, TimeUnit.MILLISECONDS);
     }
 
-    Socket client() throws URISyntaxException {
+    Socket client() {
         return client(createOptions());
     }
 
-    Socket client(String path) throws URISyntaxException {
+    Socket client(String path) {
         return client(path, createOptions());
     }
 
-    Socket client(IO.Options opts) throws URISyntaxException {
+    Socket client(IO.Options opts) {
         return client(nsp(), opts);
     }
 
-    Socket client(String path, IO.Options opts) throws URISyntaxException {
-        return IO.socket(uri() + path, opts);
+    Socket client(String path, IO.Options opts) {
+        return IO.socket(URI.create(uri() + path), opts);
     }
 
-    String uri() {
-        return "http://localhost:" + PORT;
+    URI uri() {
+        return URI.create("http://localhost:" + PORT);
     }
 
     String nsp() {

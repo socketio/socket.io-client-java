@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.net.URISyntaxException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
@@ -26,7 +25,7 @@ public class SocketTest extends Connection {
     private Socket socket;
 
     @Test(timeout = TIMEOUT)
-    public void shouldHaveAnAccessibleSocketIdEqualToServerSideSocketId() throws URISyntaxException, InterruptedException {
+    public void shouldHaveAnAccessibleSocketIdEqualToServerSideSocketId() throws InterruptedException {
         final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -45,7 +44,7 @@ public class SocketTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void shouldHaveAnAccessibleSocketIdEqualToServerSideSocketIdOnCustomNamespace() throws URISyntaxException, InterruptedException {
+    public void shouldHaveAnAccessibleSocketIdEqualToServerSideSocketIdOnCustomNamespace() throws InterruptedException {
         final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
         socket = client("/foo");
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -64,7 +63,7 @@ public class SocketTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void clearsSocketIdUponDisconnection() throws URISyntaxException, InterruptedException {
+    public void clearsSocketIdUponDisconnection() throws InterruptedException {
         final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -87,7 +86,7 @@ public class SocketTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void doesNotFireConnectErrorIfWeForceDisconnectInOpeningState() throws URISyntaxException, InterruptedException {
+    public void doesNotFireConnectErrorIfWeForceDisconnectInOpeningState() throws InterruptedException {
         final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
         IO.Options opts = new IO.Options();
         opts.timeout = 100;
@@ -114,7 +113,7 @@ public class SocketTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void shouldChangeSocketIdUponReconnection() throws URISyntaxException, InterruptedException {
+    public void shouldChangeSocketIdUponReconnection() throws InterruptedException {
         final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
         socket = client();
         socket.once(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -155,7 +154,7 @@ public class SocketTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void shouldAcceptAQueryStringOnDefaultNamespace() throws URISyntaxException, InterruptedException, JSONException {
+    public void shouldAcceptAQueryStringOnDefaultNamespace() throws InterruptedException, JSONException {
         final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
 
         socket = client("/?c=d");
@@ -176,7 +175,7 @@ public class SocketTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void shouldAcceptAQueryString() throws URISyntaxException, InterruptedException, JSONException {
+    public void shouldAcceptAQueryString() throws InterruptedException, JSONException {
         final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
 
         socket = client("/abc?b=c&d=e");
@@ -199,7 +198,7 @@ public class SocketTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void shouldAcceptAnAuthOption() throws URISyntaxException, InterruptedException, JSONException {
+    public void shouldAcceptAnAuthOption() throws InterruptedException, JSONException {
         final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
 
         IO.Options opts = new IO.Options();
@@ -223,7 +222,7 @@ public class SocketTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void shouldFireAnErrorEventOnMiddlewareFailure() throws URISyntaxException, InterruptedException, JSONException {
+    public void shouldFireAnErrorEventOnMiddlewareFailure() throws InterruptedException, JSONException {
         final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
 
         socket = client("/no");
@@ -245,7 +244,7 @@ public class SocketTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void shouldThrowOnReservedEvent() throws URISyntaxException, InterruptedException, JSONException {
+    public void shouldThrowOnReservedEvent() {
         final BlockingQueue<Optional> values = new LinkedBlockingQueue<Optional>();
 
         socket = client("/no");

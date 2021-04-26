@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +25,7 @@ public class ServerConnectionTest extends Connection {
     private Socket socket2;
 
     @Test(timeout = TIMEOUT)
-    public void openAndClose() throws URISyntaxException, InterruptedException {
+    public void openAndClose() throws InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         socket = client();
@@ -51,7 +50,7 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void message() throws URISyntaxException, InterruptedException {
+    public void message() throws InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         socket = client();
@@ -131,7 +130,7 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void ackWithoutArgs() throws URISyntaxException, InterruptedException {
+    public void ackWithoutArgs() throws InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         socket = client();
@@ -153,7 +152,7 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void ackWithoutArgsFromClient() throws URISyntaxException, InterruptedException {
+    public void ackWithoutArgsFromClient() throws InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         socket = client();
@@ -188,7 +187,7 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void closeEngineConnection() throws URISyntaxException, InterruptedException {
+    public void closeEngineConnection() throws InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         socket = client();
@@ -209,18 +208,14 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void broadcast() throws URISyntaxException, InterruptedException {
+    public void broadcast() throws InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                try {
-                    socket2 = client();
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
+                socket2 = client();
 
                 socket2.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
                     @Override
@@ -246,7 +241,7 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void room() throws URISyntaxException, InterruptedException {
+    public void room() throws InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         socket = client();
@@ -270,7 +265,7 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void pollingHeaders() throws URISyntaxException, InterruptedException {
+    public void pollingHeaders() throws InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         IO.Options opts = createOptions();
@@ -305,7 +300,7 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void websocketHandshakeHeaders() throws URISyntaxException, InterruptedException {
+    public void websocketHandshakeHeaders() throws InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         IO.Options opts = createOptions();
@@ -340,7 +335,7 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void disconnectFromServer() throws URISyntaxException, InterruptedException {
+    public void disconnectFromServer() throws InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
 
         socket = client();
