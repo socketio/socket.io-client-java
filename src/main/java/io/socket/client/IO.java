@@ -7,7 +7,6 @@ import okhttp3.WebSocket;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,17 +57,12 @@ public class IO {
             opts = new Options();
         }
 
-        URL parsed = Url.parse(uri);
-        URI source;
-        try {
-            source = parsed.toURI();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-        String id = Url.extractId(parsed);
-        String path = parsed.getPath();
+        Url.ParsedURI parsed = Url.parse(uri);
+        URI source = parsed.uri;
+        String id = parsed.id;
+
         boolean sameNamespace = managers.containsKey(id)
-                && managers.get(id).nsps.containsKey(path);
+                && managers.get(id).nsps.containsKey(source.getPath());
         boolean newConnection = opts.forceNew || !opts.multiplex || sameNamespace;
         Manager io;
 
@@ -87,12 +81,12 @@ public class IO {
             io = managers.get(id);
         }
 
-        String query = parsed.getQuery();
+        String query = source.getQuery();
         if (query != null && (opts.query == null || opts.query.isEmpty())) {
             opts.query = query;
         }
 
-        return io.socket(parsed.getPath(), opts);
+        return io.socket(source.getPath(), opts);
     }
 
 
