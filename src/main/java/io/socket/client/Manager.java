@@ -2,6 +2,7 @@ package io.socket.client;
 
 import io.socket.backo.Backoff;
 import io.socket.emitter.Emitter;
+import io.socket.parser.DecodingException;
 import io.socket.parser.IOParser;
 import io.socket.parser.Packet;
 import io.socket.parser.Parser;
@@ -370,10 +371,14 @@ public class Manager extends Emitter {
             @Override
             public void call(Object... objects) {
                 Object data = objects[0];
-                if (data instanceof String) {
-                    Manager.this.ondata((String)data);
-                } else if (data instanceof byte[]) {
-                    Manager.this.ondata((byte[])data);
+                try {
+                    if (data instanceof String) {
+                        Manager.this.decoder.add((String) data);
+                    } else if (data instanceof byte[]) {
+                        Manager.this.decoder.add((byte[]) data);
+                    }
+                } catch (DecodingException e) {
+                    logger.fine("error while decoding the packet: " + e.getMessage());
                 }
             }
         }));
@@ -417,14 +422,6 @@ public class Manager extends Emitter {
     private void onpong() {
         this.emitAll(EVENT_PONG,
                 null != this.lastPing ? new Date().getTime() - this.lastPing.getTime() : 0);
-    }
-
-    private void ondata(String data) {
-        this.decoder.add(data);
-    }
-
-    private void ondata(byte[] data) {
-        this.decoder.add(data);
     }
 
     private void ondecoded(Packet packet) {
