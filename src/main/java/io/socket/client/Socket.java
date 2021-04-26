@@ -91,7 +91,9 @@ public class Socket extends Emitter {
             add(On.on(io, Manager.EVENT_ERROR, new Listener() {
                 @Override
                 public void call(Object... args) {
-                    Socket.super.emit(EVENT_CONNECT_ERROR, args[0]);
+                    if (!Socket.this.connected) {
+                        Socket.super.emit(EVENT_CONNECT_ERROR, args[0]);
+                    }
                 }
             }));
             add(On.on(io, Manager.EVENT_CLOSE, new Listener() {
