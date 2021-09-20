@@ -107,7 +107,7 @@
 <p>Add it as a gradle dependency for Android Studio, in <code>build.gradle</code>:</p>
 
 <div class="source">
-<div class="source"><pre class="prettyprint">compile ('io.socket:socket.io-client:2.0.1') {
+<div class="source"><pre class="prettyprint">implementation ('io.socket:socket.io-client:2.0.1') {
   // excluding org.json which is provided by Android
   exclude group: 'org.json', module: 'json'
 }
