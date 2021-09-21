@@ -1,6 +1,6 @@
 # Emitting events
 
-See also: https://socket.io/docs/v3/emitting-events/
+See also: https://socket.io/docs/v4/emitting-events/
 
 **Table of content**
 

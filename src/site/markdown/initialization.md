@@ -25,7 +25,7 @@ Socket socket = IO.socket("wss://example.com"); // OK, similar to the example ab
 Socket socket = IO.socket("192.168.0.1:1234"); // NOT OK, missing the scheme part
 ```
 
-The path represents the [Namespace](https://socket.io/docs/v3/namespaces/), and not the actual path (see [below](#path)) of the HTTP requests:
+The path represents the [Namespace](https://socket.io/docs/v4/namespaces/), and not the actual path (see [below](#path)) of the HTTP requests:
 
 ```java
 Socket socket = IO.socket(URI.create("https://example.com")); // the main namespace
@@ -76,7 +76,7 @@ Whether to create a new Manager instance.
 
 A Manager instance is in charge of the low-level connection to the server (established with HTTP long-polling or WebSocket). It handles the reconnection logic.
 
-A Socket instance is the interface which is used to sends events to — and receive events from — the server. It belongs to a given [namespace](https://socket.io/docs/v3/namespaces).
+A Socket instance is the interface which is used to sends events to — and receive events from — the server. It belongs to a given [namespace](https://socket.io/docs/v4/namespaces).
 
 A single Manager can be attached to several Socket instances.
 
@@ -131,7 +131,7 @@ IO.Options options = IO.Options.builder()
 Socket socket = IO.socket(URI.create("https://example.com"), options);
 ```
 
-Note: in that case, sticky sessions are not required on the server side (more information [here](https://socket.io/docs/v3/using-multiple-nodes/)).
+Note: in that case, sticky sessions are not required on the server side (more information [here](https://socket.io/docs/v4/using-multiple-nodes/)).
 
 #### `upgrade`
 
@@ -177,7 +177,7 @@ IO.Options options = IO.Options.builder()
 Socket socket = IO.socket(URI.create("https://example.com"), options);
 ```
 
-Please note that this is different from the path in the URI, which represents the [Namespace](https://socket.io/docs/v3/namespaces/).
+Please note that this is different from the path in the URI, which represents the [Namespace](https://socket.io/docs/v4/namespaces/).
 
 Example:
 
@@ -274,7 +274,7 @@ These settings are specific to the given Socket instance.
 
 Default value: -
 
-Credentials that are sent when accessing a namespace (see also [here](https://socket.io/docs/v3/middlewares/#Sending-credentials)).
+Credentials that are sent when accessing a namespace (see also [here](https://socket.io/docs/v4/middlewares/#sending-credentials)).
 
 Example:
 

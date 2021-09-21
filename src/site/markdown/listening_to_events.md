@@ -1,6 +1,6 @@
 # Listening to events
 
-See also: https://socket.io/docs/v3/listening-to-events/
+See also: https://socket.io/docs/v4/listening-to-events/
 
 **Table of content**
 

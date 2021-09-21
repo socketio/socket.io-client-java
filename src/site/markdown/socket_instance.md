@@ -113,7 +113,7 @@ socket.on("data", new Emitter.Listener() {
 
 ### `Socket.EVENT_CONNECT_ERROR`
 
-This event is fired when the server does not accept the connection (in a [middleware function](https://socket.io/docs/v3/middlewares/#Sending-credentials)).
+This event is fired when the server does not accept the connection (in a [middleware function](https://socket.io/docs/v4/middlewares/#sending-credentials)).
 
 You need to manually reconnect. You might need to update the credentials:
 
@@ -144,7 +144,7 @@ Here is the list of possible reasons:
 
 Reason | Description
 ------ | -----------
-`io server disconnect` | The server has forcefully disconnected the socket with [socket.disconnect()](https://socket.io/docs/v3/server-api/#socket-disconnect-close)
+`io server disconnect` | The server has forcefully disconnected the socket with [socket.disconnect()](https://socket.io/docs/v4/server-api/#socketdisconnectclose)
 `io client disconnect` | The socket was manually disconnected using `socket.disconnect()`
 `ping timeout` | The server did not respond in the `pingTimeout` range
 `transport close` | The connection was closed (example: the user has lost connection, or the network was changed from WiFi to 4G)

@@ -3,7 +3,7 @@
 | Client version | Socket.IO server |
 | -------------- | ---------------- |
 | 0.9.x  | 1.x |
-| 1.x    | 2.x (or 3.1.x / 4.x with [`allowEIO3: true`](https://socket.io/docs/v4/server-initialization/#allowEIO3)) |
+| 1.x    | 2.x (or 3.1.x / 4.x with [`allowEIO3: true`](https://socket.io/docs/v4/server-options/#alloweio3)) |
 | 2.x    | 3.x / 4.x |
 
 ## Installation

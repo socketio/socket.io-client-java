@@ -7,12 +7,12 @@ Here is the compatibility table:
 | Java client version | Socket.IO server |
 | -------------- | ---------------- |
 | 0.9.x  | 1.x |
-| 1.x    | 2.x (or 3.1.x / 4.x with [`allowEIO3: true`](https://socket.io/docs/v4/server-initialization/#allowEIO3)) |
+| 1.x    | 2.x (or 3.1.x / 4.x with [`allowEIO3: true`](https://socket.io/docs/v4/server-options/#alloweio3)) |
 | 2.x    | 3.x / 4.x |
 
 **Important note:** due to the backward incompatible changes to the Socket.IO protocol, a 2.x Java client will not be able to reach a 2.x server, and vice-versa
 
-Since the Java client matches the Javascript client quite closely, most of the changes listed in the migration guide [here](https://socket.io/docs/v3/migrating-from-2-x-to-3-0) also apply to the Java client:
+Since the Java client matches the Javascript client quite closely, most of the changes listed in the migration guide [here](https://socket.io/docs/v4/migrating-from-2-x-to-3-0) also apply to the Java client:
 
 - [A middleware error will now emit an Error object](#A_middleware_error_will_now_emit_an_Error_object)
 - [The Socket `query` option is renamed to `auth`](#The_Socket_query_option_is_renamed_to_auth)
