@@ -77,6 +77,27 @@ Events are great, but in some cases you may want a more classic request-response
 
 You can add a callback as the last argument of the `emit()`, and this callback will be called once the other side acknowledges the event:
 
+### From client to server
+
+*Client*
+
+```java
+// Java 7
+socket.emit("update item", 1, new JSONObject(singletonMap("name", "updated")), new Ack() {
+    @Override
+    public void call(Object... args) {
+        JSONObject response = (JSONObject) args[0];
+        System.out.println(response.getString("status")); // "ok"
+    }
+});
+
+// Java 8 and above
+socket.emit("update item", 1, new JSONObject(singletonMap("name", "updated")), (Ack) args -> {
+    JSONObject response = (JSONObject) args[0];
+    System.out.println(response.getString("status")); // "ok"
+});
+```
+
 *Server*
 
 ```js
@@ -91,15 +112,37 @@ io.on("connection", (socket) => {
 });
 ```
 
-*Client*
+### From server to client
 
-```java
-socket.emit("update item", 1, new JSONObject(singletonMap("name", "updated")), new Ack() {
-    @Override
-    public void call(Object... args) {
-        JSONObject response = (JSONObject) args[0];
-        System.out.println(response.getString("status")); // "ok"
-    }
+*Server*
+
+```js
+io.on("connection", (socket) => {
+  socket.emit("hello", "please acknowledge", (response) => {
+    console.log(response); // prints "hi!"
+  });
 });
 ```
 
+*Client*
+
+```java
+// Java 7
+socket.on("hello", new Emitter.Listener() {
+    @Override
+    public void call(Object... args) {
+        System.out.println(args[0]); // "please acknowledge"
+        if (args.length > 1 && args[1] instanceof Ack) {
+            ((Ack) args[1]).call("hi!");
+        }
+    }
+});
+
+// Java 8 and above
+socket.on("hello", args -> {
+    System.out.println(args[0]); // "please acknowledge"
+    if (args.length > 1 && args[1] instanceof Ack) {
+        ((Ack) args[1]).call("hi!");
+    }
+});
+```
