@@ -376,7 +376,10 @@ public class Socket extends Emitter {
     private void emitBuffered() {
         List<Object> data;
         while ((data = this.receiveBuffer.poll()) != null) {
-            String event = (String)data.get(0);
+            if (data.isEmpty()) {
+                continue;
+            }
+            String event = data.remove(0).toString();
             super.emit(event, data.toArray());
         }
         this.receiveBuffer.clear();
