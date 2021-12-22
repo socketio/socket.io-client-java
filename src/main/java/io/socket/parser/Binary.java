@@ -20,7 +20,7 @@ public class Binary {
 
     @SuppressWarnings("unchecked")
     public static DeconstructedPacket deconstructPacket(Packet packet) {
-        List<byte[]> buffers = new ArrayList<byte[]>();
+        List<byte[]> buffers = new ArrayList<>();
 
         packet.data = _deconstructPacket(packet.data, buffers);
         packet.attachments = buffers.size();

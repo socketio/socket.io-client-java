@@ -1,15 +1,15 @@
 package io.socket.parser;
 
-import io.socket.emitter.Emitter;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
+import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -19,9 +19,9 @@ public class ByteArrayTest {
     private static Parser.Encoder encoder = new IOParser.Encoder();
 
     @Test
-    public void encodeByteArray() {
-        Packet<byte[]> packet = new Packet<byte[]>(Parser.BINARY_EVENT);
-        packet.data = "abc".getBytes(Charset.forName("UTF-8"));
+    public void encodeByteArray() throws JSONException {
+        Packet<JSONArray> packet = new Packet<>(Parser.BINARY_EVENT);
+        packet.data = new JSONArray(asList("abc", "abc".getBytes(StandardCharsets.UTF_8)));
         packet.id = 23;
         packet.nsp = "/cool";
         Helpers.testBin(packet);
@@ -29,8 +29,8 @@ public class ByteArrayTest {
 
     @Test
     public void encodeByteArray2() {
-        Packet<byte[]> packet = new Packet<byte[]>(Parser.BINARY_EVENT);
-        packet.data = new byte[2];
+        Packet<JSONArray> packet = new Packet<>(Parser.BINARY_EVENT);
+        packet.data = new JSONArray(asList("2", new byte[] { 0, 1 }));
         packet.id = 0;
         packet.nsp = "/";
         Helpers.testBin(packet);
@@ -38,11 +38,11 @@ public class ByteArrayTest {
 
     @Test
     public void encodeByteArrayDeepInJson() throws JSONException {
-        JSONObject data = new JSONObject("{a: \"hi\", b: {}, c: {a: \"bye\", b: {}}}");
-        data.getJSONObject("b").put("why", new byte[3]);
-        data.getJSONObject("c").getJSONObject("b").put("a", new byte[6]);
+        JSONArray data = new JSONArray("[{a: \"hi\", b: {}, c: {a: \"bye\", b: {}}}]");
+        data.getJSONObject(0).getJSONObject("b").put("why", new byte[3]);
+        data.getJSONObject(0).getJSONObject("c").getJSONObject("b").put("a", new byte[6]);
 
-        Packet<JSONObject> packet = new Packet<JSONObject>(Parser.BINARY_EVENT);
+        Packet<JSONArray> packet = new Packet<>(Parser.BINARY_EVENT);
         packet.data = data;
         packet.id = 999;
         packet.nsp = "/deep";
@@ -51,10 +51,10 @@ public class ByteArrayTest {
 
     @Test
     public void encodeDeepBinaryJSONWithNullValue() throws JSONException {
-        JSONObject data = new JSONObject("{a: \"b\", c: 4, e: {g: null}, h: null}");
-        data.put("h", new byte[9]);
+        JSONArray data = new JSONArray("[{a: \"b\", c: 4, e: {g: null}, h: null}]");
+        data.getJSONObject(0).put("h", new byte[9]);
 
-        Packet<JSONObject> packet = new Packet<JSONObject>(Parser.BINARY_EVENT);
+        Packet<JSONArray> packet = new Packet<>(Parser.BINARY_EVENT);
         packet.data = data;
         packet.nsp = "/";
         packet.id = 600;
@@ -66,7 +66,7 @@ public class ByteArrayTest {
         JSONArray data = new JSONArray("[a, null, {}]");
         data.put(1, "xxx".getBytes(Charset.forName("UTF-8")));
 
-        Packet<JSONArray> packet = new Packet<JSONArray>(Parser.BINARY_ACK);
+        Packet<JSONArray> packet = new Packet<>(Parser.BINARY_ACK);
         packet.data = data;
         packet.id = 127;
         packet.nsp = "/back";
@@ -79,7 +79,7 @@ public class ByteArrayTest {
         data.put(new byte[2]);
         data.put(new byte[3]);
 
-        Packet<JSONArray> packet = new Packet<JSONArray>(Parser.BINARY_EVENT);
+        Packet<JSONArray> packet = new Packet<>(Parser.BINARY_EVENT);
         packet.data = data;
         packet.id = 0;
         packet.nsp = "/";

@@ -8,13 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,8 +24,6 @@ public class Socket extends Emitter {
      */
     public static final String EVENT_CONNECT = "connect";
 
-    public static final String EVENT_CONNECTING = "connecting";
-
     /**
      * Called on a disconnection.
      */
@@ -45,42 +37,18 @@ public class Socket extends Emitter {
      * <li>(Exception) error data.</li>
      * </ul>
      */
-    public static final String EVENT_ERROR = "error";
+    public static final String EVENT_CONNECT_ERROR = "connect_error";
 
-    public static final String EVENT_MESSAGE = "message";
+    static final String EVENT_MESSAGE = "message";
 
-    public static final String EVENT_CONNECT_ERROR = Manager.EVENT_CONNECT_ERROR;
-
-    public static final String EVENT_CONNECT_TIMEOUT = Manager.EVENT_CONNECT_TIMEOUT;
-
-    public static final String EVENT_RECONNECT = Manager.EVENT_RECONNECT;
-
-    public static final String EVENT_RECONNECT_ERROR = Manager.EVENT_RECONNECT_ERROR;
-
-    public static final String EVENT_RECONNECT_FAILED = Manager.EVENT_RECONNECT_FAILED;
-
-    public static final String EVENT_RECONNECT_ATTEMPT = Manager.EVENT_RECONNECT_ATTEMPT;
-
-    public static final String EVENT_RECONNECTING = Manager.EVENT_RECONNECTING;
-
-    public static final String EVENT_PING = Manager.EVENT_PING;
-
-    public static final String EVENT_PONG = Manager.EVENT_PONG;
-
-    protected static Map<String, Integer> events = new HashMap<String, Integer>() {{
+    protected static Map<String, Integer> RESERVED_EVENTS = new HashMap<String, Integer>() {{
         put(EVENT_CONNECT, 1);
         put(EVENT_CONNECT_ERROR, 1);
-        put(EVENT_CONNECT_TIMEOUT, 1);
-        put(EVENT_CONNECTING, 1);
         put(EVENT_DISCONNECT, 1);
-        put(EVENT_ERROR, 1);
-        put(EVENT_RECONNECT, 1);
-        put(EVENT_RECONNECT_ATTEMPT, 1);
-        put(EVENT_RECONNECT_FAILED, 1);
-        put(EVENT_RECONNECT_ERROR, 1);
-        put(EVENT_RECONNECTING, 1);
-        put(EVENT_PING, 1);
-        put(EVENT_PONG, 1);
+        // used on the server-side
+        put("disconnecting", 1);
+        put("newListener", 1);
+        put("removeListener", 1);
     }};
 
     /*package*/ String id;
@@ -89,17 +57,17 @@ public class Socket extends Emitter {
     private int ids;
     private String nsp;
     private Manager io;
-    private String query;
-    private Map<Integer, Ack> acks = new HashMap<Integer, Ack>();
+    private Map<String, String> auth;
+    private Map<Integer, Ack> acks = new HashMap<>();
     private Queue<On.Handle> subs;
-    private final Queue<List<Object>> receiveBuffer = new LinkedList<List<Object>>();
-    private final Queue<Packet<JSONArray>> sendBuffer = new LinkedList<Packet<JSONArray>>();
+    private final Queue<List<Object>> receiveBuffer = new LinkedList<>();
+    private final Queue<Packet<JSONArray>> sendBuffer = new LinkedList<>();
 
     public Socket(Manager io, String nsp, Manager.Options opts) {
         this.io = io;
         this.nsp = nsp;
         if (opts != null) {
-            this.query = opts.query;
+            this.auth = opts.auth;
         }
     }
 
@@ -120,6 +88,14 @@ public class Socket extends Emitter {
                     Socket.this.onpacket((Packet<?>) args[0]);
                 }
             }));
+            add(On.on(io, Manager.EVENT_ERROR, new Listener() {
+                @Override
+                public void call(Object... args) {
+                    if (!Socket.this.connected) {
+                        Socket.super.emit(EVENT_CONNECT_ERROR, args[0]);
+                    }
+                }
+            }));
             add(On.on(io, Manager.EVENT_CLOSE, new Listener() {
                 @Override
                 public void call(Object... args) {
@@ -129,6 +105,10 @@ public class Socket extends Emitter {
         }};
     }
 
+    public boolean isActive() {
+        return this.subs != null;
+    }
+
     /**
      * Connects the socket.
      */
@@ -136,12 +116,11 @@ public class Socket extends Emitter {
         EventThread.exec(new Runnable() {
             @Override
             public void run() {
-                if (Socket.this.connected) return;
+                if (Socket.this.connected || Socket.this.io.isReconnecting()) return;
 
                 Socket.this.subEvents();
                 Socket.this.io.open(); // ensure open
                 if (Manager.ReadyState.OPEN == Socket.this.io.readyState) Socket.this.onopen();
-                Socket.this.emit(EVENT_CONNECTING);
             }
         });
         return this;
@@ -179,14 +158,13 @@ public class Socket extends Emitter {
      */
     @Override
     public Emitter emit(final String event, final Object... args) {
+        if (RESERVED_EVENTS.containsKey(event)) {
+            throw new RuntimeException("'" + event + "' is a reserved event name");
+        }
+
         EventThread.exec(new Runnable() {
             @Override
             public void run() {
-                if (events.containsKey(event)) {
-                    Socket.super.emit(event, args);
-                    return;
-                }
-
                 Ack ack;
                 Object[] _args;
                 int lastIndex = args.length - 1;
@@ -229,7 +207,7 @@ public class Socket extends Emitter {
                     }
                 }
 
-                Packet<JSONArray> packet = new Packet<JSONArray>(Parser.EVENT, jsonArgs);
+                Packet<JSONArray> packet = new Packet<>(Parser.EVENT, jsonArgs);
 
                 if (ack != null) {
                     logger.fine(String.format("emitting packet with ack id %d", ids));
@@ -257,14 +235,10 @@ public class Socket extends Emitter {
     private void onopen() {
         logger.fine("transport is open - connecting");
 
-        if (!"/".equals(this.nsp)) {
-            if (this.query != null && !this.query.isEmpty()) {
-                Packet packet = new Packet(Parser.CONNECT);
-                packet.query = this.query;
-                this.packet(packet);
-            } else {
-                this.packet(new Packet(Parser.CONNECT));
-            }
+        if (this.auth != null) {
+            this.packet(new Packet<>(Parser.CONNECT, new JSONObject(this.auth)));
+        } else {
+            this.packet(new Packet<>(Parser.CONNECT));
         }
     }
 
@@ -274,16 +248,24 @@ public class Socket extends Emitter {
         }
         this.connected = false;
         this.id = null;
-        this.emit(EVENT_DISCONNECT, reason);
+        super.emit(EVENT_DISCONNECT, reason);
     }
 
     private void onpacket(Packet<?> packet) {
         if (!this.nsp.equals(packet.nsp)) return;
 
         switch (packet.type) {
-            case Parser.CONNECT:
-                this.onconnect();
+            case Parser.CONNECT: {
+                if (packet.data instanceof JSONObject && ((JSONObject) packet.data).has("sid")) {
+                    try {
+                        this.onconnect(((JSONObject) packet.data).getString("sid"));
+                        return;
+                    } catch (JSONException e) {}
+                } else {
+                    super.emit(EVENT_CONNECT_ERROR, new SocketIOException("It seems you are trying to reach a Socket.IO server in v2.x with a v3.x client, which is not possible"));
+                }
                 break;
+            }
 
             case Parser.EVENT:
             case Parser.BINARY_EVENT: {
@@ -305,14 +287,14 @@ public class Socket extends Emitter {
                 this.ondisconnect();
                 break;
 
-            case Parser.ERROR:
-                this.emit(EVENT_ERROR, packet.data);
+            case Parser.CONNECT_ERROR:
+                super.emit(EVENT_CONNECT_ERROR, packet.data);
                 break;
         }
     }
 
     private void onevent(Packet<JSONArray> packet) {
-        List<Object> args = new ArrayList<Object>(Arrays.asList(toArray(packet.data)));
+        List<Object> args = new ArrayList<>(Arrays.asList(toArray(packet.data)));
         if (logger.isLoggable(Level.FINE)) {
             logger.fine(String.format("emitting event %s", args));
         }
@@ -351,7 +333,7 @@ public class Socket extends Emitter {
                             jsonArgs.put(arg);
                         }
 
-                        Packet<JSONArray> packet = new Packet<JSONArray>(Parser.ACK, jsonArgs);
+                        Packet<JSONArray> packet = new Packet<>(Parser.ACK, jsonArgs);
                         packet.id = id;
                         self.packet(packet);
                     }
@@ -377,16 +359,20 @@ public class Socket extends Emitter {
         }
     }
 
-    private void onconnect() {
+    private void onconnect(String id) {
         this.connected = true;
-        this.emit(EVENT_CONNECT);
+        this.id = id;
         this.emitBuffered();
+        super.emit(EVENT_CONNECT);
     }
 
     private void emitBuffered() {
         List<Object> data;
         while ((data = this.receiveBuffer.poll()) != null) {
-            String event = (String) data.get(0);
+            if (data.isEmpty()) {
+                continue;
+            }
+            String event = data.remove(0).toString();
             super.emit(event, data.toArray());
         }
         this.receiveBuffer.clear();
@@ -423,7 +409,7 @@ public class Socket extends Emitter {
                 ((AckWithTimeOut) ack).cancelTimer();
         }
 
-        this.io.destroy(this);
+        this.io.destroy();
     }
 
     /**

@@ -16,6 +16,7 @@ import javax.net.ssl.X509TrustManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.util.concurrent.BlockingQueue;
@@ -39,8 +40,8 @@ public class SSLConnectionTest extends Connection {
     }
 
     @Override
-    String uri() {
-        return "https://localhost:" + PORT;
+    URI uri() {
+        return URI.create("https://localhost:" + PORT);
     }
 
     @Override
@@ -66,7 +67,7 @@ public class SSLConnectionTest extends Connection {
         TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
         tmf.init(ks);
 
-        SSLContext sslContext = SSLContext.getInstance("TLSv1");
+        SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
         sOkHttpClient = new OkHttpClient.Builder()
@@ -88,7 +89,7 @@ public class SSLConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void connect() throws Exception {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = createOptions();
         opts.callFactory = sOkHttpClient;
         opts.webSocketFactory = sOkHttpClient;
@@ -112,7 +113,7 @@ public class SSLConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void defaultSSLContext() throws Exception {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.setDefaultOkHttpWebSocketFactory(sOkHttpClient);
         IO.setDefaultOkHttpCallFactory(sOkHttpClient);
         socket = client();

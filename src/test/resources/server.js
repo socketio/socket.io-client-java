@@ -18,8 +18,12 @@ var port = process.env.PORT || 3000;
 var nsp = process.argv[2] || '/';
 var slice = Array.prototype.slice;
 
-io.of('/foo').on('connection', function() {
-  // register namespace
+const fooNsp = io.of('/foo');
+
+fooNsp.on('connection', (socket) => {
+  socket.on('room', (...args) => {
+    fooNsp.to(socket.id).emit.apply(fooNsp, ['roomBack'].concat(args));
+  });
 });
 
 io.of('/timeout_socket').on('connection', function() {
@@ -36,6 +40,12 @@ io.of('/asd').on('connection', function() {
 
 io.of('/abc').on('connection', function(socket) {
   socket.emit('handshake', socket.handshake);
+});
+
+io.of("/no").use((socket, next) => {
+  const err = new Error("auth failed");
+  err.data = { a: "b", c: 3 };
+  next(err);
 });
 
 io.of(nsp).on('connection', function(socket) {
@@ -84,9 +94,8 @@ io.of(nsp).on('connection', function(socket) {
     socket.broadcast.emit.apply(socket, ['broadcastBack'].concat(args));
   });
 
-  socket.on('room', function() {
-    var args = slice.call(arguments);
-    io.to(socket.id).emit.apply(socket, ['roomBack'].concat(args));
+  socket.on('room', (arg) => {
+    io.to(socket.id).emit("roomBack", arg);
   });
 
   socket.on('requestDisconnect', function() {

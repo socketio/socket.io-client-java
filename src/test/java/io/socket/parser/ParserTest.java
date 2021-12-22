@@ -27,12 +27,12 @@ public class ParserTest {
 
     @Test
     public void encodeEvent() throws JSONException {
-        Packet<JSONArray> packet1 = new Packet<JSONArray>(Parser.EVENT);
+        Packet<JSONArray> packet1 = new Packet<>(Parser.EVENT);
         packet1.data = new JSONArray("[\"a\", 1, {}]");
         packet1.nsp = "/";
         Helpers.test(packet1);
 
-        Packet<JSONArray> packet2 = new Packet<JSONArray>(Parser.EVENT);
+        Packet<JSONArray> packet2 = new Packet<>(Parser.EVENT);
         packet2.data = new JSONArray("[\"a\", 1, {}]");
         packet2.nsp = "/test";
         Helpers.test(packet2);
@@ -40,7 +40,7 @@ public class ParserTest {
 
     @Test
     public void encodeAck() throws JSONException {
-        Packet<JSONArray> packet = new Packet<JSONArray>(Parser.ACK);
+        Packet<JSONArray> packet = new Packet<>(Parser.ACK);
         packet.data = new JSONArray("[\"a\", 1, {}]");
         packet.id = 123;
         packet.nsp = "/";
@@ -63,5 +63,8 @@ public class ParserTest {
         Helpers.testDecodeError(Parser.EVENT + "2sd");
         // event with invalid json data
         Helpers.testDecodeError(Parser.EVENT + "2[\"a\",1,{asdf}]");
+        Helpers.testDecodeError(Parser.EVENT + "2{}");
+        Helpers.testDecodeError(Parser.EVENT + "2[]");
+        Helpers.testDecodeError(Parser.EVENT + "2[null]");
     }
 }

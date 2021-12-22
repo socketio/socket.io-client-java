@@ -2,6 +2,7 @@ package io.socket.client;
 
 import io.socket.backo.Backoff;
 import io.socket.emitter.Emitter;
+import io.socket.parser.DecodingException;
 import io.socket.parser.IOParser;
 import io.socket.parser.Packet;
 import io.socket.parser.Parser;
@@ -10,16 +11,7 @@ import okhttp3.Call;
 import okhttp3.WebSocket;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,16 +41,6 @@ public class Manager extends Emitter {
     public static final String EVENT_ERROR = "error";
 
     /**
-     * Called on a connection error.
-     */
-    public static final String EVENT_CONNECT_ERROR = "connect_error";
-
-    /**
-     * Called on a connection timeout.
-     */
-    public static final String EVENT_CONNECT_TIMEOUT = "connect_timeout";
-
-    /**
      * Called on a successful reconnection.
      */
     public static final String EVENT_RECONNECT = "reconnect";
@@ -71,12 +53,6 @@ public class Manager extends Emitter {
     public static final String EVENT_RECONNECT_FAILED = "reconnect_failed";
 
     public static final String EVENT_RECONNECT_ATTEMPT = "reconnect_attempt";
-
-    public static final String EVENT_RECONNECTING = "reconnecting";
-
-    public static final String EVENT_PING = "ping";
-
-    public static final String EVENT_PONG = "pong";
 
     /**
      * Called when a new transport is created. (experimental)
@@ -98,8 +74,6 @@ public class Manager extends Emitter {
     private double _randomizationFactor;
     private Backoff backoff;
     private long _timeout;
-    private Set<Socket> connecting = new HashSet<Socket>();
-    private Date lastPing;
     private URI uri;
     private List<Packet> packetBuffer;
     private Queue<On.Handle> subs;
@@ -140,8 +114,8 @@ public class Manager extends Emitter {
             opts.callFactory = defaultCallFactory;
         }
         this.opts = opts;
-        this.nsps = new ConcurrentHashMap<String, Socket>();
-        this.subs = new LinkedList<On.Handle>();
+        this.nsps = new ConcurrentHashMap<>();
+        this.subs = new LinkedList<>();
         this.reconnection(opts.reconnection);
         this.reconnectionAttempts(opts.reconnectionAttempts != 0 ? opts.reconnectionAttempts : Integer.MAX_VALUE);
         this.reconnectionDelay(opts.reconnectionDelay != 0 ? opts.reconnectionDelay : 1000);
@@ -155,31 +129,9 @@ public class Manager extends Emitter {
         this.readyState = ReadyState.CLOSED;
         this.uri = uri;
         this.encoding = false;
-        this.packetBuffer = new ArrayList<Packet>();
+        this.packetBuffer = new ArrayList<>();
         this.encoder = opts.encoder != null ? opts.encoder : new IOParser.Encoder();
         this.decoder = opts.decoder != null ? opts.decoder : new IOParser.Decoder();
-    }
-
-    private void emitAll(String event, Object... args) {
-        this.emit(event, args);
-        for (Socket socket : this.nsps.values()) {
-            socket.emit(event, args);
-        }
-    }
-
-    /**
-     * Update `socket.id` of all sockets
-     */
-    private void updateSocketIds() {
-        for (Map.Entry<String, Socket> entry : this.nsps.entrySet()) {
-            String nsp = entry.getKey();
-            Socket socket = entry.getValue();
-            socket.id = this.generateId(nsp);
-        }
-    }
-
-    private String generateId(String nsp) {
-        return ("/".equals(nsp) ? "" : (nsp + "#")) + this.engine.id();
     }
 
     public boolean reconnection() {
@@ -189,6 +141,10 @@ public class Manager extends Emitter {
     public Manager reconnection(boolean v) {
         this._reconnection = v;
         return this;
+    }
+
+    public boolean isReconnecting() {
+        return reconnecting;
     }
 
     public int reconnectionAttempts() {
@@ -303,7 +259,7 @@ public class Manager extends Emitter {
                         logger.fine("connect_error");
                         self.cleanup();
                         self.readyState = ReadyState.CLOSED;
-                        self.emitAll(EVENT_CONNECT_ERROR, data);
+                        self.emit(EVENT_ERROR, data);
                         if (fn != null) {
                             Exception err = new SocketIOException("Connection error",
                                     data instanceof Exception ? (Exception) data : null);
@@ -315,24 +271,28 @@ public class Manager extends Emitter {
                     }
                 });
 
-                if (Manager.this._timeout >= 0) {
-                    final long timeout = Manager.this._timeout;
+                final long timeout = Manager.this._timeout;
+                final Runnable onTimeout = new Runnable() {
+                    @Override
+                    public void run() {
+                        logger.fine(String.format("connect attempt timed out after %d", timeout));
+                        openSub.destroy();
+                        socket.close();
+                        socket.emit(Engine.EVENT_ERROR, new SocketIOException("timeout"));
+                    }
+                };
+
+                if (timeout == 0) {
+                    EventThread.exec(onTimeout);
+                    return;
+                } else if (Manager.this._timeout > 0) {
                     logger.fine(String.format("connection attempt will timeout after %d", timeout));
 
                     final Timer timer = new Timer();
                     timer.schedule(new TimerTask() {
                         @Override
                         public void run() {
-                            EventThread.exec(new Runnable() {
-                                @Override
-                                public void run() {
-                                    logger.fine(String.format("connect attempt timed out after %d", timeout));
-                                    openSub.destroy();
-                                    socket.close();
-                                    socket.emit(Engine.EVENT_ERROR, new SocketIOException("timeout"));
-                                    self.emitAll(EVENT_CONNECT_TIMEOUT, timeout);
-                                }
-                            });
+                            EventThread.exec(onTimeout);
                         }
                     }, timeout);
 
@@ -366,23 +326,15 @@ public class Manager extends Emitter {
             @Override
             public void call(Object... objects) {
                 Object data = objects[0];
-                if (data instanceof String) {
-                    Manager.this.ondata((String)data);
-                } else if (data instanceof byte[]) {
-                    Manager.this.ondata((byte[])data);
+                try {
+                    if (data instanceof String) {
+                        Manager.this.decoder.add((String) data);
+                    } else if (data instanceof byte[]) {
+                        Manager.this.decoder.add((byte[]) data);
+                    }
+                } catch (DecodingException e) {
+                    logger.fine("error while decoding the packet: " + e.getMessage());
                 }
-            }
-        }));
-        this.subs.add(On.on(socket, Engine.EVENT_PING, new Listener() {
-            @Override
-            public void call(Object... objects) {
-                Manager.this.onping();
-            }
-        }));
-        this.subs.add(On.on(socket, Engine.EVENT_PONG, new Listener() {
-            @Override
-            public void call(Object... objects) {
-                Manager.this.onpong();
             }
         }));
         this.subs.add(On.on(socket, Engine.EVENT_ERROR, new Listener() {
@@ -405,31 +357,13 @@ public class Manager extends Emitter {
         });
     }
 
-    private void onping() {
-        this.lastPing = new Date();
-        this.emitAll(EVENT_PING);
-    }
-
-    private void onpong() {
-        this.emitAll(EVENT_PONG,
-                null != this.lastPing ? new Date().getTime() - this.lastPing.getTime() : 0);
-    }
-
-    private void ondata(String data) {
-        this.decoder.add(data);
-    }
-
-    private void ondata(byte[] data) {
-        this.decoder.add(data);
-    }
-
     private void ondecoded(Packet packet) {
         this.emit(EVENT_PACKET, packet);
     }
 
     private void onerror(Exception err) {
         logger.log(Level.FINE, "error", err);
-        this.emitAll(EVENT_ERROR, err);
+        this.emit(EVENT_ERROR, err);
     }
 
     /**
@@ -440,41 +374,31 @@ public class Manager extends Emitter {
      * @return a socket instance for the namespace.
      */
     public Socket socket(final String nsp, Options opts) {
-        Socket socket = this.nsps.get(nsp);
-        if (socket == null) {
-            socket = new Socket(this, nsp, opts);
-            Socket _socket = this.nsps.putIfAbsent(nsp, socket);
-            if (_socket != null) {
-                socket = _socket;
-            } else {
-                final Manager self = this;
-                final Socket s = socket;
-                socket.on(Socket.EVENT_CONNECTING, new Listener() {
-                    @Override
-                    public void call(Object... args) {
-                        self.connecting.add(s);
-                    }
-                });
-                socket.on(Socket.EVENT_CONNECT, new Listener() {
-                    @Override
-                    public void call(Object... objects) {
-                        s.id = self.generateId(nsp);
-                    }
-                });
+        synchronized (this.nsps) {
+            Socket socket = this.nsps.get(nsp);
+            if (socket == null) {
+                socket = new Socket(this, nsp, opts);
+                this.nsps.put(nsp, socket);
             }
+            return socket;
         }
-        return socket;
     }
 
     public Socket socket(String nsp) {
         return socket(nsp, null);
     }
 
-    /*package*/ void destroy(Socket socket) {
-        this.connecting.remove(socket);
-        if (!this.connecting.isEmpty()) return;
+    /*package*/ void destroy() {
+        synchronized (this.nsps) {
+            for (Socket socket : this.nsps.values()) {
+                if (socket.isActive()) {
+                    logger.fine("socket is still active, skipping close");
+                    return;
+                }
+            }
 
-        this.close();
+            this.close();
+        }
     }
 
     /*package*/ void packet(Packet packet) {
@@ -482,10 +406,6 @@ public class Manager extends Emitter {
             logger.fine(String.format("writing packet %s", packet));
         }
         final Manager self = this;
-
-        if (packet.query != null && !packet.query.isEmpty() && packet.type == Parser.CONNECT) {
-            packet.nsp += "?" + packet.query;
-        }
 
         if (!self.encoding) {
             self.encoding = true;
@@ -524,7 +444,6 @@ public class Manager extends Emitter {
 
         this.packetBuffer.clear();
         this.encoding = false;
-        this.lastPing = null;
 
         this.decoder.destroy();
     }
@@ -565,7 +484,7 @@ public class Manager extends Emitter {
         if (this.backoff.getAttempts() >= this._reconnectionAttempts) {
             logger.fine("reconnect failed");
             this.backoff.reset();
-            this.emitAll(EVENT_RECONNECT_FAILED);
+            this.emit(EVENT_RECONNECT_FAILED);
             this.reconnecting = false;
         } else {
             long delay = this.backoff.duration();
@@ -583,8 +502,7 @@ public class Manager extends Emitter {
 
                             logger.fine("attempting reconnect");
                             int attempts = self.backoff.getAttempts();
-                            self.emitAll(EVENT_RECONNECT_ATTEMPT, attempts);
-                            self.emitAll(EVENT_RECONNECTING, attempts);
+                            self.emit(EVENT_RECONNECT_ATTEMPT, attempts);
 
                             // check again for the case socket closed in above events
                             if (self.skipReconnect) return;
@@ -596,7 +514,7 @@ public class Manager extends Emitter {
                                         logger.fine("reconnect attempt error");
                                         self.reconnecting = false;
                                         self.reconnect();
-                                        self.emitAll(EVENT_RECONNECT_ERROR, err);
+                                        self.emit(EVENT_RECONNECT_ERROR, err);
                                     } else {
                                         logger.fine("reconnect success");
                                         self.onreconnect();
@@ -621,14 +539,13 @@ public class Manager extends Emitter {
         int attempts = this.backoff.getAttempts();
         this.reconnecting = false;
         this.backoff.reset();
-        this.updateSocketIds();
-        this.emitAll(EVENT_RECONNECT, attempts);
+        this.emit(EVENT_RECONNECT, attempts);
     }
 
 
-    public static interface OpenCallback {
+    public interface OpenCallback {
 
-        public void call(Exception err);
+        void call(Exception err);
     }
 
 
@@ -648,6 +565,7 @@ public class Manager extends Emitter {
         public double randomizationFactor;
         public Parser.Encoder encoder;
         public Parser.Decoder decoder;
+        public Map<String, String> auth;
 
         /**
          * Connection timeout (ms). Set -1 to disable.
