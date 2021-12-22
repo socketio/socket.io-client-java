@@ -16,8 +16,8 @@ public class On {
         };
     }
 
-    public static interface Handle {
+    public interface Handle {
 
-        public void destroy();
+        void destroy();
     }
 }

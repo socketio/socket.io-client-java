@@ -11,6 +11,9 @@ import org.junit.runners.JUnit4;
 
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -25,8 +28,8 @@ public class ServerConnectionTest extends Connection {
     private Socket socket2;
 
     @Test(timeout = TIMEOUT)
-    public void openAndClose() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void openAndClose() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -50,8 +53,8 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void message() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void message() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -74,7 +77,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void event() throws Exception {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         final JSONObject obj = new JSONObject();
         obj.put("foo", 1);
@@ -103,7 +106,7 @@ public class ServerConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void ack() throws Exception {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         final JSONObject obj = new JSONObject();
         obj.put("foo", 1);
@@ -238,8 +241,8 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void ackWithoutArgs() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void ackWithoutArgs() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -260,8 +263,8 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void ackWithoutArgsFromClient() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void ackWithoutArgsFromClient() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -295,8 +298,8 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void closeEngineConnection() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void closeEngineConnection() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -316,18 +319,14 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void broadcast() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void broadcast() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                try {
-                    socket2 = client();
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
+                socket2 = client();
 
                 socket2.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
                     @Override
@@ -353,8 +352,8 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void room() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void room() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -377,8 +376,8 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void pollingHeaders() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void pollingHeaders() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         IO.Options opts = createOptions();
         opts.transports = new String[] {Polling.NAME};
@@ -412,8 +411,8 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void websocketHandshakeHeaders() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void websocketHandshakeHeaders() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         IO.Options opts = createOptions();
         opts.transports = new String[] {WebSocket.NAME};
@@ -447,8 +446,8 @@ public class ServerConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void disconnectFromServer() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void disconnectFromServer() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {

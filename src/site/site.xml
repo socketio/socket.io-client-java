@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/DECORATION/1.8.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/DECORATION/1.8.0 http://maven.apache.org/xsd/decoration-1.8.0.xsd">
+
+    <skin>
+        <groupId>org.apache.maven.skins</groupId>
+        <artifactId>maven-fluido-skin</artifactId>
+        <version>1.9</version>
+    </skin>
+
+    <bannerLeft>
+        <name>Socket.IO Java client</name>
+    </bannerLeft>
+
+    <custom>
+        <fluidoSkin>
+            <gitHub>
+                <projectId>socketio/socket.io-client-java</projectId>
+                <ribbonOrientation>right</ribbonOrientation>
+                <ribbonColor>gray</ribbonColor>
+            </gitHub>
+        </fluidoSkin>
+    </custom>
+
+    <body>
+        <menu name="Overview">
+            <item name="Installation" href="./installation.html"/>
+            <item name="Initialization" href="./initialization.html"/>
+            <item name="Emitting events" href="./emitting_events.html"/>
+            <item name="Listening to events" href="./listening_to_events.html"/>
+            <item name="The Socket instance" href="./socket_instance.html"/>
+            <item name="Migrating from 1.x" href="./migrating_from_1_x.html"/>
+        </menu>
+
+        <menu name="Miscellaneous">
+            <item name="Changelog" href="./changelog.html"/>
+            <item name="Javadoc" href="./apidocs/index.html"/>
+        </menu>
+
+        <menu ref="reports"/>
+    </body>
+</project>

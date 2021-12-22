@@ -1,7 +1,9 @@
 package io.socket.parser;
 
 import io.socket.hasbinary.HasBinary;
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.util.ArrayList;
@@ -13,10 +15,6 @@ import java.util.logging.Logger;
 final public class IOParser implements Parser {
 
     private static final Logger logger = Logger.getLogger(IOParser.class.getName());
-
-    private static Packet<String> error() {
-        return new Packet<String>(ERROR, "parser error");
-    }
 
     private IOParser() {}
 
@@ -126,12 +124,16 @@ final public class IOParser implements Parser {
             int i = 0;
             int length = str.length();
 
-            Packet<Object> p = new Packet<Object>(Character.getNumericValue(str.charAt(0)));
+            Packet<Object> p = new Packet<>(Character.getNumericValue(str.charAt(0)));
 
-            if (p.type < 0 || p.type > types.length - 1) return error();
+            if (p.type < 0 || p.type > types.length - 1) {
+                throw new DecodingException("unknown packet type " + p.type);
+            }
 
             if (BINARY_EVENT == p.type || BINARY_ACK == p.type) {
-                if (!str.contains("-") || length <= i + 1) return error();
+                if (!str.contains("-") || length <= i + 1) {
+                    throw new DecodingException("illegal attachments");
+                }
                 StringBuilder attachments = new StringBuilder();
                 while (str.charAt(++i) != '-') {
                     attachments.append(str.charAt(i));
@@ -170,7 +172,7 @@ final public class IOParser implements Parser {
                     try {
                         p.id = Integer.parseInt(id.toString());
                     } catch (NumberFormatException e){
-                        return error();
+                        throw new DecodingException("invalid payload");
                     }
                 }
             }
@@ -181,7 +183,10 @@ final public class IOParser implements Parser {
                     p.data = new JSONTokener(str.substring(i)).nextValue();
                 } catch (JSONException e) {
                     logger.log(Level.WARNING, "An error occured while retrieving data from JSONTokener", e);
-                    return error();
+                    throw new DecodingException("invalid payload");
+                }
+                if (!isPayloadValid(p.type, p.data)) {
+                    throw new DecodingException("invalid payload");
                 }
             }
 
@@ -189,6 +194,26 @@ final public class IOParser implements Parser {
                 logger.fine(String.format("decoded %s as %s", str, p));
             }
             return p;
+        }
+
+        private static boolean isPayloadValid(int type, Object payload) {
+            switch (type) {
+                case Parser.CONNECT:
+                case Parser.CONNECT_ERROR:
+                    return payload instanceof JSONObject;
+                case Parser.DISCONNECT:
+                    return payload == null;
+                case Parser.EVENT:
+                case Parser.BINARY_EVENT:
+                    return payload instanceof JSONArray
+                            && ((JSONArray) payload).length() > 0
+                            && !((JSONArray) payload).isNull(0);
+                case Parser.ACK:
+                case Parser.BINARY_ACK:
+                    return payload instanceof JSONArray;
+                default:
+                    return false;
+            }
         }
 
         @Override
@@ -214,7 +239,7 @@ final public class IOParser implements Parser {
 
         BinaryReconstructor(Packet packet) {
             this.reconPack = packet;
-            this.buffers = new ArrayList<byte[]>();
+            this.buffers = new ArrayList<>();
         }
 
         public Packet takeBinaryData(byte[] binData) {
@@ -230,7 +255,7 @@ final public class IOParser implements Parser {
 
         public void finishReconstruction () {
             this.reconPack = null;
-            this.buffers = new ArrayList<byte[]>();
+            this.buffers = new ArrayList<>();
         }
     }
 }

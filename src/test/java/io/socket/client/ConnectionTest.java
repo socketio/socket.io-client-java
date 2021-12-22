@@ -29,8 +29,8 @@ public class ConnectionTest extends Connection {
     private Socket socket;
 
     @Test(timeout = TIMEOUT)
-    public void connectToLocalhost() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void connectToLocalhost() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -50,7 +50,7 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void startTwoConnectionsWithSamePath() throws URISyntaxException, InterruptedException {
+    public void startTwoConnectionsWithSamePath() throws InterruptedException {
         Socket s1 = client("/");
         Socket s2 = client("/");
 
@@ -60,7 +60,7 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void startTwoConnectionsWithSamePathAndDifferentQuerystrings() throws URISyntaxException, InterruptedException {
+    public void startTwoConnectionsWithSamePathAndDifferentQuerystrings() throws InterruptedException {
         Socket s1 = client("/?woot");
         Socket s2 = client("/");
 
@@ -70,8 +70,8 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void workWithAcks() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void workWithAcks() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -111,8 +111,8 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void receiveDateWithAck() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void receiveDateWithAck() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -136,8 +136,8 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void sendBinaryAck() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void sendBinaryAck() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         final byte[] buf = "huehue".getBytes(Charset.forName("UTF-8"));
 
         socket = client();
@@ -168,8 +168,8 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void receiveBinaryDataWithAck() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void receiveBinaryDataWithAck() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         final byte[] buf = "huehue".getBytes(Charset.forName("UTF-8"));
 
         socket = client();
@@ -191,8 +191,8 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void workWithFalse() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void workWithFalse() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -212,8 +212,8 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void receiveUTF8MultibyteCharacters() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void receiveUTF8MultibyteCharacters() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         final String[] correct = new String[] {
             "てすと",
             "Я Б Г Д Ж Й",
@@ -245,9 +245,9 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void connectToNamespaceAfterConnectionEstablished() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
-        final Manager manager = new Manager(new URI(uri()));
+    public void connectToNamespaceAfterConnectionEstablished() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
+        final Manager manager = new Manager(uri());
         socket = manager.socket("/");
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -270,9 +270,9 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void connectToNamespaceAfterConnectionGetsClosed() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
-        final Manager manager = new Manager(new URI(uri()));
+    public void connectToNamespaceAfterConnectionGetsClosed() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
+        final Manager manager = new Manager(uri());
         socket = manager.socket("/");
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -299,8 +299,8 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void reconnectByDefault() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void reconnectByDefault() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.io().on(Manager.EVENT_RECONNECT, new Emitter.Listener() {
             @Override
@@ -320,8 +320,8 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void reconnectManually() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void reconnectManually() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.once(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -346,8 +346,8 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void reconnectAutomaticallyAfterReconnectingManually() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void reconnectAutomaticallyAfterReconnectingManually() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.once(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -357,7 +357,7 @@ public class ConnectionTest extends Connection {
         }).once(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                socket.on(Socket.EVENT_RECONNECT, new Emitter.Listener() {
+                socket.io().on(Manager.EVENT_RECONNECT, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         socket.disconnect();
@@ -378,16 +378,16 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = 14000)
-    public void attemptReconnectsAfterAFailedReconnect() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void attemptReconnectsAfterAFailedReconnect() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = createOptions();
         opts.reconnection = true;
         opts.timeout = 0;
         opts.reconnectionAttempts = 2;
         opts.reconnectionDelay = 10;
-        final Manager manager = new Manager(new URI(uri()), opts);
+        final Manager manager = new Manager(uri(), opts);
         socket = manager.socket("/timeout");
-        socket.once(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
+        manager.once(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 final int[] reconnects = new int[] {0};
@@ -415,15 +415,15 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void reconnectDelayShouldIncreaseEveryTime() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void reconnectDelayShouldIncreaseEveryTime() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = createOptions();
         opts.reconnection = true;
         opts.timeout = 0;
         opts.reconnectionAttempts = 3;
         opts.reconnectionDelay = 100;
         opts.randomizationFactor = 0.2;
-        final Manager manager = new Manager(new URI(uri()), opts);
+        final Manager manager = new Manager(uri(), opts);
         socket = manager.socket("/timeout");
 
         final int[] reconnects = new int[] {0};
@@ -431,13 +431,13 @@ public class ConnectionTest extends Connection {
         final long[] startTime = new long[] {0};
         final long[] prevDelay = new long[] {0};
 
-        socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+        manager.on(Manager.EVENT_ERROR, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 startTime[0] = new Date().getTime();
             }
         });
-        socket.on(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+        manager.on(Manager.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 reconnects[0]++;
@@ -449,7 +449,7 @@ public class ConnectionTest extends Connection {
                 prevDelay[0] = delay;
             }
         });
-        socket.on(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
+        manager.on(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 values.offer(true);
@@ -465,37 +465,16 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void reconnectEventFireInSocket() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
-        socket = client();
-        socket.on(Socket.EVENT_RECONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... objects) {
-                values.offer("done");
-            }
-        });
-        socket.open();
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                socket.io().engine.close();
-            }
-        }, 500);
-        values.take();
-        socket.close();
-    }
-
-    @Test(timeout = TIMEOUT)
     public void notReconnectWhenForceClosed() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = createOptions();
         opts.timeout = 0;
         opts.reconnectionDelay = 10;
         socket = IO.socket(uri() + "/invalid", opts);
-        socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+        socket.io().on(Manager.EVENT_ERROR, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                socket.on(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+                socket.io().on(Manager.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         values.offer(false);
@@ -516,15 +495,15 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void stopReconnectingWhenForceClosed() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = createOptions();
         opts.timeout = 0;
         opts.reconnectionDelay = 10;
         socket = IO.socket(uri() + "/invalid", opts);
-        socket.once(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+        socket.io().once(Manager.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                socket.on(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+                socket.io().on(Manager.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         values.offer(false);
@@ -545,17 +524,17 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void reconnectAfterStoppingReconnection() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void reconnectAfterStoppingReconnection() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = createOptions();
         opts.forceNew = true;
         opts.timeout = 0;
         opts.reconnectionDelay = 10;
         socket = client("/invalid", opts);
-        socket.once(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+        socket.io().once(Manager.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                socket.once(Socket.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
+                socket.io().once(Manager.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         values.offer("done");
@@ -571,9 +550,9 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void stopReconnectingOnASocketAndKeepToReconnectOnAnother() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
-        final Manager manager = new Manager(new URI(uri()));
+    public void stopReconnectingOnASocketAndKeepToReconnectOnAnother() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
+        final Manager manager = new Manager(uri());
         final Socket socket1 = manager.socket("/");
         final Socket socket2 = manager.socket("/asd");
 
@@ -617,10 +596,10 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void connectWhileDisconnectingAnotherSocket() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void connectWhileDisconnectingAnotherSocket() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
-        final Manager manager = new Manager(new URI(uri()));
+        final Manager manager = new Manager(uri());
         final Socket socket1 = manager.socket("/foo");
         socket1.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -644,13 +623,13 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void tryToReconnectTwiceAndFailWithIncorrectAddress() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void tryToReconnectTwiceAndFailWithIncorrectAddress() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = new IO.Options();
         opts.reconnection = true;
         opts.reconnectionAttempts = 2;
         opts.reconnectionDelay = 10;
-        final Manager manager = new Manager(new URI("http://localhost:3940"), opts);
+        final Manager manager = new Manager(URI.create("http://localhost:3940"), opts);
         socket = manager.socket("/asd");
         final int[] reconnects = new int[] {0};
         Emitter.Listener cb = new Emitter.Listener() {
@@ -676,14 +655,14 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void tryToReconnectTwiceAndFailWithImmediateTimeout() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void tryToReconnectTwiceAndFailWithImmediateTimeout() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = new IO.Options();
         opts.reconnection = true;
         opts.timeout = 0;
         opts.reconnectionAttempts = 2;
         opts.reconnectionDelay = 10;
-        final Manager manager = new Manager(new URI(uri()), opts);
+        final Manager manager = new Manager(uri(), opts);
 
         final int[] reconnects = new int[] {0};
         Emitter.Listener reconnectCb = new Emitter.Listener() {
@@ -709,11 +688,11 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void notTryToReconnectWithIncorrectPortWhenReconnectionDisabled() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void notTryToReconnectWithIncorrectPortWhenReconnectionDisabled() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         IO.Options opts = new IO.Options();
         opts.reconnection = false;
-        final Manager manager = new Manager(new URI("http://localhost:9823"), opts);
+        final Manager manager = new Manager(URI.create("http://localhost:9823"), opts);
         Emitter.Listener cb = new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
@@ -722,7 +701,7 @@ public class ConnectionTest extends Connection {
             }
         };
         manager.on(Manager.EVENT_RECONNECT_ATTEMPT, cb);
-        manager.on(Manager.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+        manager.on(Manager.EVENT_ERROR, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
                 Timer timer = new Timer();
@@ -743,15 +722,15 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void fireReconnectEventsOnSocket() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void fireReconnectEventsOnSocket() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         Manager.Options opts = new Manager.Options();
         opts.reconnection = true;
         opts.timeout = 0;
         opts.reconnectionAttempts = 2;
         opts.reconnectionDelay = 10;
-        final Manager manager = new Manager(new URI(uri()), opts);
+        final Manager manager = new Manager(uri(), opts);
         socket = manager.socket("/timeout_socket");
 
         final int[] reconnects = new int[] {0};
@@ -763,8 +742,8 @@ public class ConnectionTest extends Connection {
             }
         };
 
-        socket.on(Socket.EVENT_RECONNECT_ATTEMPT, reconnectCb);
-        socket.on(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
+        manager.on(Manager.EVENT_RECONNECT_ATTEMPT, reconnectCb);
+        manager.on(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
                 socket.close();
@@ -778,15 +757,15 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void fireReconnectingWithAttemptsNumberWhenReconnectingTwice() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void fireReconnectingWithAttemptsNumberWhenReconnectingTwice() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         Manager.Options opts = new Manager.Options();
         opts.reconnection = true;
         opts.timeout = 0;
         opts.reconnectionAttempts = 2;
         opts.reconnectionDelay = 10;
-        final Manager manager = new Manager(new URI(uri()), opts);
+        final Manager manager = new Manager(uri(), opts);
         socket = manager.socket("/timeout_socket");
 
         final int[] reconnects = new int[] {0};
@@ -798,8 +777,8 @@ public class ConnectionTest extends Connection {
             }
         };
 
-        socket.on(Socket.EVENT_RECONNECTING, reconnectCb);
-        socket.on(Socket.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
+        manager.on(Manager.EVENT_RECONNECT_ATTEMPT, reconnectCb);
+        manager.on(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
                 socket.close();
@@ -813,8 +792,8 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void emitDateAsString() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void emitDateAsString() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -834,8 +813,8 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void emitDateInObject() throws URISyntaxException, InterruptedException, JSONException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void emitDateInObject() throws InterruptedException, JSONException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
@@ -864,8 +843,8 @@ public class ConnectionTest extends Connection {
 
 
     @Test(timeout = TIMEOUT)
-    public void sendAndGetBinaryData() throws URISyntaxException, InterruptedException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void sendAndGetBinaryData() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         final byte[] buf = "asdfasdf".getBytes(Charset.forName("UTF-8"));
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -886,8 +865,8 @@ public class ConnectionTest extends Connection {
     }
 
     @Test(timeout = TIMEOUT)
-    public void sendBinaryDataMixedWithJson() throws URISyntaxException, InterruptedException, JSONException {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+    public void sendBinaryDataMixedWithJson() throws InterruptedException, JSONException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         final byte[] buf = "howdy".getBytes(Charset.forName("UTF-8"));
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -920,7 +899,7 @@ public class ConnectionTest extends Connection {
 
     @Test(timeout = TIMEOUT)
     public void sendEventsWithByteArraysInTheCorrectOrder() throws Exception {
-        final BlockingQueue<Object> values = new LinkedBlockingQueue<Object>();
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
         final byte[] buf = "abuff1".getBytes(Charset.forName("UTF-8"));
         socket = client();
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {

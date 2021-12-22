@@ -12,11 +12,11 @@ public class Optional<T> {
         if (value == null) {
             throw new NullPointerException();
         }
-        return new Optional<T>(value);
+        return new Optional<>(value);
     }
 
     public static <T> Optional<T> ofNullable(T value) {
-        return new Optional<T>(value);
+        return new Optional<>(value);
     }
 
     public static Optional<Void> empty() {

@@ -8,7 +8,6 @@ public class Packet<T> {
     public String nsp;
     public T data;
     public int attachments;
-    public String query;
 
     public Packet() {}
 

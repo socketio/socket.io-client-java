@@ -1,7 +1,0 @@
-language: java
-dist: trusty
-sudo: false
-install: mvn install -DskipTests=true -Dgpg.skip=true
-jdk:
-  - openjdk7
-  - oraclejdk8
