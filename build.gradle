@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.bandyer:engine.io-client:2.0.0'
+    api 'com.bandyer:engine.io-client:2.0.0'
     implementation 'org.json:json:20090211'
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.hamcrest:hamcrest-library:1.3'
