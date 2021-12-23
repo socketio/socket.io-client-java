@@ -61,25 +61,26 @@ public class SocketOptionBuilder {
     protected SocketOptionBuilder(IO.Options options) {
         if (options != null) {
             this.setForceNew(options.forceNew)
-                .setMultiplex(options.multiplex)
-                .setReconnection(options.reconnection)
-                .setReconnectionAttempts(options.reconnectionAttempts)
-                .setReconnectionDelay(options.reconnectionDelay)
-                .setReconnectionDelayMax(options.reconnectionDelayMax)
-                .setRandomizationFactor(options.randomizationFactor)
-                .setTimeout(options.timeout)
-                .setTransports(options.transports)
-                .setUpgrade(options.upgrade)
-                .setRememberUpgrade(options.rememberUpgrade)
-                .setHost(options.host)
-                .setHostname(options.hostname)
-                .setPort(options.port)
-                .setPolicyPort(options.policyPort)
-                .setSecure(options.secure)
-                .setPath(options.path)
-                .setQuery(options.query)
-                .setAuth(options.auth)
-                .setExtraHeaders(options.extraHeaders);
+                    .setMultiplex(options.multiplex)
+                    .setReconnection(options.reconnection)
+                    .setReconnectionAttempts(options.reconnectionAttempts)
+                    .setReconnectionDelay(options.reconnectionDelay)
+                    .setReconnectionDelayMax(options.reconnectionDelayMax)
+                    .setRandomizationFactor(options.randomizationFactor)
+                    .setTimeout(options.timeout)
+                    .setTransports(options.transports)
+                    .setUpgrade(options.upgrade)
+                    .setRememberUpgrade(options.rememberUpgrade)
+                    .setHost(options.host)
+                    .setHostname(options.hostname)
+                    .setPort(options.port)
+                    .setPolicyPort(options.policyPort)
+                    .setSecure(options.secure)
+                    .setPath(options.path)
+                    .setQuery(options.query)
+                    .setAuth(options.auth)
+                    .setExtraHeaders(options.extraHeaders)
+                    .setEnablePollingCookies(options.enablePollingCookies);
         }
     }
 
@@ -181,6 +182,11 @@ public class SocketOptionBuilder {
 
     public SocketOptionBuilder setExtraHeaders(Map<String, List<String>> extraHeaders) {
         this.options.extraHeaders = extraHeaders;
+        return this;
+    }
+
+    public SocketOptionBuilder setEnablePollingCookies(boolean enablePollingCookies) {
+        this.options.enablePollingCookies = enablePollingCookies;
         return this;
     }
 
