@@ -13,7 +13,7 @@ public class Url {
 
     private Url() {}
 
-    static class ParsedURI {
+    public static class ParsedURI {
         public final URI uri;
         public final String id;
 
