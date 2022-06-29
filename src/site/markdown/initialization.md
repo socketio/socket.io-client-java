@@ -266,6 +266,37 @@ socket.io().on(Manager.EVENT_RECONNECT_ATTEMPT, new Emitter.Listener() {
 });
 ```
 
+#### `callFactory`
+
+The [OkHttpClient instance](https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/) to use for HTTP long-polling requests.
+
+```java
+OkHttpClient okHttpClient = new OkHttpClient.Builder()
+        .readTimeout(1000, TimeUnit.MILLISECONDS)
+        .writeTimeout(1000, TimeUnit.MILLISECONDS)
+        .build();
+
+IO.Options options = new IO.Options();
+options.callFactory = okHttpClient;
+
+Socket socket = IO.socket(URI.create("https://example.com"), options);
+```
+
+#### `webSocketFactory`
+
+The [OkHttpClient instance](https://square.github.io/okhttp/4.x/okhttp/okhttp3/-ok-http-client/) to use for WebSocket connections.
+
+```java
+OkHttpClient okHttpClient = new OkHttpClient.Builder()
+        .minWebSocketMessageToCompress(2048)
+        .build();
+
+IO.Options options = new IO.Options();
+options.webSocketFactory = okHttpClient;
+
+Socket socket = IO.socket(URI.create("https://example.com"), options);
+```
+
 ### Socket options
 
 These settings are specific to the given Socket instance.
@@ -313,4 +344,85 @@ Or manually force the Socket instance to reconnect:
 ```java
 options.auth.put("token", "efgh");
 socket.disconnect().connect();
+```
+
+## SSL connections
+
+### With a keystore
+
+```java
+HostnameVerifier hostnameVerifier = new HostnameVerifier() {
+    public boolean verify(String hostname, SSLSession sslSession) {
+        return hostname.equals("example.com");
+    }
+};
+
+KeyStore ks = KeyStore.getInstance("JKS");
+File file = new File("path/to/the/keystore.jks");
+ks.load(new FileInputStream(file), "password".toCharArray());
+
+KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+kmf.init(ks, "password".toCharArray());
+
+TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+tmf.init(ks);
+
+SSLContext sslContext = SSLContext.getInstance("TLS");
+sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+OkHttpClient okHttpClient = new OkHttpClient.Builder()
+        .hostnameVerifier(hostnameVerifier)
+        .sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) tmf.getTrustManagers()[0])
+        .build();
+
+IO.Options options = new IO.Options();
+options.callFactory = okHttpClient;
+options.webSocketFactory = okHttpClient;
+
+Socket socket = IO.socket(URI.create("https://example.com"), options);
+```
+
+### Trust all certificates
+
+Please use with caution, as this defeats the whole purpose of using secure connections.
+
+This is equivalent to `rejectUnauthorized: false` for the JavaScript client.
+
+```java
+HostnameVerifier hostnameVerifier = new HostnameVerifier() {
+    @Override
+    public boolean verify(String hostname, SSLSession sslSession) {
+        return true;
+    }
+};
+
+X509TrustManager trustManager = new X509TrustManager() {
+    public X509Certificate[] getAcceptedIssuers() {
+        return new X509Certificate[] {};
+    }
+
+    @Override
+    public void checkClientTrusted(X509Certificate[] arg0, String arg1) {
+        // not implemented
+    }
+
+    @Override
+    public void checkServerTrusted(X509Certificate[] arg0, String arg1) {
+        // not implemented
+    }
+};
+
+SSLContext sslContext = SSLContext.getInstance("TLS");
+sslContext.init(null, new TrustManager[] { trustManager }, null);
+
+OkHttpClient okHttpClient = new OkHttpClient.Builder()
+        .hostnameVerifier(hostnameVerifier)
+        .sslSocketFactory(sslContext.getSocketFactory(), trustManager)
+        .build();
+
+IO.Options options = new IO.Options();
+options.callFactory = okHttpClient;
+options.webSocketFactory = okHttpClient;
+
+Socket socket = IO.socket(URI.create("https://example.com"), options);
 ```
