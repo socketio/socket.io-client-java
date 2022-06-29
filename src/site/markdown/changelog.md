@@ -1,4 +1,16 @@
 
+## [2.0.1](https://github.com/socketio/socket.io-client-java/compare/socket.io-client-2.0.0...socket.io-client-2.0.1) (2021-04-27)
+
+
+### Bug Fixes
+
+* fix usage with ws:// scheme ([67fd5f3](https://github.com/socketio/socket.io-client-java/commit/67fd5f34a31c63f7884f82ab39386ad343527590))
+* ensure buffered events are sent in order ([4885e7d](https://github.com/socketio/socket.io-client-java/commit/4885e7d59fad78285448694cb5681e8a9ce809ef))
+* ensure the payload format is valid ([e8ffe9d](https://github.com/socketio/socket.io-client-java/commit/e8ffe9d1383736f6a21090ab959a2f4fa5a41284))
+* emit a CONNECT_ERROR event upon connection failure ([d324e7f](https://github.com/socketio/socket.io-client-java/commit/d324e7f396a444ddd556c3d70a85a28eefb1e02b))
+
+
+
 ## [2.0.0](https://github.com/socketio/socket.io-client-java/compare/socket.io-client-1.0.1...socket.io-client-2.0.0) (2020-12-14)
 
 
