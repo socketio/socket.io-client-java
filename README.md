@@ -29,6 +29,8 @@ The documentation can be found [here](https://socketio.github.io/socket.io-clien
 
 The source of this documentation is in the `src/site/` directory of the repository. Pull requests are welcome!
 
+TODO: Update multiplexing documentation
+
 ## License
 
 MIT
