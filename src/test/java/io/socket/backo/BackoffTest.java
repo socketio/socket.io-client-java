@@ -44,4 +44,10 @@ public class BackoffTest {
             }
         }
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void ensureJitterIsValid() {
+        Backoff b = new Backoff();
+        b.setJitter(2);
+    }
 }
