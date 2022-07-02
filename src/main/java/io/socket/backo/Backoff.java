@@ -3,6 +3,9 @@ package io.socket.backo;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+/**
+ * Imported from https://github.com/mokesmokes/backo
+ */
 public class Backoff {
 
     private long ms = 100;
@@ -23,7 +26,10 @@ public class Backoff {
                     .multiply(new BigDecimal(ms)).toBigInteger();
             ms = (((int) Math.floor(rand * 10)) & 1) == 0 ? ms.subtract(deviation) : ms.add(deviation);
         }
-        return ms.min(BigInteger.valueOf(this.max)).longValue();
+        return ms
+                .min(BigInteger.valueOf(this.max))
+                .max(BigInteger.valueOf(this.ms))
+                .longValue();
     }
 
     public void reset() {
@@ -46,6 +52,10 @@ public class Backoff {
     }
 
     public Backoff setJitter(double jitter) {
+        boolean isValid = jitter >= 0 && jitter < 1;
+        if (!isValid) {
+            throw new IllegalArgumentException("jitter must be between 0 and 1");
+        }
         this.jitter = jitter;
         return this;
     }
