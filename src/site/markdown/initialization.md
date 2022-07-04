@@ -272,8 +272,7 @@ The [OkHttpClient instance](https://square.github.io/okhttp/4.x/okhttp/okhttp3/-
 
 ```java
 OkHttpClient okHttpClient = new OkHttpClient.Builder()
-        .readTimeout(1000, TimeUnit.MILLISECONDS)
-        .writeTimeout(1000, TimeUnit.MILLISECONDS)
+        .readTimeout(1, TimeUnit.MINUTES) // important for HTTP long-polling
         .build();
 
 IO.Options options = new IO.Options();
@@ -421,6 +420,7 @@ sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 OkHttpClient okHttpClient = new OkHttpClient.Builder()
         .hostnameVerifier(hostnameVerifier)
         .sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) tmf.getTrustManagers()[0])
+        .readTimeout(1, TimeUnit.MINUTES) // important for HTTP long-polling
         .build();
 
 IO.Options options = new IO.Options();
@@ -466,6 +466,7 @@ sslContext.init(null, new TrustManager[] { trustManager }, null);
 OkHttpClient okHttpClient = new OkHttpClient.Builder()
         .hostnameVerifier(hostnameVerifier)
         .sslSocketFactory(sslContext.getSocketFactory(), trustManager)
+        .readTimeout(1, TimeUnit.MINUTES) // important for HTTP long-polling
         .build();
 
 IO.Options options = new IO.Options();
