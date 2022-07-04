@@ -153,7 +153,17 @@ It is the name of the path that is captured on the server side.
 
 The server and the client values must match:
 
-*Server*
+*Client*
+
+```java
+IO.Options options = IO.Options.builder()
+        .setPath("/my-custom-path/")
+        .build();
+
+Socket socket = IO.socket(URI.create("https://example.com"), options);
+```
+
+*JavaScript Server*
 
 ```js
 import { Server } from "socket.io";
@@ -165,16 +175,6 @@ const io = new Server(8080, {
 io.on("connection", (socket) => {
   // ...
 });
-```
-
-*Client*
-
-```java
-IO.Options options = IO.Options.builder()
-        .setPath("/my-custom-path/")
-        .build();
-
-Socket socket = IO.socket(URI.create("https://example.com"), options);
 ```
 
 Please note that this is different from the path in the URI, which represents the [Namespace](https://socket.io/docs/v4/namespaces/).
@@ -200,14 +200,6 @@ Additional query parameters (then found in `socket.handshake.query` object on th
 
 Example:
 
-*Server*
-
-```js
-io.on("connection", (socket) => {
-  console.log(socket.handshake.query); // prints { x: '42', EIO: '4', transport: 'polling' }
-});
-```
-
 *Client*
 
 ```java
@@ -216,6 +208,14 @@ IO.Options options = IO.Options.builder()
         .build();
 
 Socket socket = IO.socket(URI.create("https://example.com"), options);
+```
+
+*JavaScript Server*
+
+```js
+io.on("connection", (socket) => {
+  console.log(socket.handshake.query); // prints { x: '42', EIO: '4', transport: 'polling' }
+});
 ```
 
 Note: The `socket.handshake.query` object contains the query parameters that were sent during the Socket.IO handshake, it won't be updated for the duration of the current session, which means changing the `query` on the client-side will only be effective when the current session is closed and a new one is created:
@@ -237,14 +237,6 @@ Additional headers (then found in `socket.handshake.headers` object on the serve
 
 Example:
 
-*Server*
-
-```js
-io.on("connection", (socket) => {
-  console.log(socket.handshake.headers); // prints { accept: '*/*', authorization: 'bearer 1234', connection: 'Keep-Alive', 'accept-encoding': 'gzip', 'user-agent': 'okhttp/3.12.12' }
-});
-```
-
 *Client*
 
 ```java
@@ -253,6 +245,14 @@ IO.Options options = IO.Options.builder()
         .build();
 
 Socket socket = IO.socket(URI.create("https://example.com"), options);
+```
+
+*JavaScript Server*
+
+```js
+io.on("connection", (socket) => {
+  console.log(socket.handshake.headers); // prints { accept: '*/*', authorization: 'bearer 1234', connection: 'Keep-Alive', 'accept-encoding': 'gzip', 'user-agent': 'okhttp/3.12.12' }
+});
 ```
 
 Note: Similar to the `query` option above, the `socket.handshake.headers` object contains the headers that were sent during the Socket.IO handshake, it won't be updated for the duration of the current session, which means changing the `extraHeaders` on the client-side will only be effective when the current session is closed and a new one is created:
@@ -297,6 +297,54 @@ options.webSocketFactory = okHttpClient;
 Socket socket = IO.socket(URI.create("https://example.com"), options);
 ```
 
+### Manager options
+
+These settings will be shared by all Socket instances attached to the same Manager.
+
+#### `reconnection`
+
+Default value: `true`
+
+Whether reconnection is enabled or not. If set to `false`, you need to manually reconnect.
+
+#### `reconnectionAttempts`
+
+Default value: `Integer.MAX_VALUE`
+
+The number of reconnection attempts before giving up.
+
+#### `reconnectionDelay`
+
+Default value: `1_000`
+
+The initial delay before reconnection in milliseconds (affected by the [randomizationFactor](#randomizationfactor) value).
+
+#### `reconnectionDelayMax`
+
+Default value: `5_000`
+
+The maximum delay between two reconnection attempts. Each attempt increases the reconnection delay by 2x.
+
+#### `randomizationFactor`
+
+Default value: `0.5`
+
+The randomization factor used when reconnecting (so that the clients do not reconnect at the exact same time after a server crash, for example).
+
+Example with the default values:
+
+- 1st reconnection attempt happens between 500 and 1500 ms (`1000 * 2^0 * (<something between -0.5 and 1.5>)`)
+- 2nd reconnection attempt happens between 1000 and 3000 ms (`1000 * 2^1 * (<something between -0.5 and 1.5>)`)
+- 3rd reconnection attempt happens between 2000 and 5000 ms (`1000 * 2^2 * (<something between -0.5 and 1.5>)`)
+- next reconnection attempts happen after 5000 ms
+
+#### `timeout`
+
+Default value: `20_000`
+
+The timeout in milliseconds for each connection attempt.
+
+
 ### Socket options
 
 These settings are specific to the given Socket instance.
@@ -309,14 +357,6 @@ Credentials that are sent when accessing a namespace (see also [here](https://so
 
 Example:
 
-*Server*
-
-```js
-io.on("connection", (socket) => {
-  console.log(socket.handshake.auth); // prints { token: 'abcd' }
-});
-```
-
 *Client*
 
 ```java
@@ -325,6 +365,14 @@ IO.Options options = IO.Options.builder()
         .build();
 
 Socket socket = IO.socket(URI.create("https://example.com"), options);
+```
+
+*JavaScript Server*
+
+```js
+io.on("connection", (socket) => {
+  console.log(socket.handshake.auth); // prints { token: 'abcd' }
+});
 ```
 
 You can update the `auth` map when the access to the Namespace is denied:
