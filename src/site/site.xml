@@ -30,6 +30,7 @@
             <item name="Listening to events" href="./listening_to_events.html"/>
             <item name="The Socket instance" href="./socket_instance.html"/>
             <item name="Migrating from 1.x" href="./migrating_from_1_x.html"/>
+            <item name="Logging" href="./logging.html"/>
             <item name="FAQ" href="./faq.html"/>
             <item name="Android" href="./android.html"/>
         </menu>
