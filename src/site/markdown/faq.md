@@ -121,3 +121,30 @@ Sticky sessions can be enabled on AWS Application Load Balancers, which works by
 Please see [above](#how-to-deal-with-cookies) for how to deal with cookies.
 
 Reference: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/sticky-sessions.html
+
+## How to force TLS v1.2 and above
+
+This library relies on the OkHttp library to create HTTP requests and WebSocket connections.
+
+Reference: https://square.github.io/okhttp/
+
+We currently depend on version `3.12.12`, which is the last version that supports Java 7+ and Android 2.3+ (API level 9+). With this version, the OkHttpClient allows `TLSv1` and `TLSv1.1` by default ([MODERN_TLS](https://square.github.io/okhttp/security/tls_configuration_history/#modern_tls-versions_1) configuration).
+
+You can overwrite it by providing your own OkHttp client:
+
+```java
+OkHttpClient okHttpClient = new OkHttpClient.Builder()
+        .connectionSpecs(Arrays.asList(
+            ConnectionSpec.RESTRICTED_TLS
+        ))
+        .readTimeout(1, TimeUnit.MINUTES) // important for HTTP long-polling
+        .build();
+
+IO.Options options = new IO.Options();
+options.callFactory = okHttpClient;
+options.webSocketFactory = okHttpClient;
+
+Socket socket = IO.socket(URI.create("https://example.com"), options);
+```
+
+Note: we will upgrade to OkHttp 4 in the next major version.
