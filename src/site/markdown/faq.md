@@ -148,3 +148,32 @@ Socket socket = IO.socket(URI.create("https://example.com"), options);
 ```
 
 Note: we will upgrade to OkHttp 4 in the next major version.
+
+## How to create a lot of clients
+
+By default, you won't be able to create more than 5 Socket.IO clients (any additional client will be disconnected with "transport error" or "ping timeout" reason). That is due to the default OkHttp [dispatcher](https://square.github.io/okhttp/4.x/okhttp/okhttp3/-dispatcher/), whose `maxRequestsPerHost` is set to 5 by default.
+
+You can overwrite it by providing your own OkHttp client:
+
+```java
+int MAX_CLIENTS = 100;
+
+Dispatcher dispatcher = new Dispatcher();
+dispatcher.setMaxRequests(MAX_CLIENTS * 2);
+dispatcher.setMaxRequestsPerHost(MAX_CLIENTS * 2);
+
+OkHttpClient okHttpClient = new OkHttpClient.Builder()
+        .dispatcher(dispatcher)
+        .readTimeout(1, TimeUnit.MINUTES) // important for HTTP long-polling
+        .build();
+
+IO.Options options = new IO.Options();
+options.callFactory = okHttpClient;
+options.webSocketFactory = okHttpClient;
+
+for (int i = 0; i < MAX_CLIENTS; i++) {
+    Socket socket=IO.socket(URI.create("https://example.com"), options);
+}
+```
+
+Note: we use `MAX_CLIENTS * 2` because a client in HTTP long-polling mode will have one long-running GET request for receiving data from the server, and will create a POST request for sending data to the server.
