@@ -74,7 +74,8 @@
 <ul>
 <li><a href="#How_to_deal_with_cookies">How to deal with cookies</a></li>
 <li><a href="#How_to_use_with_AWS_Load_Balancing">How to use with AWS Load Balancing</a></li>
-<li><a href="#How_to_force_TLS_v1.2_and_above">How to force TLS v1.2 and above</a></li></ul>
+<li><a href="#How_to_force_TLS_v1.2_and_above">How to force TLS v1.2 and above</a></li>
+<li><a href="#How_to_create_a_lot_of_clients">How to create a lot of clients</a></li></ul>
 <section>
 <h2><a name="How_to_deal_with_cookies"></a>How to deal with cookies</h2>
 <p>In order to store the cookies sent by the server and include them in all subsequent requests, you need to create an OkHttpClient with a custom <a class="externalLink" href="https://square.github.io/okhttp/4.x/okhttp/okhttp3/-cookie-jar/">cookie jar</a>.</p>
@@ -210,7 +211,33 @@ options.webSocketFactory = okHttpClient;
 Socket socket = IO.socket(URI.create(&quot;https://example.com&quot;), options);
 </pre></div></div>
 
-<p>Note: we will upgrade to OkHttp 4 in the next major version.</p></section>
+<p>Note: we will upgrade to OkHttp 4 in the next major version.</p></section><section>
+<h2><a name="How_to_create_a_lot_of_clients"></a>How to create a lot of clients</h2>
+<p>By default, you won&#x2019;t be able to create more than 5 Socket.IO clients (any additional client will be disconnected with &#x201c;transport error&#x201d; or &#x201c;ping timeout&#x201d; reason). That is due to the default OkHttp <a class="externalLink" href="https://square.github.io/okhttp/4.x/okhttp/okhttp3/-dispatcher/">dispatcher</a>, whose <code>maxRequestsPerHost</code> is set to 5 by default.</p>
+<p>You can overwrite it by providing your own OkHttp client:</p>
+
+<div class="source">
+<div class="source"><pre class="prettyprint">int MAX_CLIENTS = 100;
+
+Dispatcher dispatcher = new Dispatcher();
+dispatcher.setMaxRequests(MAX_CLIENTS * 2);
+dispatcher.setMaxRequestsPerHost(MAX_CLIENTS * 2);
+
+OkHttpClient okHttpClient = new OkHttpClient.Builder()
+        .dispatcher(dispatcher)
+        .readTimeout(1, TimeUnit.MINUTES) // important for HTTP long-polling
+        .build();
+
+IO.Options options = new IO.Options();
+options.callFactory = okHttpClient;
+options.webSocketFactory = okHttpClient;
+
+for (int i = 0; i &lt; MAX_CLIENTS; i++) {
+    Socket socket=IO.socket(URI.create(&quot;https://example.com&quot;), options);
+}
+</pre></div></div>
+
+<p>Note: we use <code>MAX_CLIENTS * 2</code> because a client in HTTP long-polling mode will have one long-running GET request for receiving data from the server, and will create a POST request for sending data to the server.</p></section>
         </main>
       </div>
     </div>
