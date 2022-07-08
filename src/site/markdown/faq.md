@@ -172,8 +172,36 @@ options.callFactory = okHttpClient;
 options.webSocketFactory = okHttpClient;
 
 for (int i = 0; i < MAX_CLIENTS; i++) {
-    Socket socket=IO.socket(URI.create("https://example.com"), options);
+    Socket socket = IO.socket(URI.create("https://example.com"), options);
 }
 ```
 
 Note: we use `MAX_CLIENTS * 2` because a client in HTTP long-polling mode will have one long-running GET request for receiving data from the server, and will create a POST request for sending data to the server.
+
+## How to properly close a client
+
+Calling `socket.disconnect()` may not be sufficient, because the underlying OkHttp client [creates](https://github.com/square/okhttp/blob/06d38cb795d82d086f13c595a62ce0cbe60904ac/okhttp/src/main/java/okhttp3/Dispatcher.java#L65-L66) a ThreadPoolExecutor that will prevent your Java program from quitting for 60 seconds.
+
+As a workaround, you can manually shut down this ThreadPoolExecutor:
+
+```java
+Dispatcher dispatcher = new Dispatcher();
+
+OkHttpClient okHttpClient = new OkHttpClient.Builder()
+        .dispatcher(dispatcher)
+        .readTimeout(1, TimeUnit.MINUTES) // important for HTTP long-polling
+        .build();
+
+IO.Options options = new IO.Options();
+options.callFactory = okHttpClient;
+options.webSocketFactory = okHttpClient;
+
+Socket socket = IO.socket(URI.create("https://example.com"), options);
+
+socket.connect();
+
+// then later
+
+socket.disconnect();
+dispatcher.executorService().shutdown();
+```
