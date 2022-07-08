@@ -395,4 +395,59 @@ public class SocketTest extends Connection {
         assertThat((String) values.take(), is("2"));
         assertThat((byte[]) values.take(), is(new byte[] { 3 }));
     }
+
+    @Test(timeout = TIMEOUT)
+    public void shouldCallCatchAllListenerForIncomingPackets() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
+
+        socket = client();
+
+        socket.on("message", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                socket.emit("echo", 1, "2", new byte[] { 3 });
+
+                socket.onAnyIncoming(new Emitter.Listener() {
+                    @Override
+                    public void call(Object... args) {
+                        for (Object arg : args) {
+                            values.offer(arg);
+                        }
+                    }
+                });
+            }
+        });
+
+        socket.connect();
+
+        assertThat((String) values.take(), is("echoBack"));
+        assertThat((Integer) values.take(), is(1));
+        assertThat((String) values.take(), is("2"));
+        assertThat((byte[]) values.take(), is(new byte[] { 3 }));
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void shouldCallCatchAllListenerForOutgoingPackets() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
+
+        socket = client();
+
+        socket.emit("echo", 1, "2", new byte[] { 3 });
+
+        socket.onAnyOutgoing(new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                for (Object arg : args) {
+                    values.offer(arg);
+                }
+            }
+        });
+
+        socket.connect();
+
+        assertThat((String) values.take(), is("echo"));
+        assertThat((Integer) values.take(), is(1));
+        assertThat((String) values.take(), is("2"));
+        assertThat((byte[]) values.take(), is(new byte[] { 3 }));
+    }
 }

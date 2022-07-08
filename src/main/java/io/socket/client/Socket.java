@@ -9,6 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -62,6 +63,9 @@ public class Socket extends Emitter {
     private Queue<On.Handle> subs;
     private final Queue<List<Object>> receiveBuffer = new LinkedList<>();
     private final Queue<Packet<JSONArray>> sendBuffer = new LinkedList<>();
+
+    private ConcurrentLinkedQueue<Listener> onAnyIncomingListeners = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<Listener> onAnyOutgoingListeners = new ConcurrentLinkedQueue<>();
 
     public Socket(Manager io, String nsp, Manager.Options opts) {
         this.io = io;
@@ -250,6 +254,14 @@ public class Socket extends Emitter {
     }
 
     private void packet(Packet packet) {
+        if (packet.type == Parser.EVENT) {
+            if (!onAnyOutgoingListeners.isEmpty()) {
+                Object[] argsAsArray = toArray((JSONArray) packet.data);
+                for (Listener listener : onAnyOutgoingListeners) {
+                    listener.call(argsAsArray);
+                }
+            }
+        }
         packet.nsp = this.nsp;
         this.io.packet(packet);
     }
@@ -340,6 +352,12 @@ public class Socket extends Emitter {
 
         if (this.connected) {
             if (args.isEmpty()) return;
+            if (!this.onAnyIncomingListeners.isEmpty()) {
+                Object[] argsAsArray = args.toArray();
+                for (Listener listener : this.onAnyIncomingListeners) {
+                    listener.call(argsAsArray);
+                }
+            }
             String event = args.remove(0).toString();
             super.emit(event, args.toArray());
         } else {
@@ -506,6 +524,50 @@ public class Socket extends Emitter {
             data[i] = JSONObject.NULL.equals(v) ? null : v;
         }
         return data;
+    }
+
+    public Socket onAnyIncoming(Listener fn) {
+        this.onAnyIncomingListeners.add(fn);
+        return this;
+    }
+
+    public Socket offAnyIncoming() {
+        this.onAnyIncomingListeners.clear();
+        return this;
+    }
+
+    public Socket offAnyIncoming(Listener fn) {
+        Iterator<Listener> it = this.onAnyIncomingListeners.iterator();
+        while (it.hasNext()) {
+            Listener listener = it.next();
+            if (listener == fn) {
+                it.remove();
+                break;
+            }
+        }
+        return this;
+    }
+
+    public Socket onAnyOutgoing(Listener fn) {
+        this.onAnyOutgoingListeners.add(fn);
+        return this;
+    }
+
+    public Socket offAnyOutgoing() {
+        this.onAnyOutgoingListeners.clear();
+        return this;
+    }
+
+    public Socket offAnyOutgoing(Listener fn) {
+        Iterator<Listener> it = this.onAnyOutgoingListeners.iterator();
+        while (it.hasNext()) {
+            Listener listener = it.next();
+            if (listener == fn) {
+                it.remove();
+                break;
+            }
+        }
+        return this;
     }
 }
 
