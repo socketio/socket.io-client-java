@@ -210,8 +210,32 @@ public class Socket extends Emitter {
                 Packet<JSONArray> packet = new Packet<>(Parser.EVENT, jsonArgs);
 
                 if (ack != null) {
-                    logger.fine(String.format("emitting packet with ack id %d", ids));
-                    Socket.this.acks.put(ids, ack);
+                    final int ackId = Socket.this.ids;
+
+                    logger.fine(String.format("emitting packet with ack id %d", ackId));
+
+                    if (ack instanceof AckWithTimeout) {
+                        final AckWithTimeout ackWithTimeout = (AckWithTimeout) ack;
+                        ackWithTimeout.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                // remove the ack from the map (to prevent an actual acknowledgement)
+                                acks.remove(ackId);
+
+                                // remove the packet from the buffer (if applicable)
+                                Iterator<Packet<JSONArray>> iterator = sendBuffer.iterator();
+                                while (iterator.hasNext()) {
+                                    if (iterator.next().id == ackId) {
+                                        iterator.remove();
+                                    }
+                                }
+
+                                ackWithTimeout.onTimeout();
+                            }
+                        });
+                    }
+
+                    Socket.this.acks.put(ackId, ack);
                     packet.id = ids++;
                 }
 
@@ -403,6 +427,12 @@ public class Socket extends Emitter {
                 sub.destroy();
             }
             this.subs = null;
+        }
+
+        for (Ack ack : acks.values()) {
+            if (ack instanceof AckWithTimeout) {
+                ((AckWithTimeout) ack).cancelTimer();
+            }
         }
 
         this.io.destroy();

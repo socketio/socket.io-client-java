@@ -4,18 +4,17 @@ import io.socket.emitter.Emitter;
 import io.socket.util.Optional;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 import static java.util.Collections.singletonMap;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -286,5 +285,114 @@ public class SocketTest extends Connection {
         socket.connect();
         assertThat(values.take(), is("first"));
         assertThat(values.take(), is("second"));
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void shouldTimeoutAfterTheGivenDelayWhenSocketIsNotConnected() throws InterruptedException {
+        final BlockingQueue<Boolean> values = new LinkedBlockingQueue<>();
+
+        socket = client();
+
+        socket.emit("event", new AckWithTimeout(50) {
+            @Override
+            public void onSuccess(Object... args) {
+                fail();
+            }
+
+            @Override
+            public void onTimeout() {
+                values.offer(true);
+            }
+        });
+
+        assertThat(values.take(), is(true));
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void shouldTimeoutWhenTheServerDoesNotAcknowledgeTheEvent() throws InterruptedException {
+        final BlockingQueue<Boolean> values = new LinkedBlockingQueue<>();
+
+        socket = client();
+
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                socket.emit("unknown", new AckWithTimeout(50) {
+                    @Override
+                    public void onTimeout() {
+                        values.offer(true);
+                    }
+
+                    @Override
+                    public void onSuccess(Object... args) {
+                        fail();
+                    }
+                });
+            }
+        });
+
+        socket.connect();
+
+        assertThat(values.take(), is(true));
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void shouldTimeoutWhenTheServerDoesNotAcknowledgeTheEventInTime() throws InterruptedException {
+        final BlockingQueue<Boolean> values = new LinkedBlockingQueue<>();
+
+        socket = client();
+
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                socket.emit("ack", new AckWithTimeout(0) {
+                    @Override
+                    public void onTimeout() {
+                        values.offer(true);
+                    }
+
+                    @Override
+                    public void onSuccess(Object... args) {
+                        fail();
+                    }
+                });
+            }
+        });
+
+        socket.connect();
+
+        assertThat(values.take(), is(true));
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void shouldNotTimeoutWhenTheServerDoesAcknowledgeTheEvent() throws InterruptedException {
+        final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
+
+        socket = client();
+
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                socket.emit("ack", 1, "2", new byte[] { 3 }, new AckWithTimeout(200) {
+                    @Override
+                    public void onTimeout() {
+                        fail();
+                    }
+
+                    @Override
+                    public void onSuccess(Object... args) {
+                        for (Object arg : args) {
+                            values.offer(arg);
+                        }
+                    }
+                });
+            }
+        });
+
+        socket.connect();
+
+        assertThat((Integer) values.take(), is(1));
+        assertThat((String) values.take(), is("2"));
+        assertThat((byte[]) values.take(), is(new byte[] { 3 }));
     }
 }
