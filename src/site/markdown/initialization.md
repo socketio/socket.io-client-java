@@ -475,3 +475,52 @@ options.webSocketFactory = okHttpClient;
 
 Socket socket = IO.socket(URI.create("https://example.com"), options);
 ```
+
+## Multiplexing
+
+The Java client does support multiplexing: this allows to split the logic of your application into distinct modules, while using one single WebSocket connection to the server.
+
+Reference: https://socket.io/docs/v4/namespaces/
+
+```java
+Socket socket = IO.socket(URI.create("https://example.com")); // the main namespace
+Socket productSocket = IO.socket(URI.create("https://example.com/product")); // the "product" namespace
+Socket orderSocket = IO.socket(URI.create("https://example.com/order")); // the "order" namespace
+
+// all 3 sockets share the same Manager
+System.out.println(socket.io() == productSocket.io()); // true
+System.out.println(socket.io() == orderSocket.io()); // true
+```
+
+Please note that multiplexing will be disabled in the following cases:
+
+- multiple creation for the same namespace
+
+```java
+Socket socket = IO.socket(URI.create("https://example.com"));
+Socket socket2 = IO.socket(URI.create("https://example.com"));
+
+System.out.println(socket.io() == socket2.io()); // false
+```
+
+- different domains
+
+```java
+Socket socket = IO.socket(URI.create("https://first.example.com"));
+Socket socket2 = IO.socket(URI.create("https://second.example.com"));
+
+System.out.println(socket.io() == socket2.io()); // false
+```
+
+- usage of the [forceNew](#forceNew) option
+
+```java
+IO.Options options = IO.Options.builder()
+    .setForceNew(true)
+    .build();
+
+Socket socket = IO.socket(URI.create("https://example.com"));
+Socket socket2 = IO.socket(URI.create("https://example.com/admin"), options);
+
+System.out.println(socket.io() == socket2.io()); // false
+```
