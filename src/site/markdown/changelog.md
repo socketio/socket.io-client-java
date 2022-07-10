@@ -1,4 +1,57 @@
 
+## [2.1.0](https://github.com/socketio/socket.io-client-java/compare/socket.io-client-2.0.1...socket.io-client-2.1.0) (2022-07-10)
+
+
+### Bug Fixes
+
+* ensure randomizationFactor is always between 0 and 1 ([0cbf01e](https://github.com/socketio/socket.io-client-java/commit/0cbf01eb2501b3098eacd22594966a719b20c31e))
+* prevent socket from reconnecting after middleware failure ([95ecf22](https://github.com/socketio/socket.io-client-java/commit/95ecf222d25de390d8c0f2ffade37b608cf448eb))
+* increase the readTimeout value of the default OkHttpClient ([fb531fa](https://github.com/socketio/engine.io-client-java/commit/fb531fab30968a4b65a402c81f37e92dd5671f33)) (from `engine.io-client`)
+
+### Features
+
+* emit with timeout ([fca3b95](https://github.com/socketio/socket.io-client-java/commit/fca3b9507d5bc79d3c41ab6e119efccd23669ca6))
+
+This feature allows to send a packet and expect an acknowledgement from the server within the given delay.
+
+Syntax:
+
+```java
+socket.emit("hello", "world", new AckWithTimeout(5000) {
+    @Override
+    public void onTimeout() {
+        // ...
+    }
+
+    @Override
+    public void onSuccess(Object... args) {
+        // ...
+    }
+});
+```
+
+* implement catch-all listeners ([c7d50b8](https://github.com/socketio/socket.io-client-java/commit/c7d50b8ae9787e9ebdff50aa5d36f88433fc50b9))
+
+Syntax:
+
+```java
+socket.onAnyIncoming(new Emitter.Listener() {
+    @Override
+    public void call(Object... args) {
+        // ...
+    }
+});
+
+socket.onAnyOutgoing(new Emitter.Listener() {
+    @Override
+    public void call(Object... args) {
+        // ...
+    }
+});
+```
+
+
+
 ## [2.0.1](https://github.com/socketio/socket.io-client-java/compare/socket.io-client-2.0.0...socket.io-client-2.0.1) (2021-04-27)
 
 

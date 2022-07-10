@@ -69,3 +69,27 @@ Removes all listeners (for any event).
 ```java
 socket.off();
 ```
+
+## Catch-all listeners
+
+### For incoming packets
+
+```java
+socket.onAnyIncoming(new Emitter.Listener() {
+    @Override
+    public void call(Object... args) {
+        // ...
+    }
+});
+```
+
+### For outgoing packets
+
+```java
+socket.onAnyOutgoing(new Emitter.Listener() {
+    @Override
+    public void call(Object... args) {
+        // ...
+    }
+});
+```

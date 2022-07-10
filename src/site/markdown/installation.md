@@ -17,7 +17,7 @@ Add the following dependency to your `pom.xml`.
   <dependency>
     <groupId>io.socket</groupId>
     <artifactId>socket.io-client</artifactId>
-    <version>2.0.1</version>
+    <version>2.1.0</version>
   </dependency>
 </dependencies>
 ```
@@ -26,7 +26,7 @@ Add the following dependency to your `pom.xml`.
 Add it as a gradle dependency for Android Studio, in `build.gradle`:
 
 ```groovy
-implementation ('io.socket:socket.io-client:2.0.1') {
+implementation ('io.socket:socket.io-client:2.1.0') {
   // excluding org.json which is provided by Android
   exclude group: 'org.json', module: 'json'
 }
@@ -36,6 +36,7 @@ implementation ('io.socket:socket.io-client:2.0.1') {
 
 | `socket.io-client`                                                                                                          | `engine.io-client`                                                                                                          | `okhttp`                                                                                        |
 |-----------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| `2.1.0` ([diff](https://github.com/socketio/socket.io-client-java/compare/socket.io-client-2.0.1...socket.io-client-2.1.0)) | `2.1.0` ([diff](https://github.com/socketio/engine.io-client-java/compare/engine.io-client-2.0.0...engine.io-client-2.1.0)) | `3.12.12`                                                                                       |
 | `2.0.1` ([diff](https://github.com/socketio/socket.io-client-java/compare/socket.io-client-2.0.0...socket.io-client-2.0.1)) | `2.0.0`                                                                                                                     | `3.12.12`                                                                                       |
 | `2.0.0` ([diff](https://github.com/socketio/socket.io-client-java/compare/socket.io-client-1.0.1...socket.io-client-2.0.0)) | `2.0.0` ([diff](https://github.com/socketio/engine.io-client-java/compare/engine.io-client-1.0.1...engine.io-client-2.0.0)) | `3.12.12`                                                                                       |
 | `1.0.1` ([diff](https://github.com/socketio/socket.io-client-java/compare/socket.io-client-1.0.0...socket.io-client-1.0.1)) | `1.0.1` ([diff](https://github.com/socketio/engine.io-client-java/compare/engine.io-client-1.0.0...engine.io-client-1.0.1)) | `3.12.12` ([changelog](https://square.github.io/okhttp/changelogs/changelog_3x/#version-31212)) |

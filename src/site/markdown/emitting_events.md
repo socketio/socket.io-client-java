@@ -146,3 +146,21 @@ socket.on("hello", args -> {
     }
 });
 ```
+
+## With timeout
+
+Starting with version `2.1.0`, you can now assign a timeout to each emit:
+
+```java
+socket.emit("hello", "world", new AckWithTimeout(5000) {
+    @Override
+    public void onTimeout() {
+        // ...
+    }
+
+    @Override
+    public void onSuccess(Object... args) {
+        // ...
+    }
+});
+```
