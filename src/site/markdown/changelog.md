@@ -1,4 +1,18 @@
 
+## [1.0.2](https://github.com/socketio/socket.io-client-java/compare/socket.io-client-1.0.1...socket.io-client-1.0.2) (2022-07-11)
+
+From the "1.x" branch.
+
+### Bug Fixes
+
+* ensure buffered events are sent in order ([8bd35da](https://github.com/socketio/socket.io-client-java/commit/8bd35da19c1314318fe122876d22e30ae3673ff9))
+* ensure randomizationFactor is always between 0 and 1 ([cb966d5](https://github.com/socketio/socket.io-client-java/commit/cb966d5a64790c0584ad97cf55c205cae8bd1287))
+* ensure the payload format is valid ([8664499](https://github.com/socketio/socket.io-client-java/commit/8664499b6f31154f49783531f778dac5387b766b))
+* fix usage with ws:// scheme ([e57160a](https://github.com/socketio/socket.io-client-java/commit/e57160a00ca1fbb38396effdbc87eb10d6759a51))
+* increase the readTimeout value of the default OkHttpClient ([2d87497](https://github.com/socketio/engine.io-client-java/commit/2d874971c2428a7a444b3a33afe66aedcdce3a96)) (from `engine.io-client`)
+
+
+
 ## [2.1.0](https://github.com/socketio/socket.io-client-java/compare/socket.io-client-2.0.1...socket.io-client-2.1.0) (2022-07-10)
 
 
