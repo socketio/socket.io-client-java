@@ -205,3 +205,197 @@ socket.connect();
 socket.disconnect();
 dispatcher.executorService().shutdown();
 ```
+
+## How to map the event arguments to POJO
+
+This library uses the [JSONTokener](https://developer.android.com/reference/org/json/JSONTokener) class from the `org.json` package in order to parse the packets that are sent by the server, which means you will receive [JSONObjects](https://developer.android.com/reference/org/json/JSONObject) in your listeners.
+
+Here's how you can convert these JSONObjects to Plain Old Java Objects (POJO):
+
+- [with Jackson](#With_Jackson)
+- [with Gson](#With_Gson)
+
+### With Jackson
+
+`pom.xml`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <dependencies>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.13.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.13.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-json-org</artifactId>
+            <version>2.13.3</version>
+        </dependency>
+        ...
+    </dependencies>
+    ...
+</project>
+```
+
+Maven repository:
+
+- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
+- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+- https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-json-org
+
+`src/main/java/MyApp.java`
+
+```java
+public class MyApp {
+    private static final ObjectMapper MAPPER = new ObjectMapper().registerModule(new JsonOrgModule());
+    
+    public static void main(String[] argz) throws Exception {
+        Socket socket = IO.socket(URI.create("https://example.com"));
+
+        socket.on("my-event", (args) -> {
+            MyObject object = MAPPER.convertValue(args[0], MyObject.class);
+
+            // ...
+        });
+
+        socket.connect();
+    }
+
+    public static class MyObject {
+        public int id;
+        public String label;
+    }
+}
+```
+
+### With Gson
+
+`pom.xml`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <dependencies>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.9</version>
+        </dependency>
+        ...
+    </dependencies>
+    ...
+</project>
+```
+
+Maven repository: 
+
+- https://mvnrepository.com/artifact/com.google.code.gson/gson
+
+`src/main/java/MyApp.java`
+
+You can either call `toString()` on the `JSONObject`:
+
+```java
+public class MyApp {
+    private static final Gson GSON = new Gson();
+    
+    public static void main(String[] argz) throws Exception {
+        Socket socket = IO.socket(URI.create("https://example.com"));
+
+        socket.on("my-event", (args) -> {
+            MyObject object = GSON.fromJson(args[0].toString(), MyObject.class);
+
+            // ...
+        });
+
+        socket.connect();
+    }
+
+    public static class MyObject {
+        public int id;
+        public String label;
+    }
+}
+```
+
+Or manually convert the `JSONObject` to a `JsonObject` (for performance purposes):
+
+```java
+public class MyApp {
+    private static final Gson GSON = new Gson();
+    
+    public static void main(String[] argz) throws Exception {
+        Socket socket = IO.socket(URI.create("https://example.com"));
+
+        socket.on("my-event", (args) -> {
+            MyObject object = GSON.fromJson(map(args[0]), MyObject.class);
+
+            // ...
+        });
+
+        socket.connect();
+    }
+
+    public static class MyObject {
+        public int id;
+        public String label;
+    }
+
+    public static JsonObject map(JSONObject source) throws JSONException {
+        JsonObject output = new JsonObject();
+
+        Iterator<String> iterator = source.keys();
+        while (iterator.hasNext()) {
+            String key = iterator.next();
+            Object value = source.get(key);
+
+            if (value instanceof JSONObject) {
+                output.add(key, map((JSONObject) value));
+            } else if (value instanceof JSONArray) {
+                output.add(key, map((JSONArray) value));
+            } else if (value instanceof Number) {
+                output.addProperty(key, (Number) value);
+            } else if (value instanceof String) {
+                output.addProperty(key, (String) value);
+            } else if (value instanceof Boolean) {
+                output.addProperty(key, (Boolean) value);
+            } else if (value instanceof Character) {
+                output.addProperty(key, (Character) value);
+            }
+        }
+
+        return output;
+    }
+
+    public static JsonArray map(JSONArray source) throws JSONException {
+        JsonArray output = new JsonArray();
+
+        for (int i = 0; i < source.length(); i++) {
+            Object value = source.get(i);
+
+            if (value instanceof JSONObject) {
+                output.add(map((JSONObject) value));
+            } else if (value instanceof JSONArray) {
+                output.add(map((JSONArray) value));
+            } else if (value instanceof Number) {
+                output.add((Number) value);
+            } else if (value instanceof String) {
+                output.add((String) value);
+            } else if (value instanceof Boolean) {
+                output.add((Boolean) value);
+            } else if (value instanceof Character) {
+                output.add((Character) value);
+            }
+        }
+
+        return output;
+    }
+}
+```
