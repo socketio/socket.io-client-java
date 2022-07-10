@@ -334,6 +334,7 @@ public class Socket extends Emitter {
                 break;
 
             case Parser.CONNECT_ERROR:
+                this.destroy();
                 super.emit(EVENT_CONNECT_ERROR, packet.data);
                 break;
         }
