@@ -57,3 +57,27 @@ Starting with Android 9 (API level 28) you need to explicitly allow cleartext tr
 ```
 
 Reference: https://developer.android.com/training/articles/security-config
+
+## How to run unit tests in Android Studio?
+
+Local unit tests are tests that run on your machine's local Java Virtual Machine.
+
+Reference: https://developer.android.com/studio/test/test-in-android-studio
+
+Since they run on your machine, the JSON library must be manually included for the tests (because it is not provided by the Android runtime):
+
+`build.gradle`
+
+```
+dependencies {
+    implementation ('io.socket:socket.io-client:2.0.1') {
+        exclude group: 'org.json', module: 'json'
+    }
+
+    testImplementation 'org.json:json:20090211'
+
+    ...
+}
+```
+
+Note: we use this ancient version of `org.json` because it is compatible with the one bundled in Android.
