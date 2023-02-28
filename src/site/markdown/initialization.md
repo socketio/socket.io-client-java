@@ -15,7 +15,7 @@ IO.Options options = IO.Options.builder()
 Socket socket = IO.socket(uri, options);
 
 // We can now connect to our server
-socket.open()
+socket.open();
 ```
 
 Unlike the JS client (which can infer it from the `window.location` object), the URI is mandatory here.
