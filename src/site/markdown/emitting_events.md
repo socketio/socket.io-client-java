@@ -29,6 +29,7 @@ socket.on("hello", new Emitter.Listener() {
         System.out.println(args[0]); // world
     }
 });
+socket.open();
 ```
 
 This also works in the other direction:
@@ -47,6 +48,7 @@ io.on("connection", (socket) => {
 
 ```java
 socket.emit("hello", "world");
+socket.open();
 ```
 
 You can send any number of arguments, and all serializable datastructures are supported, including binary objects like [Buffer](https://nodejs.org/docs/latest/api/buffer.html#buffer_buffer) or [TypedArray](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray).
@@ -69,6 +71,7 @@ JSONObject object = new JSONObject();
 object.put("test", "42");
 
 socket.emit("hello", 1, "2", bytes, object);
+socket.open();
 ```
 
 ## Acknowledgements
@@ -96,6 +99,7 @@ socket.emit("update item", 1, new JSONObject(singletonMap("name", "updated")), (
     JSONObject response = (JSONObject) args[0];
     System.out.println(response.getString("status")); // "ok"
 });
+socket.open();
 ```
 
 *Server*
@@ -137,6 +141,7 @@ socket.on("hello", new Emitter.Listener() {
         }
     }
 });
+socket.open();
 
 // Java 8 and above
 socket.on("hello", args -> {
@@ -145,6 +150,7 @@ socket.on("hello", args -> {
         ((Ack) args[1]).call("hi!");
     }
 });
+socket.open();
 ```
 
 ## With timeout
@@ -163,4 +169,5 @@ socket.emit("hello", "world", new AckWithTimeout(5000) {
         // ...
     }
 });
+socket.open();
 ```
