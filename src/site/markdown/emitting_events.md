@@ -93,6 +93,7 @@ socket.emit("update item", 1, new JSONObject(singletonMap("name", "updated")), n
         System.out.println(response.getString("status")); // "ok"
     }
 });
+socket.open();
 
 // Java 8 and above
 socket.emit("update item", 1, new JSONObject(singletonMap("name", "updated")), (Ack) args -> {
