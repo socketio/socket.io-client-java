@@ -31,4 +31,4 @@ jobs:
         with:
           node-version: 14.x
       - name: Run the Maven verify phase
-        run: mvn verify -Dgpg.skip=true
+        run: mvn verify -Dgpg.skip=true -DdisableXmlReport=true
