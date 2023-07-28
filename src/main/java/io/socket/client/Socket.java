@@ -229,10 +229,12 @@ public class Socket extends Emitter {
                                 // remove the packet from the buffer (if applicable)
                                 Iterator<Packet<JSONArray>> iterator = sendBuffer.iterator();
                                 while (iterator.hasNext()) {
-                                    if (iterator.next().id == ackId) {
+                                    Packet<JSONArray> packet = iterator.next();
+                                    if (packet != null && packet.id == ackId) {
                                         iterator.remove();
                                     }
                                 }
+                            
 
                                 ackWithTimeout.onTimeout();
                             }
