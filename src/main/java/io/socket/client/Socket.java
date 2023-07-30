@@ -226,10 +226,11 @@ public class Socket extends Emitter {
                                 // remove the ack from the map (to prevent an actual acknowledgement)
                                 acks.remove(ackId);
 
-                                // remove the packet from the buffer (if applicable)
+                               // remove the packet from the buffer (if applicable)
                                 Iterator<Packet<JSONArray>> iterator = sendBuffer.iterator();
                                 while (iterator.hasNext()) {
-                                    if (iterator.next().id == ackId) {
+                                    Packet<JSONArray> packet = iterator.next();
+                                    if (packet != null && packet.id == ackId) {
                                         iterator.remove();
                                     }
                                 }
