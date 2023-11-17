@@ -1,5 +1,8 @@
 package io.socket.parser;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.junit.Test;
@@ -49,6 +52,9 @@ public class ParserTest {
 
     @Test
     public void decodeInError() throws JSONException {
+        Logger logger = Logger.getLogger(IOParser.class.getName());
+        Level tmpLevel = logger.getLevel();
+        logger.setLevel(Level.SEVERE);
         // Random string
         Helpers.testDecodeError("asdf");
         // Unknown type
@@ -62,9 +68,10 @@ public class ParserTest {
         // event non numeric id
         Helpers.testDecodeError(Parser.EVENT + "2sd");
         // event with invalid json data
-        Helpers.testDecodeError(Parser.EVENT + "2[\"a\",1,{asdf}]");
         Helpers.testDecodeError(Parser.EVENT + "2{}");
         Helpers.testDecodeError(Parser.EVENT + "2[]");
         Helpers.testDecodeError(Parser.EVENT + "2[null]");
+        Helpers.testDecodeError(Parser.EVENT + "2[\"a\",1,{asdf}]");
+        logger.setLevel(tmpLevel);
     }
 }
