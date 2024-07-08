@@ -61,8 +61,8 @@ public class Socket extends Emitter {
     private Map<String, String> auth;
     private Map<Integer, Ack> acks = new HashMap<>();
     private Queue<On.Handle> subs;
-    private final Queue<List<Object>> receiveBuffer = new LinkedList<>();
-    private final Queue<Packet<JSONArray>> sendBuffer = new LinkedList<>();
+    private final ConcurrentLinkedQueue<List<Object>> receiveBuffer = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Packet<JSONArray>> sendBuffer = new ConcurrentLinkedQueue<>();
 
     private ConcurrentLinkedQueue<Listener> onAnyIncomingListeners = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<Listener> onAnyOutgoingListeners = new ConcurrentLinkedQueue<>();
