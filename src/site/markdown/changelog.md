@@ -1,3 +1,26 @@
+# History
+
+| Version                                                                                                      | Release date  |
+|--------------------------------------------------------------------------------------------------------------|---------------|
+| [2.1.1](#211-2024-07-10)                                                                                     | July 2024     |
+| [1.0.2](#102-2022-07-11) (from the [1.x](https://github.com/socketio/socket.io-client-java/tree/1.x) branch) | July 2022     |
+| [2.1.0](#210-2022-07-10)                                                                                     | July 2022     |
+| [2.0.1](#201-2021-04-27)                                                                                     | April 2021    |
+| [2.0.0](#200-2020-12-14)                                                                                     | December 2020 |
+| [1.0.1](#101-2020-12-10)                                                                                     | December 2020 |
+
+
+# Release notes
+
+## [2.1.1](https://github.com/socketio/socket.io-client-java/compare/socket.io-client-2.1.0...socket.io-client-2.1.1) (2024-07-10)
+
+
+### Bug Fixes
+
+* discard acknowledgements upon disconnection ([54645ec](https://github.com/socketio/socket.io-client-java/commit/54645ece2cd132f3e305b80904e1fc38bd41c4f9))
+* make sendBuffer thread safe ([#769](https://github.com/socketio/socket.io-client-java/issues/769)) ([b00ae8e](https://github.com/socketio/socket.io-client-java/commit/b00ae8eec1ef0aa5094fca7fad918a437603eb12))
+
+
 
 ## [1.0.2](https://github.com/socketio/socket.io-client-java/compare/socket.io-client-1.0.1...socket.io-client-1.0.2) (2022-07-11)
 
