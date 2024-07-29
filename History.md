@@ -1,4 +1,14 @@
 
+2.1.1 / 2024-07-10
+==================
+
+### Bug Fixes
+
+* discard acknowledgements upon disconnection ([54645ec](https://github.com/socketio/socket.io-client-java/commit/54645ece2cd132f3e305b80904e1fc38bd41c4f9))
+* make sendBuffer thread safe ([#769](https://github.com/socketio/socket.io-client-java/issues/769)) ([b00ae8e](https://github.com/socketio/socket.io-client-java/commit/b00ae8eec1ef0aa5094fca7fad918a437603eb12))
+
+
+
 1.0.2 / 2022-07-11
 ==================
 

@@ -283,6 +283,21 @@ public class Socket extends Emitter {
         this.connected = false;
         this.id = null;
         super.emit(EVENT_DISCONNECT, reason);
+        this.clearAcks();
+    }
+
+    /**
+     * Clears the acknowledgement handlers upon disconnection, since the client will never receive an acknowledgement from
+     * the server.
+     */
+    private void clearAcks() {
+        for (Ack ack : this.acks.values()) {
+            if (ack instanceof AckWithTimeout) {
+                ((AckWithTimeout) ack).onTimeout();
+            }
+            // note: basic Ack objects have no way to report an error, so they are simply ignored here
+        }
+        this.acks.clear();
     }
 
     private void onpacket(Packet<?> packet) {
@@ -446,12 +461,6 @@ public class Socket extends Emitter {
                 sub.destroy();
             }
             this.subs = null;
-        }
-
-        for (Ack ack : acks.values()) {
-            if (ack instanceof AckWithTimeout) {
-                ((AckWithTimeout) ack).cancelTimer();
-            }
         }
 
         this.io.destroy();
