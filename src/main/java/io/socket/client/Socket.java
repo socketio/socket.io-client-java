@@ -284,14 +284,13 @@ public class Socket extends Emitter {
         this.connected = false;
         this.id = null;
         super.emit(EVENT_DISCONNECT, reason);
-        this.clearAcks();
     }
 
     /**
      * Clears the acknowledgement handlers upon disconnection, since the client will never receive an acknowledgement from
      * the server.
      */
-    private void clearAcks() {
+    public void clearAcks() {
         for (Ack ack : this.acks.values()) {
             if (ack instanceof AckWithTimeout) {
                 ((AckWithTimeout) ack).onTimeout();
