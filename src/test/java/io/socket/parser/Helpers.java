@@ -3,15 +3,13 @@ package io.socket.parser;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-@RunWith(JUnit4.class)
 public class Helpers {
 
     private static Parser.Encoder encoder = new IOParser.Encoder();
