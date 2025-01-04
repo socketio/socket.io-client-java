@@ -9,6 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,7 +60,7 @@ public class Socket extends Emitter {
     private String nsp;
     private Manager io;
     private Map<String, String> auth;
-    private Map<Integer, Ack> acks = new HashMap<>();
+    private Map<Integer, Ack> acks = new ConcurrentHashMap<>();
     private Queue<On.Handle> subs;
     private final Queue<List<Object>> receiveBuffer = new ConcurrentLinkedQueue<>();
     private final Queue<Packet<JSONArray>> sendBuffer = new ConcurrentLinkedQueue<>();
@@ -283,14 +284,13 @@ public class Socket extends Emitter {
         this.connected = false;
         this.id = null;
         super.emit(EVENT_DISCONNECT, reason);
-        this.clearAcks();
     }
 
     /**
      * Clears the acknowledgement handlers upon disconnection, since the client will never receive an acknowledgement from
      * the server.
      */
-    private void clearAcks() {
+    public void clearAcks() {
         for (Ack ack : this.acks.values()) {
             if (ack instanceof AckWithTimeout) {
                 ((AckWithTimeout) ack).onTimeout();
