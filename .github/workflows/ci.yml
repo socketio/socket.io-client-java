@@ -17,19 +17,32 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Install Maven 3.8.x (instead of 3.9.x)
+        run: |
+          MAVEN_VERSION=3.8.8
+          wget https://downloads.apache.org/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
+          tar xzvf apache-maven-$MAVEN_VERSION-bin.tar.gz
+          sudo mv apache-maven-$MAVEN_VERSION /opt/maven
+          sudo rm -f /usr/bin/mvn  # Remove existing symbolic link if it exists
+          sudo ln -s /opt/maven/bin/mvn /usr/bin/mvn  # Create new symbolic link
+
       - name: Setup java
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
+
       - name: Cache Maven packages
         uses: actions/cache@v2
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
           node-version: 14.x
+
       - name: Run the Maven verify phase
         run: mvn verify -Dgpg.skip=true
