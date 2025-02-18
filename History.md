@@ -1,4 +1,13 @@
 
+2.1.2 / 2025-02-18
+==================
+
+### Bug Fixes
+
+- make acks thread safe ([4f45e3c](https://github.com/socketio/socket.io-client-java/commit/4f45e3c1271554da5b3457f447a6d6b060ef5ffd))
+
+
+
 2.1.1 / 2024-07-10
 ==================
 

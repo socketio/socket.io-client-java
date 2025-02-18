@@ -2,6 +2,7 @@
 
 | Version                                                                                                      | Release date  |
 |--------------------------------------------------------------------------------------------------------------|---------------|
+| [2.1.2](#211-2025-02-18)                                                                                     | February 2025 |
 | [2.1.1](#211-2024-07-10)                                                                                     | July 2024     |
 | [1.0.2](#102-2022-07-11) (from the [1.x](https://github.com/socketio/socket.io-client-java/tree/1.x) branch) | July 2022     |
 | [2.1.0](#210-2022-07-10)                                                                                     | July 2022     |
@@ -11,6 +12,15 @@
 
 
 # Release notes
+
+## [2.1.2](https://github.com/socketio/socket.io-client-java/compare/socket.io-client-2.1.1...socket.io-client-2.1.2) (2025-02-18)
+
+
+### Bug Fixes
+
+* make acks thread safe ([4f45e3c](https://github.com/socketio/socket.io-client-java/commit/4f45e3c1271554da5b3457f447a6d6b060ef5ffd))
+
+
 
 ## [2.1.1](https://github.com/socketio/socket.io-client-java/compare/socket.io-client-2.1.0...socket.io-client-2.1.1) (2024-07-10)
 
