@@ -72,20 +72,20 @@ public class Manager extends Emitter {
     private long _reconnectionDelay;
     private long _reconnectionDelayMax;
     private double _randomizationFactor;
-    private Backoff backoff;
+    private final Backoff backoff;
     private long _timeout;
-    private URI uri;
-    private List<Packet> packetBuffer;
-    private Queue<On.Handle> subs;
-    private Options opts;
+    private final URI uri;
+    private final List<Packet> packetBuffer = new ArrayList<>();
+    private final Queue<On.Handle> subs = new LinkedList<>();;
+    private final Options opts;
     /*package*/ io.socket.engineio.client.Socket engine;
-    private Parser.Encoder encoder;
-    private Parser.Decoder decoder;
+    private final Parser.Encoder encoder;
+    private final Parser.Decoder decoder;
 
     /**
      * This HashMap can be accessed from outside of EventThread.
      */
-    /*package*/ ConcurrentHashMap<String, Socket> nsps;
+    /*package*/ final Map<String, Socket> nsps = new ConcurrentHashMap<>();
 
 
     public Manager() {
@@ -114,8 +114,6 @@ public class Manager extends Emitter {
             opts.callFactory = defaultCallFactory;
         }
         this.opts = opts;
-        this.nsps = new ConcurrentHashMap<>();
-        this.subs = new LinkedList<>();
         this.reconnection(opts.reconnection);
         this.reconnectionAttempts(opts.reconnectionAttempts != 0 ? opts.reconnectionAttempts : Integer.MAX_VALUE);
         this.reconnectionDelay(opts.reconnectionDelay != 0 ? opts.reconnectionDelay : 1000);
@@ -129,7 +127,6 @@ public class Manager extends Emitter {
         this.readyState = ReadyState.CLOSED;
         this.uri = uri;
         this.encoding = false;
-        this.packetBuffer = new ArrayList<>();
         this.encoder = opts.encoder != null ? opts.encoder : new IOParser.Encoder();
         this.decoder = opts.decoder != null ? opts.decoder : new IOParser.Decoder();
     }

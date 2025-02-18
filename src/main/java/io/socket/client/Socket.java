@@ -57,23 +57,21 @@ public class Socket extends Emitter {
 
     private volatile boolean connected;
     private int ids;
-    private String nsp;
-    private Manager io;
-    private Map<String, String> auth;
-    private Map<Integer, Ack> acks = new ConcurrentHashMap<>();
+    private final String nsp;
+    private final Manager io;
+    private final Map<String, String> auth;
+    private final Map<Integer, Ack> acks = new ConcurrentHashMap<>();
     private Queue<On.Handle> subs;
     private final Queue<List<Object>> receiveBuffer = new ConcurrentLinkedQueue<>();
     private final Queue<Packet<JSONArray>> sendBuffer = new ConcurrentLinkedQueue<>();
 
-    private ConcurrentLinkedQueue<Listener> onAnyIncomingListeners = new ConcurrentLinkedQueue<>();
-    private ConcurrentLinkedQueue<Listener> onAnyOutgoingListeners = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Listener> onAnyIncomingListeners = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Listener> onAnyOutgoingListeners = new ConcurrentLinkedQueue<>();
 
     public Socket(Manager io, String nsp, Manager.Options opts) {
         this.io = io;
         this.nsp = nsp;
-        if (opts != null) {
-            this.auth = opts.auth;
-        }
+        this.auth = opts != null ? opts.auth : null;
     }
 
     private void subEvents() {
