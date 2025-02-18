@@ -315,13 +315,7 @@ public class Socket extends Emitter {
                 break;
             }
 
-            case Parser.EVENT: {
-                @SuppressWarnings("unchecked")
-                Packet<JSONArray> p = (Packet<JSONArray>) packet;
-                this.onevent(p);
-                break;
-            }
-
+            case Parser.EVENT:
             case Parser.BINARY_EVENT: {
                 @SuppressWarnings("unchecked")
                 Packet<JSONArray> p = (Packet<JSONArray>) packet;
@@ -329,13 +323,7 @@ public class Socket extends Emitter {
                 break;
             }
 
-            case Parser.ACK: {
-                @SuppressWarnings("unchecked")
-                Packet<JSONArray> p = (Packet<JSONArray>) packet;
-                this.onack(p);
-                break;
-            }
-
+            case Parser.ACK:
             case Parser.BINARY_ACK: {
                 @SuppressWarnings("unchecked")
                 Packet<JSONArray> p = (Packet<JSONArray>) packet;
