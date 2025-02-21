@@ -59,7 +59,7 @@ public class Socket extends Emitter {
     private int ids;
     private final String nsp;
     private final Manager io;
-    private final Map<String, String> auth;
+    private final JSONObject auth;
     private final Map<Integer, Ack> acks = new ConcurrentHashMap<>();
     private Queue<On.Handle> subs;
     private final Queue<List<Object>> receiveBuffer = new ConcurrentLinkedQueue<>();
@@ -269,7 +269,7 @@ public class Socket extends Emitter {
         logger.fine("transport is open - connecting");
 
         if (this.auth != null) {
-            this.packet(new Packet<>(Parser.CONNECT, new JSONObject(this.auth)));
+            this.packet(new Packet<>(Parser.CONNECT, this.auth));
         } else {
             this.packet(new Packet<>(Parser.CONNECT));
         }
