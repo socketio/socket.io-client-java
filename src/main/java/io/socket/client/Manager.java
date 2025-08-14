@@ -9,6 +9,7 @@ import io.socket.parser.Parser;
 import io.socket.thread.EventThread;
 import okhttp3.Call;
 import okhttp3.WebSocket;
+import org.json.JSONObject;
 
 import java.net.URI;
 import java.util.*;
@@ -562,11 +563,16 @@ public class Manager extends Emitter {
         public double randomizationFactor;
         public Parser.Encoder encoder;
         public Parser.Decoder decoder;
-        public Map<String, String> auth;
+        public JSONObject auth;
 
         /**
          * Connection timeout (ms). Set -1 to disable.
          */
         public long timeout = 20000;
+
+        // helper method for easier migration from earlier versions
+        public void authMap(Map<String, String> authMap) {
+            this.auth = new JSONObject(authMap);
+        }
     }
 }
