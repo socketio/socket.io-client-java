@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.*;
@@ -207,6 +208,30 @@ public class SocketTest extends Connection {
             @Override
             public void call(Object... args) {
                 JSONObject handshake = (JSONObject)args[0];
+                values.offer(Optional.ofNullable(handshake));
+            }
+        });
+        socket.connect();
+
+        @SuppressWarnings("unchecked")
+        Optional<JSONObject> handshake = values.take();
+        JSONObject query = handshake.get().getJSONObject("auth");
+        assertThat(query.getString("token"), is("abcd"));
+
+        socket.disconnect();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void shouldAcceptAnAuthCallbackOption() throws InterruptedException, JSONException {
+        final BlockingQueue<Optional> values = new LinkedBlockingQueue<>();
+
+        IO.Options opts = new IO.Options();
+        opts.authFunction = callback -> callback.call(Map.of("token", "abcd"));
+        socket = client("/abc", opts);
+        socket.on("handshake", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                JSONObject handshake = (JSONObject) args[0];
                 values.offer(Optional.ofNullable(handshake));
             }
         });

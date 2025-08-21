@@ -553,6 +553,14 @@ public class Manager extends Emitter {
         }
     }
 
+    public interface AuthCallback {
+        void call(Map<String, String> auth);
+    }
+
+    public interface AuthFunction {
+        void call(AuthCallback callback);
+    }
+
     public static class Options extends io.socket.engineio.client.Socket.Options {
 
         public boolean reconnection = true;
@@ -562,6 +570,12 @@ public class Manager extends Emitter {
         public double randomizationFactor;
         public Parser.Encoder encoder;
         public Parser.Decoder decoder;
+        public AuthFunction authFunction = new AuthFunction() {
+            @Override
+            public void call(AuthCallback callback) {
+                callback.call(auth);
+            }
+        };
         public Map<String, String> auth;
 
         /**

@@ -78,7 +78,7 @@ public class SocketOptionBuilder {
                 .setSecure(options.secure)
                 .setPath(options.path)
                 .setQuery(options.query)
-                .setAuth(options.auth)
+                .setAuthFunction(options.authFunction)
                 .setExtraHeaders(options.extraHeaders);
         }
     }
@@ -175,7 +175,12 @@ public class SocketOptionBuilder {
     }
 
     public SocketOptionBuilder setAuth(Map<String, String> auth) {
-        this.options.auth = auth;
+        this.options.authFunction = callback -> callback.call(auth);
+        return this;
+    }
+
+    public SocketOptionBuilder setAuthFunction(Manager.AuthFunction authFunction) {
+        this.options.authFunction = authFunction;
         return this;
     }
 
