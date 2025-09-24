@@ -42,12 +42,18 @@ IO.Options options = IO.Options.builder()
     .setMultiplex(true)
 
     // low-level engine options
-    .setTransports(new String[] { Polling.NAME, WebSocket.NAME })
+    .setTransports(new String[] { Polling.NAME, WebSocket.NAME, WebTransport.NAME })
     .setUpgrade(true)
     .setRememberUpgrade(false)
     .setPath("/socket.io/")
     .setQuery(null)
     .setExtraHeaders(null)
+    
+    // WebTransport options
+    .setWebTransportEnabled(true)
+    .setWebTransportConnectTimeout(30000)
+    .setWebTransportIdleTimeout(60000)
+    .setWebTransportTrustAllCertificates(false)
 
     // Manager options
     .setReconnection(true)
@@ -114,12 +120,13 @@ The opposite of `forceNew`: whether to reuse an existing Manager instance.
 
 #### `transports`
 
-Default value: `new String[] { Polling.NAME, WebSocket.NAME }`
+Default value: `new String[] { Polling.NAME, WebSocket.NAME, WebTransport.NAME }`
 
-The low-level connection to the Socket.IO server can either be established with:
+The low-level connection to the Socket.IO server can be established with:
 
 - HTTP long-polling: successive HTTP requests (`POST` for writing, `GET` for reading)
 - [WebSocket](https://en.wikipedia.org/wiki/WebSocket)
+- [WebTransport](https://www.w3.org/TR/webtransport/): HTTP/3-based transport with QUIC protocol for improved performance
 
 The following example disables the HTTP long-polling transport:
 
@@ -132,6 +139,17 @@ Socket socket = IO.socket(URI.create("https://example.com"), options);
 ```
 
 Note: in that case, sticky sessions are not required on the server side (more information [here](https://socket.io/docs/v4/using-multiple-nodes/)).
+
+The following example enables only WebTransport:
+
+```java
+IO.Options options = IO.Options.builder()
+        .setTransports(new String[] { WebTransport.NAME })
+        .setWebTransportEnabled(true)
+        .build();
+
+Socket socket = IO.socket(URI.create("https://example.com"), options);
+```
 
 #### `upgrade`
 
@@ -190,7 +208,103 @@ Socket socket = IO.socket(URI.create("https://example.com/order"), options);
 ```
 
 - the Socket instance is attached to the "order" Namespace
-- the HTTP requests will look like: `GET https://example.com/my-custom-path/?EIO=4&transport=polling&t=ML4jUwU`
+
+### WebTransport options
+
+WebTransport is a modern transport protocol based on HTTP/3 and QUIC that provides improved performance, reduced latency, and better handling of network conditions compared to traditional WebSocket connections.
+
+#### `webTransportEnabled`
+
+Default value: `true`
+
+Whether to enable WebTransport support. When enabled, the client will attempt to use WebTransport as one of the available transports.
+
+```java
+IO.Options options = IO.Options.builder()
+        .setWebTransportEnabled(true)
+        .build();
+```
+
+#### `webTransportConnectTimeout`
+
+Default value: `30000` (30 seconds)
+
+The connection timeout for WebTransport sessions in milliseconds.
+
+```java
+IO.Options options = IO.Options.builder()
+        .setWebTransportConnectTimeout(30000)
+        .build();
+```
+
+#### `webTransportIdleTimeout`
+
+Default value: `60000` (60 seconds)
+
+The idle timeout for WebTransport sessions in milliseconds.
+
+```java
+IO.Options options = IO.Options.builder()
+        .setWebTransportIdleTimeout(60000)
+        .build();
+```
+
+#### `webTransportTrustAllCertificates`
+
+Default value: `false`
+
+Whether to trust all SSL certificates for WebTransport connections. **Use only for development purposes.**
+
+```java
+IO.Options options = IO.Options.builder()
+        .setWebTransportTrustAllCertificates(true) // Development only!
+        .build();
+```
+
+#### `webTransportSslContext`
+
+Default value: `null`
+
+Custom SSL context for WebTransport connections. If not provided, the default SSL context will be used.
+
+```java
+SSLContext sslContext = SSLContext.getDefault();
+IO.Options options = IO.Options.builder()
+        .setWebTransportSslContext(sslContext)
+        .build();
+```
+
+#### `webTransportCustomHeaders`
+
+Default value: `new HashMap<>()`
+
+Custom headers to send with WebTransport requests.
+
+```java
+Map<String, List<String>> customHeaders = new HashMap<>();
+customHeaders.put("User-Agent", Arrays.asList("MyApp/1.0"));
+customHeaders.put("X-Custom-Header", Arrays.asList("custom-value"));
+
+IO.Options options = IO.Options.builder()
+        .setWebTransportCustomHeaders(customHeaders)
+        .build();
+```
+
+#### Complete WebTransport example
+
+```java
+IO.Options options = IO.Options.builder()
+        .setTransports(new String[] { WebTransport.NAME, WebSocket.NAME, Polling.NAME })
+        .setWebTransportEnabled(true)
+        .setWebTransportConnectTimeout(30000)
+        .setWebTransportIdleTimeout(60000)
+        .setWebTransportTrustAllCertificates(false)
+        .build();
+
+Socket socket = IO.socket(URI.create("https://example.com"), options);
+```
+
+**Note:** WebTransport requires HTTPS/WSS connections and HTTP/3 support on both client and server sides. Make sure your server supports WebTransport and HTTP/3.
 
 #### `query`
 

@@ -79,7 +79,8 @@ public class SocketOptionBuilder {
                 .setPath(options.path)
                 .setQuery(options.query)
                 .setAuth(options.auth)
-                .setExtraHeaders(options.extraHeaders);
+                .setExtraHeaders(options.extraHeaders)
+                .setWebTransportOptions(options.webTransportOptions);
         }
     }
 
@@ -181,6 +182,83 @@ public class SocketOptionBuilder {
 
     public SocketOptionBuilder setExtraHeaders(Map<String, List<String>> extraHeaders) {
         this.options.extraHeaders = extraHeaders;
+        return this;
+    }
+
+    /**
+     * Sets WebTransport-specific options.
+     *
+     * @param webTransportOptions WebTransport configuration options
+     * @return this builder for method chaining
+     */
+    public SocketOptionBuilder setWebTransportOptions(Manager.Options.WebTransportOptions webTransportOptions) {
+        this.options.webTransportOptions = webTransportOptions;
+        return this;
+    }
+
+    /**
+     * Enables or disables WebTransport support.
+     *
+     * @param enabled whether to enable WebTransport
+     * @return this builder for method chaining
+     */
+    public SocketOptionBuilder setWebTransportEnabled(boolean enabled) {
+        this.options.webTransportOptions.enabled = enabled;
+        return this;
+    }
+
+    /**
+     * Sets WebTransport connection timeout.
+     *
+     * @param connectTimeout connection timeout in milliseconds
+     * @return this builder for method chaining
+     */
+    public SocketOptionBuilder setWebTransportConnectTimeout(long connectTimeout) {
+        this.options.webTransportOptions.connectTimeout = connectTimeout;
+        return this;
+    }
+
+    /**
+     * Sets WebTransport idle timeout.
+     *
+     * @param idleTimeout idle timeout in milliseconds
+     * @return this builder for method chaining
+     */
+    public SocketOptionBuilder setWebTransportIdleTimeout(long idleTimeout) {
+        this.options.webTransportOptions.idleTimeout = idleTimeout;
+        return this;
+    }
+
+    /**
+     * Sets whether to trust all SSL certificates for WebTransport (development only).
+     *
+     * @param trustAllCertificates whether to trust all certificates
+     * @return this builder for method chaining
+     */
+    public SocketOptionBuilder setWebTransportTrustAllCertificates(boolean trustAllCertificates) {
+        this.options.webTransportOptions.trustAllCertificates = trustAllCertificates;
+        return this;
+    }
+
+    /**
+     * Sets custom SSL context for WebTransport connections.
+     *
+     * @param sslContext custom SSL context
+     * @return this builder for method chaining
+     */
+    public SocketOptionBuilder setWebTransportSslContext(javax.net.ssl.SSLContext sslContext) {
+        this.options.webTransportOptions.sslContext = sslContext;
+        return this;
+    }
+
+    /**
+     * Sets custom headers for WebTransport requests.
+     *
+     * @param customHeaders custom headers map
+     * @return this builder for method chaining
+     */
+    public SocketOptionBuilder setWebTransportCustomHeaders(Map<String, List<String>> customHeaders) {
+        this.options.webTransportOptions.customHeaders = customHeaders;
         return this;
     }
 
