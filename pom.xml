@@ -69,24 +69,7 @@
       <artifactId>json</artifactId>
       <version>20090211</version>
     </dependency>
-    <!-- WebTransport support via Quiche4j -->
-    <!-- Temporarily commented out until correct dependencies are found -->
-    <!--
-    <dependency>
-      <groupId>io.quiche4j</groupId>
-      <artifactId>quiche4j</artifactId>
-      <version>0.0.1</version>
-    </dependency>
-    -->
-    <!-- Alternative: Jetty HTTP/3 client for WebTransport -->
-    <!-- Temporarily commented out until correct dependency is found -->
-    <!--
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-http3-client</artifactId>
-      <version>12.0.5</version>
-    </dependency>
-    -->
+    <!-- WebTransport support is provided by Engine.IO client dependency -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
