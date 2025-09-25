@@ -209,102 +209,93 @@ Socket socket = IO.socket(URI.create("https://example.com/order"), options);
 
 - the Socket instance is attached to the "order" Namespace
 
-### WebTransport options
+### WebTransport support
 
 WebTransport is a modern transport protocol based on HTTP/3 and QUIC that provides improved performance, reduced latency, and better handling of network conditions compared to traditional WebSocket connections.
 
-#### `webTransportEnabled`
-
-Default value: `true`
-
-Whether to enable WebTransport support. When enabled, the client will attempt to use WebTransport as one of the available transports.
+WebTransport is configured exactly like other transports - simply include it in the `transports` array:
 
 ```java
-IO.Options options = IO.Options.builder()
-        .setWebTransportEnabled(true)
-        .build();
-```
-
-#### `webTransportConnectTimeout`
-
-Default value: `30000` (30 seconds)
-
-The connection timeout for WebTransport sessions in milliseconds.
-
-```java
-IO.Options options = IO.Options.builder()
-        .setWebTransportConnectTimeout(30000)
-        .build();
-```
-
-#### `webTransportIdleTimeout`
-
-Default value: `60000` (60 seconds)
-
-The idle timeout for WebTransport sessions in milliseconds.
-
-```java
-IO.Options options = IO.Options.builder()
-        .setWebTransportIdleTimeout(60000)
-        .build();
-```
-
-#### `webTransportTrustAllCertificates`
-
-Default value: `false`
-
-Whether to trust all SSL certificates for WebTransport connections. **Use only for development purposes.**
-
-```java
-IO.Options options = IO.Options.builder()
-        .setWebTransportTrustAllCertificates(true) // Development only!
-        .build();
-```
-
-#### `webTransportSslContext`
-
-Default value: `null`
-
-Custom SSL context for WebTransport connections. If not provided, the default SSL context will be used.
-
-```java
-SSLContext sslContext = SSLContext.getDefault();
-IO.Options options = IO.Options.builder()
-        .setWebTransportSslContext(sslContext)
-        .build();
-```
-
-#### `webTransportCustomHeaders`
-
-Default value: `new HashMap<>()`
-
-Custom headers to send with WebTransport requests.
-
-```java
-Map<String, List<String>> customHeaders = new HashMap<>();
-customHeaders.put("User-Agent", Arrays.asList("MyApp/1.0"));
-customHeaders.put("X-Custom-Header", Arrays.asList("custom-value"));
+import io.socket.engineio.client.transports.WebTransport;
+import io.socket.engineio.client.transports.WebSocket;
+import io.socket.engineio.client.transports.Polling;
 
 IO.Options options = IO.Options.builder()
-        .setWebTransportCustomHeaders(customHeaders)
-        .build();
-```
-
-#### Complete WebTransport example
-
-```java
-IO.Options options = IO.Options.builder()
-        .setTransports(new String[] { WebTransport.NAME, WebSocket.NAME, Polling.NAME })
-        .setWebTransportEnabled(true)
-        .setWebTransportConnectTimeout(30000)
-        .setWebTransportIdleTimeout(60000)
-        .setWebTransportTrustAllCertificates(false)
+        .setTransports(new String[] { 
+            WebTransport.NAME,  // Try WebTransport first
+            WebSocket.NAME,     // Fall back to WebSocket
+            Polling.NAME        // Final fallback to Polling
+        })
         .build();
 
 Socket socket = IO.socket(URI.create("https://example.com"), options);
 ```
 
-**Note:** WebTransport requires HTTPS/WSS connections and HTTP/3 support on both client and server sides. Make sure your server supports WebTransport and HTTP/3.
+#### Transport-specific options (advanced)
+
+For advanced WebTransport configuration, you can provide transport-specific options:
+
+```java
+import io.socket.engineio.client.Transport;
+
+// Create WebTransport-specific options
+Transport.Options webTransportOptions = new Transport.Options();
+webTransportOptions.hostname = "127.0.0.1";  // Override hostname if needed
+webTransportOptions.port = 3000;             // Override port if needed
+webTransportOptions.secure = true;           // WebTransport requires HTTPS
+webTransportOptions.path = "/socket.io/";    // Socket.IO path
+
+// Apply transport-specific options
+IO.Options options = IO.Options.builder()
+        .setTransports(new String[] { WebTransport.NAME, WebSocket.NAME, Polling.NAME })
+        .build();
+
+// Add transport-specific options
+if (options.transportOptions == null) {
+    options.transportOptions = new HashMap<>();
+}
+options.transportOptions.put("webtransport", webTransportOptions);
+
+Socket socket = IO.socket(URI.create("https://example.com"), options);
+```
+
+#### SSL configuration for self-signed certificates (development only)
+
+For development with self-signed certificates, configure the OkHttp client:
+
+```java
+import okhttp3.OkHttpClient;
+import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+
+// Create trust-all SSL configuration (DEVELOPMENT ONLY!)
+X509TrustManager trustAllCerts = new X509TrustManager() {
+    public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+};
+
+SSLContext sslContext = SSLContext.getInstance("TLS");
+sslContext.init(null, new TrustManager[]{trustAllCerts}, new SecureRandom());
+
+OkHttpClient okHttpClient = new OkHttpClient.Builder()
+        .sslSocketFactory(sslContext.getSocketFactory(), trustAllCerts)
+        .hostnameVerifier((hostname, session) -> true)
+        .build();
+
+IO.Options options = IO.Options.builder()
+        .setTransports(new String[] { WebTransport.NAME, WebSocket.NAME, Polling.NAME })
+        .setCallFactory(okHttpClient)      // For HTTP requests
+        .setWebSocketFactory(okHttpClient) // For WebSocket connections
+        .build();
+```
+
+**Important notes:**
+- WebTransport requires HTTPS connections and HTTP/3 support on both client and server sides
+- The client will automatically fall back to WebSocket or Polling if WebTransport fails
+- WebTransport uses the same configuration approach as other transports - no special setup required
+- Only use SSL certificate bypassing in development environments
 
 #### `query`
 

@@ -569,44 +569,5 @@ public class Manager extends Emitter {
          */
         public long timeout = 20000;
 
-        /**
-         * WebTransport-specific options.
-         */
-        public WebTransportOptions webTransportOptions = new WebTransportOptions();
-
-        /**
-         * WebTransport configuration options.
-         */
-        public static class WebTransportOptions {
-            /**
-             * Whether to enable WebTransport support.
-             */
-            public boolean enabled = true;
-
-            /**
-             * WebTransport connection timeout in milliseconds.
-             */
-            public long connectTimeout = 30000;
-
-            /**
-             * WebTransport idle timeout in milliseconds.
-             */
-            public long idleTimeout = 60000;
-
-            /**
-             * Whether to trust all SSL certificates (for development only).
-             */
-            public boolean trustAllCertificates = false;
-
-            /**
-             * Custom SSL context factory for WebTransport connections.
-             */
-            public javax.net.ssl.SSLContext sslContext;
-
-            /**
-             * Custom headers to send with WebTransport requests.
-             */
-            public Map<String, List<String>> customHeaders = new HashMap<>();
-        }
     }
 }

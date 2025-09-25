@@ -13,30 +13,42 @@ This example demonstrates how to use WebTransport with the Socket.IO Java client
 ```java
 import io.socket.client.IO;
 import io.socket.client.Socket;
-import io.socket.client.SocketOptionBuilder;
-import io.socket.client.WebTransport;
+import io.socket.emitter.Emitter;
+import io.socket.engineio.client.transports.Polling;
+import io.socket.engineio.client.transports.WebSocket;
+import io.socket.engineio.client.transports.WebTransport;
 
 import java.net.URI;
 
 public class WebTransportExample {
+    private static volatile String currentTransportName = null;
+    
     public static void main(String[] args) {
         // Create Socket.IO options with WebTransport enabled
-        IO.Options options = SocketOptionBuilder.builder()
-                .setTransports(new String[] { WebTransport.NAME, "websocket", "polling" })
-                .setWebTransportEnabled(true)
-                .setWebTransportConnectTimeout(30000)
-                .setWebTransportIdleTimeout(60000)
-                .setWebTransportTrustAllCertificates(false) // Set to true for development only
+        IO.Options options = IO.Options.builder()
+                .setTransports(new String[] { WebTransport.NAME, WebSocket.NAME, Polling.NAME })
                 .build();
 
         // Create socket connection
         Socket socket = IO.socket(URI.create("https://localhost:3000"), options);
 
+        // Listen for transport events to track current transport
+        socket.io().on("transport", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                if (args.length > 0 && args[0] instanceof io.socket.engineio.client.Transport) {
+                    io.socket.engineio.client.Transport transport = (io.socket.engineio.client.Transport) args[0];
+                    currentTransportName = transport.name;
+                    System.out.println("Transport event: " + currentTransportName);
+                }
+            }
+        });
+
         // Set up event listeners
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                System.out.println("Connected with transport: " + socket.io().engine.transport.name);
+                System.out.println("Connected with transport: " + currentTransportName);
             }
         });
 
@@ -60,48 +72,93 @@ public class WebTransportExample {
 }
 ```
 
+## SSL Configuration for Development
+
+When working with self-signed certificates in development, you need to configure the OkHttp client to trust all certificates:
+
+```java
+import io.socket.client.IO;
+import io.socket.client.Socket;
+import io.socket.engineio.client.transports.WebTransport;
+import io.socket.engineio.client.transports.WebSocket;
+import io.socket.engineio.client.transports.Polling;
+import okhttp3.OkHttpClient;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.net.URI;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
+
+public class WebTransportDevelopmentExample {
+    public static void main(String[] args) throws Exception {
+        // Create trust-all SSL configuration (DEVELOPMENT ONLY!)
+        X509TrustManager trustAllCerts = new X509TrustManager() {
+            public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+        };
+
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new TrustManager[]{trustAllCerts}, new SecureRandom());
+
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .sslSocketFactory(sslContext.getSocketFactory(), trustAllCerts)
+                .hostnameVerifier((hostname, session) -> true)
+                .build();
+
+        IO.Options options = IO.Options.builder()
+                .setTransports(new String[] { WebTransport.NAME, WebSocket.NAME, Polling.NAME })
+                .setCallFactory(okHttpClient)      // For HTTP requests
+                .setWebSocketFactory(okHttpClient) // For WebSocket connections
+                .build();
+
+        Socket socket = IO.socket(URI.create("https://localhost:3000"), options);
+        
+        // Rest of your socket code...
+        socket.connect();
+    }
+}
+```
+
 ## Advanced WebTransport Configuration
 
 ```java
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.client.SocketOptionBuilder;
-import io.socket.client.WebTransport;
+import io.socket.engineio.client.transports.WebTransport;
+import io.socket.engineio.client.transports.WebSocket;
+import io.socket.engineio.client.transports.Polling;
 
-import javax.net.ssl.SSLContext;
 import java.net.URI;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Arrays;
 
 public class AdvancedWebTransportExample {
     public static void main(String[] args) {
-        // Create custom SSL context (optional)
-        SSLContext sslContext = null;
-        try {
-            sslContext = SSLContext.getDefault();
-        } catch (Exception e) {
-            System.err.println("Failed to create SSL context: " + e.getMessage());
-        }
 
-        // Create custom headers
-        Map<String, java.util.List<String>> customHeaders = new HashMap<>();
-        customHeaders.put("User-Agent", Arrays.asList("MyApp/1.0"));
-        customHeaders.put("X-Custom-Header", Arrays.asList("custom-value"));
-
-        // Create Socket.IO options with advanced WebTransport configuration
+        // Create Socket.IO options with advanced configuration
         IO.Options options = SocketOptionBuilder.builder()
                 .setTransports(new String[] { WebTransport.NAME, "websocket", "polling" })
-                .setWebTransportEnabled(true)
-                .setWebTransportConnectTimeout(45000)  // 45 seconds
-                .setWebTransportIdleTimeout(120000)    // 2 minutes
-                .setWebTransportTrustAllCertificates(false)
-                .setWebTransportSslContext(sslContext)
-                .setWebTransportCustomHeaders(customHeaders)
                 .setReconnection(true)
                 .setReconnectionAttempts(5)
                 .setReconnectionDelay(2000)
                 .build();
+        
+        // Configure WebTransport-specific options (advanced)
+        if (options.transportOptions == null) {
+            options.transportOptions = new HashMap<>();
+        }
+        
+        io.socket.engineio.client.Transport.Options webTransportOptions = 
+            new io.socket.engineio.client.Transport.Options();
+        webTransportOptions.hostname = "example.com";  // Override hostname if needed
+        webTransportOptions.port = 443;               // Override port if needed
+        webTransportOptions.secure = true;            // WebTransport requires HTTPS
+        webTransportOptions.path = "/socket.io/";     // Socket.IO path
+        
+        options.transportOptions.put("webtransport", webTransportOptions);
 
         // Create socket connection
         Socket socket = IO.socket(URI.create("https://example.com"), options);
@@ -170,7 +227,7 @@ If you want to use only WebTransport (no fallback to other transports):
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.client.SocketOptionBuilder;
-import io.socket.client.WebTransport;
+import io.socket.engineio.client.transports.WebTransport;
 
 import java.net.URI;
 
@@ -179,10 +236,6 @@ public class WebTransportOnlyExample {
         // Create options with only WebTransport
         IO.Options options = SocketOptionBuilder.builder()
                 .setTransports(new String[] { WebTransport.NAME })
-                .setWebTransportEnabled(true)
-                .setWebTransportConnectTimeout(30000)
-                .setWebTransportIdleTimeout(60000)
-                .setWebTransportTrustAllCertificates(true) // Development only
                 .build();
 
         // Create socket connection
@@ -223,7 +276,7 @@ public class WebTransportOnlyExample {
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.client.SocketOptionBuilder;
-import io.socket.client.WebTransport;
+import io.socket.engineio.client.transports.WebTransport;
 
 import java.net.URI;
 
@@ -231,10 +284,6 @@ public class WebTransportErrorHandling {
     public static void main(String[] args) {
         IO.Options options = SocketOptionBuilder.builder()
                 .setTransports(new String[] { WebTransport.NAME, "websocket", "polling" })
-                .setWebTransportEnabled(true)
-                .setWebTransportConnectTimeout(10000) // Short timeout for testing
-                .setWebTransportIdleTimeout(30000)
-                .setWebTransportTrustAllCertificates(false)
                 .build();
 
         Socket socket = IO.socket(URI.create("https://localhost:3000"), options);
