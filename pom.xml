@@ -69,7 +69,6 @@
       <artifactId>json</artifactId>
       <version>20090211</version>
     </dependency>
-    <!-- WebTransport support is provided by Engine.IO client dependency -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

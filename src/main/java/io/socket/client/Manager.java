@@ -568,6 +568,5 @@ public class Manager extends Emitter {
          * Connection timeout (ms). Set -1 to disable.
          */
         public long timeout = 20000;
-
     }
 }

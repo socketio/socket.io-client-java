@@ -184,13 +184,6 @@ public class SocketOptionBuilder {
         return this;
     }
 
-
-
-
-
-
-
-
     /**
      * Finally retrieve {@link io.socket.client.IO.Options} object
      * from this builder.
