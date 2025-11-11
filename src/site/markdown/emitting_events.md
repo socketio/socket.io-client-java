@@ -71,6 +71,23 @@ object.put("test", "42");
 socket.emit("hello", 1, "2", bytes, object);
 ```
 
+### Common pitfall: stringified JSON
+
+If you intend to send structured data, do not pass a JSON-looking string like `"{me: 1449240991}"`. Send a `JSONObject` (or `JSONArray`) instead. Strings will be delivered as plain strings on the server.
+
+Client (wrong):
+
+```java
+socket.emit("authentication", "{me: 1449240991}"); // sent as a String, not an object
+```
+
+Client (correct):
+
+```java
+JSONObject payload = new JSONObject().put("me", 1449240991);
+socket.emit("authentication", payload);
+```
+
 ## Acknowledgements
 
 Events are great, but in some cases you may want a more classic request-response API. In Socket.IO, this feature is named acknowledgements.

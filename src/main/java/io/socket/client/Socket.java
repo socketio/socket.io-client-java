@@ -201,6 +201,21 @@ public class Socket extends Emitter {
         EventThread.exec(new Runnable() {
             @Override
             public void run() {
+                // warn if any argument is a JSON-looking string (common pitfall)
+                if (args != null) {
+                    for (Object arg : args) {
+                        if (arg instanceof CharSequence) {
+                            String s = arg.toString().trim();
+                            boolean looksLikeJsonObject = s.startsWith("{") && s.endsWith("}");
+                            boolean looksLikeJsonArray = s.startsWith("[") && s.endsWith("]");
+                            if (looksLikeJsonObject || looksLikeJsonArray) {
+                                logger.warning("Emitting a JSON-looking string. If you intend to send structured data, pass a JSONObject/JSONArray instead of a string.");
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 JSONArray jsonArgs = new JSONArray();
                 jsonArgs.put(event);
 
