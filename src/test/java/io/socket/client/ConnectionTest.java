@@ -16,12 +16,13 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 @RunWith(JUnit4.class)
 public class ConnectionTest extends Connection {
@@ -76,7 +77,6 @@ public class ConnectionTest extends Connection {
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                socket.emit("callAck");
                 socket.on("ack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
@@ -103,6 +103,7 @@ public class ConnectionTest extends Connection {
                         }
                     }
                 });
+                socket.emit("callAck");
             }
         });
         socket.connect();
@@ -156,14 +157,14 @@ public class ConnectionTest extends Connection {
                 socket.on("ackBack", new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
-                        byte[] data = (byte[])args[0];
+                        byte[] data = (byte[]) args[0];
                         values.offer(data);
                     }
                 });
             }
         });
         socket.connect();
-        Assert.assertArrayEquals(buf, (byte[])values.take());
+        Assert.assertArrayEquals(buf, (byte[]) values.take());
         socket.close();
     }
 
@@ -180,13 +181,13 @@ public class ConnectionTest extends Connection {
 
                     @Override
                     public void call(Object... args) {
-                       values.offer(args[0]);
+                        values.offer(args[0]);
                     }
                 });
             }
         });
         socket.connect();
-        Assert.assertArrayEquals(buf, (byte[])values.take());
+        Assert.assertArrayEquals(buf, (byte[]) values.take());
         socket.close();
     }
 
@@ -207,19 +208,19 @@ public class ConnectionTest extends Connection {
             }
         });
         socket.connect();
-        assertThat((Boolean)values.take(), is(false));
+        assertThat((Boolean) values.take(), is(false));
         socket.close();
     }
 
     @Test(timeout = TIMEOUT)
     public void receiveUTF8MultibyteCharacters() throws InterruptedException {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
-        final String[] correct = new String[] {
-            "てすと",
-            "Я Б Г Д Ж Й",
-            "Ä ä Ü ü ß",
-            "utf8 — string",
-            "utf8 — string"
+        final String[] correct = new String[]{
+                "てすと",
+                "Я Б Г Д Ж Й",
+                "Ä ä Ü ü ß",
+                "utf8 — string",
+                "utf8 — string"
         };
 
         socket = client();
@@ -239,7 +240,7 @@ public class ConnectionTest extends Connection {
         });
         socket.connect();
         for (String expected : correct) {
-            assertThat((String)values.take(), is(expected));
+            assertThat((String) values.take(), is(expected));
         }
         socket.close();
     }
@@ -390,7 +391,7 @@ public class ConnectionTest extends Connection {
         manager.once(Manager.EVENT_RECONNECT_FAILED, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                final int[] reconnects = new int[] {0};
+                final int[] reconnects = new int[]{0};
                 Emitter.Listener reconnectCb = new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
@@ -409,7 +410,7 @@ public class ConnectionTest extends Connection {
             }
         });
         socket.connect();
-        assertThat((Integer)values.take(), is(2));
+        assertThat((Integer) values.take(), is(2));
         socket.close();
         manager.close();
     }
@@ -426,10 +427,10 @@ public class ConnectionTest extends Connection {
         final Manager manager = new Manager(uri(), opts);
         socket = manager.socket("/timeout");
 
-        final int[] reconnects = new int[] {0};
-        final boolean[] increasingDelay = new boolean[] {true};
-        final long[] startTime = new long[] {0};
-        final long[] prevDelay = new long[] {0};
+        final int[] reconnects = new int[]{0};
+        final boolean[] increasingDelay = new boolean[]{true};
+        final long[] startTime = new long[]{0};
+        final long[] prevDelay = new long[]{0};
 
         manager.on(Manager.EVENT_ERROR, new Emitter.Listener() {
             @Override
@@ -490,7 +491,7 @@ public class ConnectionTest extends Connection {
             }
         });
         socket.connect();
-        assertThat((Boolean)values.take(), is(true));
+        assertThat((Boolean) values.take(), is(true));
     }
 
     @Test(timeout = TIMEOUT)
@@ -631,7 +632,7 @@ public class ConnectionTest extends Connection {
         opts.reconnectionDelay = 10;
         final Manager manager = new Manager(URI.create("http://localhost:3940"), opts);
         socket = manager.socket("/asd");
-        final int[] reconnects = new int[] {0};
+        final int[] reconnects = new int[]{0};
         Emitter.Listener cb = new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
@@ -649,7 +650,7 @@ public class ConnectionTest extends Connection {
         });
 
         socket.open();
-        assertThat((Integer)values.take(), is(2));
+        assertThat((Integer) values.take(), is(2));
         socket.close();
         manager.close();
     }
@@ -664,7 +665,7 @@ public class ConnectionTest extends Connection {
         opts.reconnectionDelay = 10;
         final Manager manager = new Manager(uri(), opts);
 
-        final int[] reconnects = new int[] {0};
+        final int[] reconnects = new int[]{0};
         Emitter.Listener reconnectCb = new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
@@ -684,7 +685,7 @@ public class ConnectionTest extends Connection {
 
         socket = manager.socket("/timeout");
         socket.open();
-        assertThat((Integer)values.take(), is(2));
+        assertThat((Integer) values.take(), is(2));
     }
 
     @Test(timeout = TIMEOUT)
@@ -733,7 +734,7 @@ public class ConnectionTest extends Connection {
         final Manager manager = new Manager(uri(), opts);
         socket = manager.socket("/timeout_socket");
 
-        final int[] reconnects = new int[] {0};
+        final int[] reconnects = new int[]{0};
         Emitter.Listener reconnectCb = new Emitter.Listener() {
             @Override
             public void call(Object... args) {
@@ -752,8 +753,8 @@ public class ConnectionTest extends Connection {
             }
         });
         socket.open();
-        assertThat((Integer)values.take(), is(reconnects[0]));
-        assertThat((Integer)values.take(), is(2));
+        assertThat((Integer) values.take(), is(reconnects[0]));
+        assertThat((Integer) values.take(), is(2));
     }
 
     @Test(timeout = TIMEOUT)
@@ -768,7 +769,7 @@ public class ConnectionTest extends Connection {
         final Manager manager = new Manager(uri(), opts);
         socket = manager.socket("/timeout_socket");
 
-        final int[] reconnects = new int[] {0};
+        final int[] reconnects = new int[]{0};
         Emitter.Listener reconnectCb = new Emitter.Listener() {
             @Override
             public void call(Object... args) {
@@ -787,8 +788,8 @@ public class ConnectionTest extends Connection {
             }
         });
         socket.open();
-        assertThat((Integer)values.take(), is(reconnects[0]));
-        assertThat((Integer)values.take(), is(2));
+        assertThat((Integer) values.take(), is(reconnects[0]));
+        assertThat((Integer) values.take(), is(2));
     }
 
     @Test(timeout = TIMEOUT)
@@ -837,7 +838,7 @@ public class ConnectionTest extends Connection {
         socket.connect();
         Object data = values.take();
         assertThat(data, instanceOf(JSONObject.class));
-        assertThat(((JSONObject)data).get("date"), instanceOf(String.class));
+        assertThat(((JSONObject) data).get("date"), instanceOf(String.class));
         socket.close();
     }
 
@@ -860,7 +861,7 @@ public class ConnectionTest extends Connection {
             }
         });
         socket.open();
-        assertThat((byte[])values.take(), is(buf));
+        assertThat((byte[]) values.take(), is(buf));
         socket.close();
     }
 
@@ -890,9 +891,9 @@ public class ConnectionTest extends Connection {
             }
         });
         socket.open();
-        JSONObject a = (JSONObject)values.take();
+        JSONObject a = (JSONObject) values.take();
         assertThat(a.getString("hello"), is("lol"));
-        assertThat((byte[])a.get("message"), is(buf));
+        assertThat((byte[]) a.get("message"), is(buf));
         assertThat(a.getString("goodbye"), is("gotcha"));
         socket.close();
     }
@@ -917,8 +918,74 @@ public class ConnectionTest extends Connection {
             }
         });
         socket.open();
-        assertThat((byte[])values.take(), is(buf));
-        assertThat((String)values.take(), is("please arrive second"));
+        assertThat((byte[]) values.take(), is(buf));
+        assertThat((String) values.take(), is("please arrive second"));
         socket.close();
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void shouldReceiveBufferedEventAfterReconnect() throws InterruptedException {
+        final BlockingQueue<String> events = new LinkedBlockingQueue<>();
+
+        socket = client();
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                if (!socket.isRecovered()) {
+                    events.offer("first-connect");
+                    // Tell server to start buffering scenario
+                    socket.emit("startBufferTest");
+
+                    // Disconnect engine after 1 second
+                    Timer timer = new Timer();
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            socket.io().engine.close();
+                        }
+                    }, 1000);
+                } else {
+                    // Reconnected with recovery
+                    events.offer("reconnected");
+                }
+            }
+        });
+
+        socket.on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                events.offer("disconnected");
+                // Reconnect after 2 seconds
+                Timer timer = new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        socket.connect();
+                    }
+                }, 2000);
+            }
+        });
+
+        socket.on("message", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                if (args[0] instanceof JSONObject) {
+                    JSONObject data = (JSONObject) args[0];
+                    String text = data.optString("text");
+                    events.offer(text);
+                }
+            }
+        });
+
+        socket.connect();
+
+        // Verify sequence
+        assertEquals("first-connect", events.poll(TIMEOUT, TimeUnit.MILLISECONDS));
+        assertEquals("disconnected", events.poll(TIMEOUT, TimeUnit.MILLISECONDS));
+        assertEquals("buffered-message", events.poll(TIMEOUT, TimeUnit.MILLISECONDS));
+        assertEquals("reconnected", events.poll(TIMEOUT, TimeUnit.MILLISECONDS));
+
+        assertTrue("Should have recovered session", socket.isRecovered());
+        assertNotNull("Should have tracked offset", socket.getLastOffset());
     }
 }

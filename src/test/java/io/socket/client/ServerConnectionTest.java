@@ -43,8 +43,8 @@ public class ServerConnectionTest extends Connection {
         });
         socket.connect();
 
-        assertThat(((Object[])values.take()).length, is(0));
-        Object[] args = (Object[] )values.take();
+        assertThat(((Object[]) values.take()).length, is(0));
+        Object[] args = (Object[]) values.take();
         assertThat(args.length, is(1));
         assertThat(args[0], is(instanceOf(String.class)));
     }
@@ -67,8 +67,8 @@ public class ServerConnectionTest extends Connection {
         });
         socket.connect();
 
-        assertThat((Object[])values.take(), is(new Object[] {"hello client"}));
-        assertThat((Object[])values.take(), is(new Object[] {"foo", "bar"}));
+        assertThat(stripOffset((Object[]) values.take()), is(new Object[]{"hello client"}));
+        assertThat(stripOffset((Object[]) values.take()), is(new Object[]{"foo", "bar"}));
         socket.disconnect();
     }
 
@@ -93,11 +93,12 @@ public class ServerConnectionTest extends Connection {
         });
         socket.connect();
 
-        Object[] args = (Object[])values.take();
+        Object[] args = (Object[]) values.take();
+        args = stripOffset(args);
         assertThat(args.length, is(3));
         assertThat(args[0].toString(), is(obj.toString()));
         assertThat(args[1], is(nullValue()));
-        assertThat((String)args[2], is("bar"));
+        assertThat((String) args[2], is("bar"));
         socket.disconnect();
     }
 
@@ -112,7 +113,7 @@ public class ServerConnectionTest extends Connection {
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
             @Override
             public void call(Object... objects) {
-                socket.emit("ack", new Object[] {obj, "bar"}, new Ack() {
+                socket.emit("ack", new Object[]{obj, "bar"}, new Ack() {
                     @Override
                     public void call(Object... args) {
                         values.offer(args);
@@ -122,10 +123,10 @@ public class ServerConnectionTest extends Connection {
         });
         socket.connect();
 
-        Object[] args = (Object[])values.take();
+        Object[] args = (Object[]) values.take();
         assertThat(args.length, is(2));
         assertThat(args[0].toString(), is(obj.toString()));
-        assertThat((String)args[1], is("bar"));
+        assertThat((String) args[1], is("bar"));
         socket.disconnect();
     }
 
@@ -147,7 +148,7 @@ public class ServerConnectionTest extends Connection {
         });
         socket.connect();
 
-        assertThat((Integer)values.take(), is(0));
+        assertThat((Integer) values.take(), is(0));
         socket.disconnect();
     }
 
@@ -163,7 +164,7 @@ public class ServerConnectionTest extends Connection {
                     @Override
                     public void call(Object... args) {
                         values.offer(args);
-                        Ack ack = (Ack)args[0];
+                        Ack ack = (Ack) args[0];
                         ack.call();
                     }
                 }).on("ackBack", new Emitter.Listener() {
@@ -178,10 +179,12 @@ public class ServerConnectionTest extends Connection {
         });
         socket.connect();
 
-        Object[] args = (Object[])values.take();
+        Object[] args = (Object[]) values.take();
+        args = stripOffset(args);
         assertThat(args.length, is(1));
         assertThat(args[0], is(instanceOf(Ack.class)));
-        args = (Object[])values.take();
+        args = (Object[]) values.take();
+        args = stripOffset(args);
         assertThat(args.length, is(0));
         socket.disconnect();
     }
@@ -233,9 +236,10 @@ public class ServerConnectionTest extends Connection {
         });
         socket.connect();
 
-        Object[] args = (Object[])values.take();
+        Object[] args = (Object[]) values.take();
+        args = stripOffset(args);
         assertThat(args.length, is(1));
-        assertThat((String)args[0], is("hi"));
+        assertThat((String) args[0], is("hi"));
         socket.disconnect();
         socket2.disconnect();
     }
@@ -258,9 +262,10 @@ public class ServerConnectionTest extends Connection {
         });
         socket.connect();
 
-        Object[] args = (Object[])values.take();
+        Object[] args = (Object[]) values.take();
+        args = stripOffset(args);
         assertThat(args.length, is(1));
-        assertThat((String)args[0], is("hi"));
+        assertThat((String) args[0], is("hi"));
         socket.disconnect();
     }
 
@@ -269,24 +274,24 @@ public class ServerConnectionTest extends Connection {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         IO.Options opts = createOptions();
-        opts.transports = new String[] {Polling.NAME};
+        opts.transports = new String[]{Polling.NAME};
         socket = client(opts);
         socket.io().on(Manager.EVENT_TRANSPORT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                Transport transport = (Transport)args[0];
+                Transport transport = (Transport) args[0];
                 transport.on(Transport.EVENT_REQUEST_HEADERS, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         @SuppressWarnings("unchecked")
-                        Map<String, List<String>> headers = (Map<String, List<String>>)args[0];
+                        Map<String, List<String>> headers = (Map<String, List<String>>) args[0];
                         headers.put("X-SocketIO", Arrays.asList("hi"));
                     }
                 }).on(Transport.EVENT_RESPONSE_HEADERS, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         @SuppressWarnings("unchecked")
-                        Map<String, List<String>> headers = (Map<String, List<String>>)args[0];
+                        Map<String, List<String>> headers = (Map<String, List<String>>) args[0];
                         List<String> value = headers.get("X-SocketIO");
                         values.offer(value != null ? value.get(0) : "");
                     }
@@ -295,7 +300,7 @@ public class ServerConnectionTest extends Connection {
         });
         socket.open();
 
-        assertThat((String)values.take(), is("hi"));
+        assertThat((String) values.take(), is("hi"));
         socket.close();
     }
 
@@ -304,24 +309,24 @@ public class ServerConnectionTest extends Connection {
         final BlockingQueue<Object> values = new LinkedBlockingQueue<>();
 
         IO.Options opts = createOptions();
-        opts.transports = new String[] {WebSocket.NAME};
+        opts.transports = new String[]{WebSocket.NAME};
         socket = client(opts);
         socket.io().on(Manager.EVENT_TRANSPORT, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                Transport transport = (Transport)args[0];
+                Transport transport = (Transport) args[0];
                 transport.on(Transport.EVENT_REQUEST_HEADERS, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         @SuppressWarnings("unchecked")
-                        Map<String, List<String>> headers = (Map<String, List<String>>)args[0];
+                        Map<String, List<String>> headers = (Map<String, List<String>>) args[0];
                         headers.put("X-SocketIO", Arrays.asList("hi"));
                     }
                 }).on(Transport.EVENT_RESPONSE_HEADERS, new Emitter.Listener() {
                     @Override
                     public void call(Object... args) {
                         @SuppressWarnings("unchecked")
-                        Map<String, List<String>> headers = (Map<String, List<String>>)args[0];
+                        Map<String, List<String>> headers = (Map<String, List<String>>) args[0];
                         List<String> value = headers.get("X-SocketIO");
                         values.offer(value != null ? value.get(0) : "");
                     }
@@ -330,7 +335,7 @@ public class ServerConnectionTest extends Connection {
         });
         socket.open();
 
-        assertThat((String)values.take(), is("hi"));
+        assertThat((String) values.take(), is("hi"));
         socket.close();
     }
 
@@ -351,6 +356,10 @@ public class ServerConnectionTest extends Connection {
             }
         });
         socket.connect();
-        assertThat((String)values.take(), is("disconnected"));
+        assertThat((String) values.take(), is("disconnected"));
+    }
+
+    private Object[] stripOffset(Object[] args) {
+        return args.length > 0 && args[args.length - 1] instanceof String ? Arrays.copyOf(args, args.length - 1) : args;
     }
 }

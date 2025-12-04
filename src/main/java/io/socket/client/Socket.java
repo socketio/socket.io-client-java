@@ -59,10 +59,15 @@ public class Socket extends Emitter {
     private int ids;
     private final String nsp;
     private final Manager io;
-    private final Map<String, String> auth;
+    private final JSONObject auth;
+
+    private String _pid = null;
+    private String _lastOffset = null;
+    private boolean recovered = false;
+
     private final Map<Integer, Ack> acks = new ConcurrentHashMap<>();
     private Queue<On.Handle> subs;
-    private final Queue<List<Object>> receiveBuffer = new ConcurrentLinkedQueue<>();
+    private final Queue<Packet<JSONArray>> receiveBuffer = new ConcurrentLinkedQueue<>();
     private final Queue<Packet<JSONArray>> sendBuffer = new ConcurrentLinkedQueue<>();
 
     private final ConcurrentLinkedQueue<Listener> onAnyIncomingListeners = new ConcurrentLinkedQueue<>();
@@ -156,7 +161,7 @@ public class Socket extends Emitter {
      * Emits an event. When you pass {@link Ack} at the last argument, then the acknowledge is done.
      *
      * @param event an event name.
-     * @param args data to send.
+     * @param args  data to send.
      * @return a reference to this object.
      */
     @Override
@@ -183,7 +188,7 @@ public class Socket extends Emitter {
                     ack = null;
                 }
 
-                emit(event, _args, ack);
+                Socket.this.emit(event, _args, ack);
             }
         });
         return this;
@@ -193,8 +198,8 @@ public class Socket extends Emitter {
      * Emits an event with an acknowledge.
      *
      * @param event an event name
-     * @param args data to send.
-     * @param ack the acknowledgement to be called
+     * @param args  data to send.
+     * @param ack   the acknowledgement to be called
      * @return a reference to this object.
      */
     public Emitter emit(final String event, final Object[] args, final Ack ack) {
@@ -268,8 +273,23 @@ public class Socket extends Emitter {
     private void onopen() {
         logger.fine("transport is open - connecting");
 
-        if (this.auth != null) {
-            this.packet(new Packet<>(Parser.CONNECT, new JSONObject(this.auth)));
+        JSONObject auth = this.auth;
+
+        if (_pid != null && _lastOffset != null) {
+            // Reconnection - add recovery data
+            try {
+                if (auth == null) {
+                    auth = new JSONObject();
+                }
+                auth.put("pid", _pid);
+                auth.put("offset", String.valueOf(_lastOffset));
+            } catch (JSONException e) {
+                logger.warning(e.getMessage());
+            }
+        }
+
+        if (auth != null) {
+            this.packet(new Packet<>(Parser.CONNECT, auth));
         } else {
             this.packet(new Packet<>(Parser.CONNECT));
         }
@@ -304,11 +324,19 @@ public class Socket extends Emitter {
 
         switch (packet.type) {
             case Parser.CONNECT: {
-                if (packet.data instanceof JSONObject && ((JSONObject) packet.data).has("sid")) {
+                if (packet.data instanceof JSONObject) {
+                    JSONObject data = (JSONObject) packet.data;
                     try {
-                        this.onconnect(((JSONObject) packet.data).getString("sid"));
-                        return;
-                    } catch (JSONException e) {}
+                        if (data.has("pid") && data.has("sid")) {
+                            this.onconnect(data.getString("sid"), data.getString("pid"));
+                            return;
+                        } else if (data.has("sid")) {
+                            this.onconnect(data.getString("sid"));
+                            return;
+                        }
+                    } catch (JSONException e) {
+                        logger.warning(e.getMessage());
+                    }
                 } else {
                     super.emit(EVENT_CONNECT_ERROR, new SocketIOException("It seems you are trying to reach a Socket.IO server in v2.x with a v3.x client, which is not possible"));
                 }
@@ -363,8 +391,12 @@ public class Socket extends Emitter {
             }
             String event = args.remove(0).toString();
             super.emit(event, args.toArray());
+            // Update offset if present
+            if (this._pid != null && args.get(args.size() - 1) instanceof String) {
+                _lastOffset = (String) args.get(args.size() - 1);
+            }
         } else {
-            this.receiveBuffer.add(args);
+            this.receiveBuffer.add(packet);
         }
     }
 
@@ -411,18 +443,27 @@ public class Socket extends Emitter {
         }
     }
 
-    private void onconnect(String id) {
+    private void onconnect(String sid) {
         this.connected = true;
-        this.id = id;
+        this.id = sid;
+        this.recovered = false;
+        this.emitBuffered();
+        super.emit(EVENT_CONNECT);
+    }
+
+    private void onconnect(String sid, String pid) {
+        this.connected = true;
+        this.id = sid;
+        this.recovered = pid != null && pid.equals(_pid);
+        this._pid = pid;
         this.emitBuffered();
         super.emit(EVENT_CONNECT);
     }
 
     private void emitBuffered() {
-        List<Object> data;
+        Packet<JSONArray> data;
         while ((data = this.receiveBuffer.poll()) != null) {
-            String event = (String)data.get(0);
-            super.emit(event, data.toArray());
+            onevent(data);
         }
         this.receiveBuffer.clear();
 
@@ -437,6 +478,7 @@ public class Socket extends Emitter {
         if (logger.isLoggable(Level.FINE)) {
             logger.fine(String.format("server disconnect (%s)", this.nsp));
         }
+        recovered = false;
         this.destroy();
         this.onclose("io server disconnect");
     }
@@ -498,7 +540,7 @@ public class Socket extends Emitter {
 
     /**
      * A property on the socket instance that is equal to the underlying engine.io socket id.
-     *
+     * <p>
      * The value is present once the socket has connected, is removed when the socket disconnects and is updated if the socket reconnects.
      *
      * @return a socket id
@@ -565,6 +607,14 @@ public class Socket extends Emitter {
             }
         }
         return this;
+    }
+
+    public String getLastOffset() {
+        return this._lastOffset;
+    }
+
+    public boolean isRecovered() {
+        return recovered;
     }
 }
 

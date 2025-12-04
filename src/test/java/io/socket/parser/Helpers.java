@@ -11,7 +11,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-@RunWith(JUnit4.class)
+//@RunWith(JUnit4.class)
 public class Helpers {
 
     private static Parser.Encoder encoder = new IOParser.Encoder();

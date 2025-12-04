@@ -1,5 +1,7 @@
 package io.socket.client;
 
+import org.json.JSONObject;
+
 import java.util.List;
 import java.util.Map;
 
@@ -174,7 +176,7 @@ public class SocketOptionBuilder {
         return this;
     }
 
-    public SocketOptionBuilder setAuth(Map<String, String> auth) {
+    public SocketOptionBuilder setAuth(JSONObject auth) {
         this.options.auth = auth;
         return this;
     }

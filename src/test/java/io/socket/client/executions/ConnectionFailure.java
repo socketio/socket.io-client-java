@@ -10,8 +10,7 @@ import java.net.URISyntaxException;
 public class ConnectionFailure {
 
     public static void main(String[] args) throws URISyntaxException {
-        int port = Integer.parseInt(System.getenv("PORT"));
-        port++;
+        int port = 60_000;
         IO.Options options = new IO.Options();
         options.forceNew = true;
         options.reconnection = false;

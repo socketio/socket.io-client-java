@@ -9,6 +9,7 @@ import io.socket.parser.Parser;
 import io.socket.thread.EventThread;
 import okhttp3.Call;
 import okhttp3.WebSocket;
+import org.json.JSONObject;
 
 import java.net.URI;
 import java.util.*;
@@ -78,7 +79,7 @@ public class Manager extends Emitter {
     private final List<Packet> packetBuffer = new ArrayList<>();
     private final Queue<On.Handle> subs = new LinkedList<>();;
     private final Options opts;
-    /*package*/ io.socket.engineio.client.Socket engine;
+    public io.socket.engineio.client.Socket engine;
     private final Parser.Encoder encoder;
     private final Parser.Decoder decoder;
 
@@ -445,7 +446,7 @@ public class Manager extends Emitter {
         this.decoder.destroy();
     }
 
-    /*package*/ void close() {
+    public void close() {
         logger.fine("disconnect");
         this.skipReconnect = true;
         this.reconnecting = false;
@@ -562,7 +563,7 @@ public class Manager extends Emitter {
         public double randomizationFactor;
         public Parser.Encoder encoder;
         public Parser.Decoder decoder;
-        public Map<String, String> auth;
+        public JSONObject auth;
 
         /**
          * Connection timeout (ms). Set -1 to disable.
